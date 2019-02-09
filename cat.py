@@ -10,6 +10,7 @@ from matplotlib.path import Path
 #1) dom(f_1) = dom(g_1)
 #2) codom(f_n) = codom(g_m)
 #3) codom(f_i) = dom(f_{i-1})
+#asd
 
 
 
