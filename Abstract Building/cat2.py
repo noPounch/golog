@@ -112,11 +112,15 @@ class category:
         #4) Set commDiag
         self.commDiags.append(commDiag(fList,gList))
 
-    def hom(A,B):
+    def hom(self,A,B):
         #1) Check A, B are objects of Cat
         if A not in self.objects or B not in self.object:
             raise Exception("On of the objects is not in category")
             return
+
+        return Hom[A.index][B.index]
+
+
 
 
 
@@ -124,12 +128,38 @@ class category:
 
         #3) Return HOM[i_A,i_B]
 
+    def compose(self,fList):
+
+        #0) Check if morphisms are in C.Morphisms
+        if not set(fList) <= set(self.morphisms):
+            raise Exception("One of the morphisms is not in the Category")
+            return
+
+        #1) Check if composition has been defined, return if so
+        for comm in self.commDiags:
+            if fList == comm.fList:
+                if len(comm.gList) == 1:
+                    return comm.gList[0]
+            elif fList == comm.gList:
+                if len(comm.flist) == 1:
+                    return comm.flist[0]
+        #2) If not, formally compose, add to commDiags and return
+            else:
+                complabel = " o ".join([f.label for f in fList]) #formal label
+                compf = self.addMorphism(fList[-1].domain, fList[0].codomain, complabel) #formal composition
+                self.addCommDiag(fList,[compf]) #add to commDiags
+
+
+
 #completes composition in category.
 def completeCat(C):
     if not isinstance(C, Category):
         raise Exception("Input must be a category")
         return
     #1) Generate Chains in C.morphisms
+    ###### PROBLEM : NO UPPER LIMIT TO CHAINS ######
+    #Bad Solution: Set upper limits
+    #Good Solution: Keep compositions in abstraction
     #2) Check if Chain is part of a commDiag with
 
 #Functor
@@ -145,4 +175,4 @@ C = category()
 o = C.addObject("o")
 b = C.addObject("b")
 f = C.addMorphism(o,b,"f")
-print([g.label for g in C.Hom[o.index][b.index]])
+g = C.addMorphism(b,o,"g")
