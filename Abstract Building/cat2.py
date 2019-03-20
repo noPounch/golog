@@ -6,8 +6,9 @@ from matplotlib.path import Path
 #Category Defs
 class object:
     def __init__(self,label = None):
-        object.label = label
-        object.identity = morphism(self,self,"Id_"+ label)
+        self.label = label
+        self.identity = morphism(self,self,"Id_"+ label)
+        self.index = None
 
 class morphism:
     def __init__(self,dom,codom,label = None):
@@ -26,13 +27,36 @@ class category:
         self.objects = []
         self.morphisms = []
         self.commDiags = []
+        self.Hom = []
 
     def addObject(self,label = None):
         o = object(label)
         #add object
         self.objects.append(o)
+        #get index of object in cat.objects
+        o.index = self.objects.index(o)
+
         #add identity morphism
         self.morphisms.append(o.identity)
+
+        #Add a new Hom(o,-) list
+        self.Hom.append([])
+
+
+
+
+        #for all A create Hom(o,A) and Hom(o,A) excluding Hom(o,o)
+        for A in self.objects[:-1]:
+            self.Hom[o.index].append([]) #Hom(o,A) = Hom[o.index][A.index]
+            self.Hom[A.index].append([]) #Hom(A,o) = Hom[A.index][o.index]
+
+        #Create Hom(o,o) with identity already in it
+        self.Hom[o.index].append([o.identity])
+
+        #for all A create
+
+
+
         return o
 
     def addMorphism(self,domain,codomain,label = None):
@@ -43,6 +67,7 @@ class category:
             #add identity commDiags
             self.addCommDiag([f,f.domain.identity],[f])
             self.addCommDiag([f.codomain.identity,f],[f])
+            self.Hom[domain.index][codomain.index].append(f)
 
             return f
         elif domain not in self.objects:
@@ -87,18 +112,37 @@ class category:
         #4) Set commDiag
         self.commDiags.append(commDiag(fList,gList))
 
+    def hom(A,B):
+        #1) Check A, B are objects of Cat
+        if A not in self.objects or B not in self.object:
+            raise Exception("On of the objects is not in category")
+            return
+
+
+
+        #2) Get index of A, B
+
+        #3) Return HOM[i_A,i_B]
+
+#completes composition in category.
+def completeCat(C):
+    if not isinstance(C, Category):
+        raise Exception("Input must be a category")
+        return
+    #1) Generate Chains in C.morphisms
+    #2) Check if Chain is part of a commDiag with
 
 #Functor
 class functor:
-    def __init__(domain, codomain)
+    def __init__(domain, codomain):
+        pass
     #1) Define function on Objects
     #2) Define function on Morphisms
     #3) check commutativity.
 
 ########### TESTING #############
 C = category()
-o = C.addObject("yo")
-f = C.addMorphism(o,o,"f")
-for c in C.commDiags:
-    print([f.label for f in c.fList])
-    print([g.label for g in c.gList])
+o = C.addObject("o")
+b = C.addObject("b")
+f = C.addMorphism(o,b,"f")
+print([g.label for g in C.Hom[o.index][b.index]])
