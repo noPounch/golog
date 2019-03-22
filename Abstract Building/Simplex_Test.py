@@ -1,3 +1,9 @@
+import tools
+
+
+
+#User Defined
+
 #Category Defs
 class object:
     def __init__(self,label = ''):
@@ -111,14 +117,9 @@ class precategory:
     def __init__(self):
         self.multigraph = multigraph()
 
-        ####simplex database
-        self.simplecies = []
+        #simplex database by function builder (check Tools)
+        self.simplecies = tools.functionBuilder()
 
-        #### need to learn about databases for this
-
-        #self.simplexRefs = []
-        #getSimplex = lambda f,g: (f.index,g.index)
-        #These will eventually be built by simplecies
         #self.commDiags = []
 
 
@@ -138,20 +139,16 @@ class precategory:
             return
 
 
-        #0.3) Check if simplex already exists (might have to create a simplex database, this is currently O(n^2))
-        #### THIS IS A SHITTY SEARCH SOLUTION: LEARN DATABASES
-        ### if simplex already exists, and gof = gof, do nothing, If gof != gof, throw error
-        for simp in self.simplecies:
-            if simp.objectMap(0) == f and simp.objectMap(1) == g:
-                if simp.objectMap(2) == gof :
-                    return simp
-                else:
-                    raise Exception("There is a simplex with different composite" + simp.objectMap(2).label)
-
-        #1) if simplex doesn't exist, add formal gof to multigraph and simplex to precategory (also simplex to database)
-        simp = simplicialDiag(self, [f.domain,f.codomain,g.codomain],[f,g,gof])
-        self.simplecies.append(simp)
-        return simp
+        #0.3) Check if simplex already exists (if it doesn't it will raise an error)
+        try:
+            s = self.simplecies.eval((f,g))
+        #exception is if (f,g,gof) is not yet a simplex in C
+        except:
+            simp = simplicialDiag(self, [f.domain,f.codomain,g.codomain],[f,g,gof])
+            self.simplecies.addValue((f,g),simp)
+        #if it does exist, return s
+        else:
+            return s
 
 ################ TESTING
 C = precategory()
@@ -161,3 +158,4 @@ c = C.addObject("c")
 f = C.addMorphism(a,b,"f")
 g = C.addMorphism(b,c,"g")
 gof = C.addMorphism(a,c,"gof")
+simp = C.addSimplex(f,g,gof)
