@@ -1,8 +1,3 @@
-import catFuncs
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from matplotlib.path import Path
-
 #Category Defs
 class object:
     def __init__(self,label = None):
@@ -15,12 +10,14 @@ class morphism:
         self.domain = dom
         self.codomain = codom
         self.label = label
+        self.pprint = label + ":"+self.domain.label +" -> "+self.codomain.label
 
 class commDiag:
     #f = [f_1,...], g = [g_1,...]. A commDiag formally asserts that f_n o...o f_1 = g_m o ... o g_1
     def __init__(self,fList,gList):
         self.fList = fList;
         self.gList = gList;
+        #self.pprint = []
 
 class category:
     def __init__(self):
