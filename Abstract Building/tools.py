@@ -11,7 +11,11 @@ class functionBuilder:
             return
         self.df[input] = Series([output],index = [0])
 
-    def list(self):
+
+    def listDomain(self):
+        return self.df.index.tolist()
+
+    def listImage(self):
         return self.df.iloc[0,:].tolist()
 
     def eval(self,input):

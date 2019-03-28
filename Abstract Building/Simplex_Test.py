@@ -118,7 +118,7 @@ def simplicialDiag(codom, objects, morphisms):
 class precategory:
     def __init__(self):
         self.multigraph = multigraph()
-        #simplex database by function builder (check Tools) retreive raw list of simplecies by simplecies.list()
+        #simplex database by function builder (check Tools) retreive raw list of simplecies by simplecies.listImage()
         self.simplecies = tools.functionBuilder()
         #
 
@@ -130,26 +130,23 @@ class precategory:
     def addMorphism(self,domain, codomain, label = ''): return self.multigraph.addMorphism(domain, codomain, label)
 
     def addSimplex(self, f ,g ,gof):
-        #0.1) Check morphisms are in underlying multigraph
+        #Check morphisms are in underlying multigraph
         if not {f,g} <= set(self.multigraph.morphisms):
             raise Exception("morphisms are not in multigraph")
             return
 
-        #0.2) Check if morphisms are composable (domains and codomains line up)
+        #Check if morphisms are composable (domains and codomains line up)
         if not f.codomain == g.domain and f.domain == gof.domain and g.codomain == gof.codomain:
             raise Exception("morphisms not composable")
             return
 
 
-        #0.3) Check if simplex already exists (if it doesn't it will raise an error)
-        try:
-            simp = self.simplecies.eval((f,g))
-            #Alert us to what composition is already defined to be.
-            #raise Exception("composition" f.label)
-        #if gof isn't defined, catch error to create formal simplex (f,g,gof)
-        except:
+        #Check if simplex already exists: if it does, return it. If it doesn't, create it.
+        if (f,g) in self.simplecies.listDomain():
+            return self.simplecies.eval((f,g))
+        else:
             simp = simplicialDiag(self, [f.domain,f.codomain,g.codomain],[f,g,gof])
-            simp.index = len(self.simplecies.list())
+            simp.index = len(self.simplecies.listImage())
             self.simplecies.addValue((f,g),simp)
             return simp
 
@@ -165,7 +162,7 @@ class prefunctor:
         self.F2 = F2
         #self.graphMap = graphMap(domain.multigraph,codomain.multigraph,F0,F1)
         #check functorial condition on simplicies
-        for simp in self.domain.simplecies.list():
+        for simp in self.domain.simplecies.listImage():
             for i in range(3):
                 assert F0(simp.objectMap(i)) == F2(simp).objectMap(i), "Functorality failed: " + F0(simp.objectMap(i)).label +" != " +F2(simp).objectMap(i).label
                 assert F1(simp.morphismMap(i)) == F2(simp).morphismMap(i), "Functorality failed: " + F1(simp.morphismMap(i)).label +" != " +F2(simp).morphismMap(i).label
@@ -192,5 +189,5 @@ simp_D = D.addSimplex(f_D,g_D,gof_D)
 
 F0 = lambda o:D.multigraph.objects[o.index]
 F1 = lambda f:D.multigraph.morphisms[f.index]
-F2 = lambda simp:D.simplecies.list()[simp.index]
+F2 = lambda simp:D.simplecies.listImage()[simp.index]
 F = prefunctor(C,D,F0,F1,F2)
