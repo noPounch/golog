@@ -8,7 +8,7 @@ import tools
 class object:
     def __init__(self,label = ''):
         self.label = label
-        self.identity = morphism(self,self,"Id_"+ label)
+        self.identity = None
         self.index = None
 
 class morphism:
@@ -18,7 +18,6 @@ class morphism:
         self.index = None
         self.label = label
         self.pprint = label + ":"+self.domain.label +" -> "+self.codomain.label
-
 
 class multigraph:
     def __init__(self):
@@ -34,7 +33,10 @@ class multigraph:
         o.index = self.objects.index(o)
 
         #add identity morphism
-        self.morphisms.append(o.identity)
+        o.identity = self.addMorphism(o,o,"Id_"+ o.label)
+
+
+
 
         #Add a new Hom(o,-) list
         self.Hom.append([])
@@ -59,8 +61,9 @@ class multigraph:
     def addMorphism(self,domain,codomain,label = ''):
         if domain in self.objects and codomain in self.objects:
             f = morphism(domain,codomain, label)
-            self.morphisms.append(f)
             f.index = len(self.morphisms)
+            self.morphisms.append(f)
+
 
             #add identity commDiags
             #self.addCommDiag([f,f.domain.identity],[f])
@@ -82,13 +85,6 @@ class multigraph:
         return Hom[A.index][B.index]
 
 
-
-
-
-        #2) Get index of A, B
-
-        #3) Return HOM[i_A,i_B]
-
 #####create simplex multigraph for formal composition
 simplex = multigraph()
 for i in range(3): simplex.addObject() #three vertices
@@ -99,16 +95,22 @@ simplex.addMorphism(simplex.objects[0],simplex.objects[2],"02")
 #####
 
 ####takes multigraph domain and codomain, and lambda function object maps and function maps
+#Assertions as below
 class graphMap:
     def __init__(self,domain,codomain,obf,morf):
-        self.domain = domain
+        self.domain = domain #can get objects as list by co/domain.objects or .morphisms
         self.codomain = codomain
         self.objectMap = obf
         self.morphismMap = morf
+        self.index = None
+        #for f in domain.morphisms:
+        #    assert morf(f).domain == obf(f.domain) and morf(f).codomain == obf(f.codomain)
+
+
 
 #formally compose by creating a simplex in a precategory C
 def simplicialDiag(codom, objects, morphisms):
-    obf = lambda i :objects[i] #send vertices to given objects
+    obf = lambda i:objects[i] #send vertices to given objects
     morf = lambda i:morphisms[i] #send arrows to given morphisms
     return graphMap(simplex, codom, obf, morf)
 
@@ -116,11 +118,11 @@ def simplicialDiag(codom, objects, morphisms):
 class precategory:
     def __init__(self):
         self.multigraph = multigraph()
-
-        #simplex database by function builder (check Tools)
+        #simplex database by function builder (check Tools) retreive raw list of simplecies by simplecies.list()
         self.simplecies = tools.functionBuilder()
+        #
 
-        #self.commDiags = []
+        self.commDiags = tools.functionBuilder()
 
 
 
@@ -141,21 +143,54 @@ class precategory:
 
         #0.3) Check if simplex already exists (if it doesn't it will raise an error)
         try:
-            s = self.simplecies.eval((f,g))
-        #exception is if (f,g,gof) is not yet a simplex in C
+            simp = self.simplecies.eval((f,g))
+            #Alert us to what composition is already defined to be.
+            #raise Exception("composition" f.label)
+        #if gof isn't defined, catch error to create formal simplex (f,g,gof)
         except:
             simp = simplicialDiag(self, [f.domain,f.codomain,g.codomain],[f,g,gof])
+            simp.index = len(self.simplecies.list())
             self.simplecies.addValue((f,g),simp)
-        #if it does exist, return s
-        else:
-            return s
+            return simp
+
+
+#Define a prefunctor as an object map F0:ob(C) -> ob(D), F1: mor(C) -> mor(D), F2:simp(C) to simp(D)
+#With conditons (in assertions below)
+class prefunctor:
+    def __init__(self,domain,codomain,F0,F1,F2):
+        self.domain = domain
+        self.codomain = codomain
+        self.F0 = F0
+        self.F1 = F1
+        self.F2 = F2
+        #self.graphMap = graphMap(domain.multigraph,codomain.multigraph,F0,F1)
+        #check functorial condition on simplicies
+        for simp in self.domain.simplecies.list():
+            for i in range(3):
+                assert F0(simp.objectMap(i)) == F2(simp).objectMap(i), "Functorality failed: " + F0(simp.objectMap(i)).label +" != " +F2(simp).objectMap(i).label
+                assert F1(simp.morphismMap(i)) == F2(simp).morphismMap(i), "Functorality failed: " + F1(simp.morphismMap(i)).label +" != " +F2(simp).morphismMap(i).label
+
 
 ################ TESTING
 C = precategory()
-a = C.addObject("a")
-b = C.addObject("b")
-c = C.addObject("c")
-f = C.addMorphism(a,b,"f")
-g = C.addMorphism(b,c,"g")
-gof = C.addMorphism(a,c,"gof")
-simp = C.addSimplex(f,g,gof)
+a_C = C.addObject("a_C")
+b_C = C.addObject("b_C")
+c_C = C.addObject("c_C")
+f_C = C.addMorphism(a_C,b_C,"f_C")
+g_C = C.addMorphism(b_C,c_C,"g_C")
+gof_C = C.addMorphism(a_C,c_C,"gof_C")
+simp_C = C.addSimplex(f_C,g_C,gof_C)
+
+D = precategory()
+a_D = D.addObject("a_D")
+b_D = D.addObject("b_D")
+c_D = D.addObject("c_D")
+f_D = D.addMorphism(a_D,b_D,"f_D")
+g_D = D.addMorphism(b_D,c_D,"g_D")
+gof_D = D.addMorphism(a_D,c_D,"gof_D")
+simp_D = D.addSimplex(f_D,g_D,gof_D)
+
+F0 = lambda o:D.multigraph.objects[o.index]
+F1 = lambda f:D.multigraph.morphisms[f.index]
+F2 = lambda simp:D.simplecies.list()[simp.index]
+F = prefunctor(C,D,F0,F1,F2)

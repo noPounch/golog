@@ -11,5 +11,11 @@ class functionBuilder:
             return
         self.df[input] = Series([output],index = [0])
 
+    def list(self):
+        return self.df.iloc[0,:].tolist()
+
     def eval(self,input):
-        return self.df[input][0]
+        try:
+            return self.df[input][0]
+        except:
+            raise Exception("composition not defined")
