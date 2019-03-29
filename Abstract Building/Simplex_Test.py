@@ -87,7 +87,7 @@ class multigraph:
 
 #####create simplex multigraph for formal composition
 simplex = multigraph()
-for i in range(3): simplex.addObject() #three vertices
+for i in range(3): simplex.addObject(str(i)) #three vertices
 
 simplex.addMorphism(simplex.objects[0],simplex.objects[1],"01") #three maps
 simplex.addMorphism(simplex.objects[1],simplex.objects[2],"12")
@@ -103,15 +103,24 @@ class graphMap:
         self.objectMap = obf
         self.morphismMap = morf
         self.index = None
-        #for f in domain.morphisms:
-        #    assert morf(f).domain == obf(f.domain) and morf(f).codomain == obf(f.codomain)
+        #Check co/dom(morf(f)) = obf(co/dom(f))
+        for f in domain.morphisms:
+            assert morf(f).domain == obf(f.domain), morf(f).domain.label + " != " + obf(f.domain).label
+            assert morf(f).codomain == obf(f.codomain), morf(f).codomain.label + " != "  + obf(f.codomain).label
 
 
+#
+# #formally compose by creating a simplex in a precategory C
+# def simplicialDiag(codom, objects, morphisms):
+#     obf = lambda i:objects[i] #send vertices to given objects
+#     morf = lambda i:morphisms[i] #send arrows to given morphisms
+#     return graphMap(simplex, codom, obf, morf)
 
 #formally compose by creating a simplex in a precategory C
 def simplicialDiag(codom, objects, morphisms):
-    obf = lambda i:objects[i] #send vertices to given objects
-    morf = lambda i:morphisms[i] #send arrows to given morphisms
+    morphisms = [o.identity for o in objects] + morphisms #add identities to beginning of simplex list (so that S(Id_i) = Id_ob[i])
+    obf = lambda o:objects[o.index] #send vertices to given objects
+    morf = lambda o:morphisms[o.index] #sends identity to identities and morphisms to given morphisms
     return graphMap(simplex, codom, obf, morf)
 
 #A multigraph with a class of commutative diagrams, built by simplicies
@@ -164,8 +173,10 @@ class prefunctor:
         #check functorial condition on simplicies
         for simp in self.domain.simplecies.listImage():
             for i in range(3):
-                assert F0(simp.objectMap(i)) == F2(simp).objectMap(i), "Functorality failed: " + F0(simp.objectMap(i)).label +" != " +F2(simp).objectMap(i).label
-                assert F1(simp.morphismMap(i)) == F2(simp).morphismMap(i), "Functorality failed: " + F1(simp.morphismMap(i)).label +" != " +F2(simp).morphismMap(i).label
+                #check F0(simp.ob) = F2(simp).ob and F1(simp.mor) = F2(simp).mor
+                ####can definitely make this more succinct using mapto
+                assert F0(simp.objectMap(simplex.objects[i])) == F2(simp).objectMap(simplex.objects[i]), "Functorality failed: " + F0(simp.objectMap(simplex.objects[i])).label +" != " +F2(simp).objectMap(simplex.objects[i]).label
+                assert F1(simp.morphismMap(simplex.morphisms[i])) == F2(simp).morphismMap(simplex.morphisms[i]), "Functorality failed: " + F1(simp.morphismMap(simplex.morphisms[i])).label +" != " +F2(simp).morphismMap(simplex.morphisms[i]).label
 
 
 ################ TESTING
