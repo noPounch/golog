@@ -84,6 +84,9 @@ class multigraph:
 
         return Hom[A.index][B.index]
 
+    #create free Precategory on multigraph
+    def asPrecategory(self):
+        return precategory(multigraph = self);
 
 #####create simplex multigraph for formal composition
 simplex = multigraph()
@@ -109,6 +112,14 @@ class graphMap:
             assert morf(f).codomain == obf(f.codomain), morf(f).codomain.label + " != "  + obf(f.codomain).label
 
 
+    #Return graphMap as a Functor between free pre-categories
+    def asPrefunctor(self):
+        return prefunctor(self.domain.asPrecategory,self.codomain.asPrecategory,self.objectMap,self.morphismMap,lambda x:x)
+
+
+
+
+
 #
 # #formally compose by creating a simplex in a precategory C
 # def simplicialDiag(codom, objects, morphisms):
@@ -125,19 +136,15 @@ def simplicialDiag(codom, objects, morphisms):
 
 #A multigraph with a class of commutative diagrams, built by simplicies
 class precategory:
-    def __init__(self):
-        self.multigraph = multigraph()
+    def __init__(self,multigraph = multigraph(),simplecies = tools.functionBuilder()):
+        self.multigraph = multigraph
         #simplex database by function builder (check Tools) retreive raw list of simplecies by simplecies.listImage()
-        self.simplecies = tools.functionBuilder()
-        #
-
-        self.commDiags = tools.functionBuilder()
-
+        self.simplecies = simplecies
+        #self.commDiags = tools.functionBuilder()
 
 
     def addObject(self, label = ''): return self.multigraph.addObject(label)
     def addMorphism(self,domain, codomain, label = ''): return self.multigraph.addMorphism(domain, codomain, label)
-
     def addSimplex(self, f ,g ,gof):
         #Check morphisms are in underlying multigraph
         if not {f,g} <= set(self.multigraph.morphisms):
@@ -164,6 +171,7 @@ class precategory:
 #With conditons (in assertions below)
 class prefunctor:
     def __init__(self,domain,codomain,F0,F1,F2):
+        self.graphMap = graphMap(domain.multigraph,codomain.multigraph,F0,F1)
         self.domain = domain
         self.codomain = codomain
         self.F0 = F0
@@ -177,6 +185,11 @@ class prefunctor:
                 ####can definitely make this more succinct using mapto
                 assert F0(simp.objectMap(simplex.objects[i])) == F2(simp).objectMap(simplex.objects[i]), "Functorality failed: " + F0(simp.objectMap(simplex.objects[i])).label +" != " +F2(simp).objectMap(simplex.objects[i]).label
                 assert F1(simp.morphismMap(simplex.morphisms[i])) == F2(simp).morphismMap(simplex.morphisms[i]), "Functorality failed: " + F1(simp.morphismMap(simplex.morphisms[i])).label +" != " +F2(simp).morphismMap(simplex.morphisms[i]).label
+
+#subcategory a precategory is a subcategory if the inclusion graphMap is a prefunctor
+def isSubcategory(inclusionFunctor):
+    assert inclusionFunctor is prefunctor
+
 
 
 ################ TESTING
