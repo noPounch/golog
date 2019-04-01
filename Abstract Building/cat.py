@@ -1,56 +1,50 @@
 import tools
 
-
+#Coding Precidents:
+#lambda functions are all defined on actual instances, not their references
+#Keywords for defining new objects from old stored in a defaults dictionary
 
 #User Defined
 
 #Category Defs
 class object:
-    def __init__(self,label = ''):
-        self.label = label
-        self.identity = None
-        self.index = None
-
-        #### add category reference to objects
-        self.category = None
+    def __init__(self,**kwargs):
+        defaults = {'label':'\'\'','data':'None','identity':'None','index':'None','multigraph':'None'}
+        for key in defaults.keys():
+            if key in kwargs.keys(): setattr(self,key,kwargs[key])
+            else: setattr(self,key,eval(defaults[key]))
 
 class morphism:
-    def __init__(self,dom,codom,label = ''):
+    def __init__(self,dom,codom,**kwargs):
         self.domain = dom
         self.codomain = codom
-        self.index = None
-        self.label = label
-        self.pprint = label + ":"+self.domain.label +" -> "+self.codomain.label
+        defaults = {'label':'\'\'','data':'None','index':'None','multigraph':'None'}
+        for key in defaults.keys():
+            if key in kwargs.keys(): setattr(self,key,kwargs[key])
+            else: setattr(self,key,eval(defaults[key]))
+        self.pprint = self.label + ":"+self.domain.label +" -> "+self.codomain.label
 
-        #### add category reference to morphisms
-        self.category = None
 
 class multigraph:
-    def __init__(self):
-        self.objects = []
-        self.morphisms = []
-        self.workingPrecategory = None
-        self.Hom = []
+    def __init__(self,**kwargs):
+        ###change Hom to a dictionary (calling hom(A,B) is easier this way)
+        defaults = {'label':'\'\'','objects':'[]','morphisms':'[]','Hom': '[]','precategory':'None'}
+        #set self.key = given or default value
+        for key in defaults.keys():
+            if key in kwargs.keys(): setattr(self,key,kwargs[key])
+            else: setattr(self,key,eval(defaults[key]))
 
-    def addObject(self,label = ''):
-        o = object(label)
-        o.multigraph = self
+    def addObject(self,label = '',):
+        o = object(label = label, multigraph = self,index = len(self.objects))
         #add object
         self.objects.append(o)
-        #get index of object in cat.objects
-        o.index = self.objects.index(o)
-
         #add identity morphism
         o.identity = self.addMorphism(o,o,"Id_"+ o.label)
-
-
-
-
         #Add a new Hom(o,-) list
         self.Hom.append([])
 
 
-
+        #Hom stuff
 
         #for all A create Hom(o,A) and Hom(o,A) excluding Hom(o,o)
         for A in self.objects[:-1]:
@@ -68,7 +62,7 @@ class multigraph:
 
     def addMorphism(self,domain,codomain,label = ''):
         if domain in self.objects and codomain in self.objects:
-            f = morphism(domain,codomain, label)
+            f = morphism(domain,codomain, label = label)
             f.index = len(self.morphisms)
             self.morphisms.append(f)
 
@@ -105,53 +99,48 @@ simplex.addMorphism(simplex.objects[1],simplex.objects[2],"12")
 simplex.addMorphism(simplex.objects[0],simplex.objects[2],"02")
 #####
 
-####takes multigraph domain and codomain, and lambda function object maps and function maps
+####takes multigraph domain and codomain, and function object maps and function maps
 #Assertions as below
 class graphMap:
-    def __init__(self,domain,codomain,obf,morf):
+    def __init__(self,domain,codomain,F0,F1,**kwargs):
+        defaults = {'index':'None','label': '\'\'','prefunctor':'None'}
+        for key in defaults.keys():
+            if key in kwargs.keys(): setattr(self,key,kwargs[key])
+            else: setattr(self,key,eval(defaults[key]))
+
+
         self.domain = domain #can get objects as list by co/domain.objects or .morphisms
         self.codomain = codomain
-        self.obImage = {obf(o) for o in domain.objects}
-        self.morImage = {morf(o) for o in domain.morphisms}
-        self.label = ""
+        self.F0 = F0
+        self.F1 = F1
+        self.obImage = {self.F0(o) for o in domain.objects}
+        self.morImage = {self.F1(f) for f in domain.morphisms}
 
         #check its actually a map
         assert self.obImage <= set(codomain.objects), "F0 doesnt map into codomain"
         assert self.morImage <= set(codomain.morphisms), "F1 doesnt map into codomain"
 
-        self.objectMap = obf
-        self.morphismMap = morf
-        self.index = None
+
+
         #Check co/dom(morf(f)) = obf(co/dom(f))
         for f in domain.morphisms:
-            assert morf(f).domain == obf(f.domain), morf(f).domain.label + " != " + obf(f.domain).label
-            assert morf(f).codomain == obf(f.codomain), morf(f).codomain.label + " != "  + obf(f.codomain).label
+            assert self.F1(f).domain == self.F0(f.domain), self.F1(f).domain.label + " != " + self.F0(f.domain).label
+            assert self.F1(f).codomain == self.F0(f.codomain), self.F1(f).codomain.label + " != "  + self.F0(f.codomain).label
 
         #Check if the graphMap is actually a functor between two categories
-    def isPreFunctor(self):
-                #0) might be able to do the two just by creating a functor (the creation of a functor checks that everything lines up)
-                self.asPrefunctor()
-                #1) Lift graphMap to a functor
-                #2) check if it is functorial (i.e. if it perserves simplecies)
+    def isPrefunctor(self):
+                #get simplecies from domain
+                domSimps = self.domain.precategory.simplecies.listImage()
+                #check composition rules
+                for simp in domSimps:
+                    f = simp.F1(simplex.morphisms[3])
 
-
-                pass
-
-
-    #Return graphMap as a Functor between free pre-categories
-    def asPrefunctor(self):
-        return prefunctor(self.domain.asPrecategory(),self.codomain.asPrecategory(),self.objectMap,self.morphismMap,lambda x:x)
-
-
-
-
-
-#
-# #formally compose by creating a simplex in a precategory C
-# def simplicialDiag(codom, objects, morphisms):
-#     obf = lambda i:objects[i] #send vertices to given objects
-#     morf = lambda i:morphisms[i] #send arrows to given morphisms
-#     return graphMap(simplex, codom, obf, morf)
+                    g = simp.F1(simplex.morphisms[4])
+                    print(f.pprint,g.pprint)
+                    Fgof = self.F1(self.domain.precategory.compose(g,f))
+                    FgoFf = self.codomain.precategory.compose(self.F1(g),self.F1(f))
+                    if Fgof != FgoFf: return False
+                return True
 
 #formally compose by creating a simplex in a precategory C
 def simplicialDiag(codom, objects, morphisms):
@@ -162,15 +151,17 @@ def simplicialDiag(codom, objects, morphisms):
 
 #A multigraph with a class of commutative diagrams, built by simplicies
 class precategory:
-    def __init__(self, label = ""):
-        self.multigraph = multigraph()
-        #simplex database by function builder (check Tools) retreive raw list of simplecies by simplecies.listImage()
-        self.simplecies = tools.functionBuilder()
-        #self.commDiags = tools.functionBuilder()
-        self.label = label
+    def __init__(self, **kwargs):
+        defaults = {'label':'\'\'','multigraph':'multigraph()','simplecies' :'tools.functionBuilder()'}
+        for key in defaults.keys():
+            if key in kwargs.keys(): setattr(self,key,kwargs[key])
+            else: setattr(self,key,eval(defaults[key]))
 
-    def addObject(self, label = ''): return self.multigraph.addObject(label)
-    def addMorphism(self,domain, codomain, label = ''): return self.multigraph.addMorphism(domain, codomain, label)
+        self.multigraph.label = "U("+self.label+")"
+        self.multigraph.precategory = self
+
+    def addObject(self, label = ''): return self.multigraph.addObject(label = label)
+    def addMorphism(self,domain, codomain, label = ''): return self.multigraph.addMorphism(domain, codomain, label = label)
     def addSimplex(self, f ,g ,gof):
         #Check morphisms are in underlying multigraph
         if not {f,g} <= set(self.multigraph.morphisms):
@@ -192,12 +183,30 @@ class precategory:
             self.simplecies.addValue((f,g),simp)
             return simp
 
+    #compose based on simplecies
+    def compose(self,g,f):
+        if (f,g) in self.simplecies.listDomain():
+            return self.simplecies.eval((f,g)).F1(simplex.morphisms[5])
+        else: raise Exception("no simplex to define composition")
 
-#Define a prefunctor as an object map F0:ob(C) -> ob(D), F1: mor(C) -> mor(D), F2:simp(C) to simp(D)
+
+
+#Define a prefunctor as an object map F0:ob(C) -> ob(D), F1: mor(C) -> mor(D), F2:simp(C) -> simp(D)
 #With conditons (in assertions below)
 class prefunctor:
-    def __init__(self,domain,codomain,F0,F1,F2):
+    def __init__(self,domain,codomain,F0,F1,F2,**kwargs):
+
+        defaults = {'label': '\'\''}
+        for key in defaults.keys():
+            if key in kwargs.keys(): setattr(self,key,kwargs[key])
+            else: setattr(self,key,eval(defaults[key]))
+
+        ####PROBLEM: label and prefunctor not passing to graphMap class creator
+        self.graphMap = graphMap(domain.multigraph,codomain.multigraph,F0,F1, label = "U("+self.label+")", prefunctor = self )
         #Check domain and codomain are even correct functions ob -> ob,...
+        # #self.graphMap = graphMap(domain.multigraph,codomain.multigraph,F0,F1)
+        # self.graphMap.label = "U("+self.label+")"
+        # self.graphMap.prefunctor = self
         self.F0 = F0
         self.F1 = F1
         self.F2 = F2
@@ -209,25 +218,14 @@ class prefunctor:
         assert {self.F1(f) for f in self.domain.multigraph.morphisms} <= set(self.codomain.multigraph.morphisms), "F1 doesn't map from domain to codomain"
         assert {self.F2(simp) for simp in self.domain.simplecies.listImage()} <= set(self.codomain.simplecies.listImage()), "F2 doesn't map from domain to codomain"
 
-
-        #check if it's a graphMap
-        try:
-            self.graphMap = graphMap(domain.multigraph,codomain.multigraph,F0,F1)
-        except:
-            raise Exception("F is not a graphMap")
-
-
-
-
-
         #self.graphMap = graphMap(domain.multigraph,codomain.multigraph,F0,F1)
-        #check functorial condition on simplicies
+        #check functorality condition on simplicies
         for simp in self.domain.simplecies.listImage():
             for i in range(3):
                 #check F0(simp.ob) = F2(simp).ob and F1(simp.mor) = F2(simp).mor
                 ####can definitely make this more succinct using mapto
-                assert F0(simp.objectMap(simplex.objects[i])) == F2(simp).objectMap(simplex.objects[i]), "Functorality failed: " + F0(simp.objectMap(simplex.objects[i])).label +" != " +F2(simp).objectMap(simplex.objects[i]).label
-                assert F1(simp.morphismMap(simplex.morphisms[i])) == F2(simp).morphismMap(simplex.morphisms[i]), "Functorality failed: " + F1(simp.morphismMap(simplex.morphisms[i])).label +" != " +F2(simp).morphismMap(simplex.morphisms[i]).label
+                assert F0(simp.F0(simplex.objects[i])) == F2(simp).F0(simplex.objects[i]), "Functorality failed: " + F0(simp.F0(simplex.objects[i])).label +" != " +F2(simp).F0(simplex.objects[i]).label
+                assert F1(simp.F1(simplex.morphisms[i])) == F2(simp).F1(simplex.morphisms[i]), "Functorality failed: " + F1(simp.F1(simplex.morphisms[i])).label +" != " +F2(simp).F1(simplex.morphisms[i]).label
 
 #Check if
 #subcategory a precategory is a subcategory if the inclusion graphMap is a faithfull prefunctor
@@ -236,33 +234,3 @@ def isFaithfull(F):
         return True
     else:
         return False
-
-
-
-
-################ TESTING
-C = precategory(label = "C")
-a_C = C.addObject("a_C")
-b_C = C.addObject("b_C")
-c_C = C.addObject("c_C")
-f_C = C.addMorphism(a_C,b_C,"f_C")
-g_C = C.addMorphism(b_C,c_C,"g_C")
-gof_C = C.addMorphism(a_C,c_C,"gof_C")
-simp_C = C.addSimplex(f_C,g_C,gof_C)
-
-
-D = precategory(label = "D")
-a_D = D.addObject("a_D")
-b_D = D.addObject("b_D")
-c_D = D.addObject("c_D")
-f_D = D.addMorphism(a_D,b_D,"f_D")
-g_D = D.addMorphism(b_D,c_D,"g_D")
-gof_D = D.addMorphism(a_D,c_D,"gof_D")
-simp_D = D.addSimplex(f_D,g_D,gof_D)
-
-F0 = lambda o:D.multigraph.objects[o.index]
-F1 = lambda f:D.multigraph.morphisms[f.index]
-F2 = lambda simp:D.simplecies.listImage()[simp.index]
-Id_C = prefunctor(C,C,lambda x:x,lambda x:x,lambda x:x)
-print(isFaithfull(Id_C))
-F = prefunctor(C,D,F0,F1,F2)
