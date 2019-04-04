@@ -1,4 +1,5 @@
 import tools
+from copy import deepcopy as copy
 
 #Coding Precidents:
 #lambda functions are all defined on actual instances, not their references
@@ -22,6 +23,7 @@ class morphism:
         for key in defaults.keys():
             if key in kwargs.keys(): setattr(self,key,kwargs[key])
             else: setattr(self,key,eval(defaults[key]))
+
         self.pprint = self.label + ":"+self.domain.label +" -> "+self.codomain.label
 
 
@@ -34,12 +36,14 @@ class multigraph:
             if key in kwargs.keys(): setattr(self,key,kwargs[key])
             else: setattr(self,key,eval(defaults[key]))
 
-    def addObject(self,label = '',):
-        o = object(label = label, multigraph = self,index = len(self.objects))
-        #add object
+    def addObject(self,**kwargs):
+        #create new object or copy obj
+        o = object(multigraph = self,index = len(self.objects),**kwargs)
+
+
+        #add object to objects list
         self.objects.append(o)
-        #add identity morphism
-        o.identity = self.addMorphism(o,o,"Id_"+ o.label)
+
         #Add a new Hom(o,-) list
         self.Hom.append([])
 
@@ -52,25 +56,17 @@ class multigraph:
             self.Hom[A.index].append([]) #Hom(A,o) = Hom[A.index][o.index]
 
         #Create Hom(o,o) with identity already in it
-        self.Hom[o.index].append([o.identity])
-
-        #for all A create
+        #self.Hom[o.index].append([o.identity])
 
 
 
         return o
 
-    def addMorphism(self,domain,codomain,label = ''):
+    def addMorphism(self,domain,codomain,**kwargs):
         if domain in self.objects and codomain in self.objects:
-            f = morphism(domain,codomain, label = label)
+            f = morphism(domain,codomain, **kwargs)
             f.index = len(self.morphisms)
             self.morphisms.append(f)
-
-
-            #add identity commDiags
-            #self.addCommDiag([f,f.domain.identity],[f])
-            #self.addCommDiag([f.codomain.identity,f],[f])
-            #self.Hom[domain.index][codomain.index].append(f)
 
             return f
         elif domain not in self.objects:
@@ -91,12 +87,12 @@ class multigraph:
         return precategory(multigraph = self);
 
 #####create simplex multigraph for formal composition
-simplex = multigraph()
-for i in range(3): simplex.addObject(str(i)) #three vertices
+simplex = multigraph(label = "simplex")
+for i in range(3): simplex.addObject(label = str(i)) #three vertices
 
-simplex.addMorphism(simplex.objects[0],simplex.objects[1],"01") #three maps
-simplex.addMorphism(simplex.objects[1],simplex.objects[2],"12")
-simplex.addMorphism(simplex.objects[0],simplex.objects[2],"02")
+simplex.addMorphism(simplex.objects[0],simplex.objects[1],label = "01") #three maps
+simplex.addMorphism(simplex.objects[1],simplex.objects[2],label = "12")
+simplex.addMorphism(simplex.objects[0],simplex.objects[2],label = "02")
 #####
 
 ####takes multigraph domain and codomain, and function object maps and function maps
@@ -136,15 +132,18 @@ class graphMap:
                     f = simp.F1(simplex.morphisms[3])
 
                     g = simp.F1(simplex.morphisms[4])
-                    print(f.pprint,g.pprint)
                     Fgof = self.F1(self.domain.precategory.compose(g,f))
                     FgoFf = self.codomain.precategory.compose(self.F1(g),self.F1(f))
                     if Fgof != FgoFf: return False
                 return True
 
+    #def asPrefunctor(self):
+        #return a prefunctorial version of itself if is functorial w.r.t. the over-precategories
+
+
 #formally compose by creating a simplex in a precategory C
 def simplicialDiag(codom, objects, morphisms):
-    morphisms = [o.identity for o in objects] + morphisms #add identities to beginning of simplex list (so that S(Id_i) = Id_ob[i])
+    #########morphisms = morphisms #add identities to beginning of simplex list (so that S(Id_i) = Id_ob[i])
     obf = lambda o:objects[o.index] #send vertices to given objects
     morf = lambda o:morphisms[o.index] #sends identity to identities and morphisms to given morphisms
     return graphMap(simplex, codom, obf, morf)
@@ -160,8 +159,25 @@ class precategory:
         self.multigraph.label = "U("+self.label+")"
         self.multigraph.precategory = self
 
-    def addObject(self, label = ''): return self.multigraph.addObject(label = label)
-    def addMorphism(self,domain, codomain, label = ''): return self.multigraph.addMorphism(domain, codomain, label = label)
+    def addObject(self, **kwargs):
+        #add identity simplex
+        o = self.multigraph.addObject(**kwargs)
+        #add identity morphism(without adding identity simplex)
+        o.identity = self.multigraph.addMorphism(o,o,label = "Id_"+ o.label)
+        simp = self.addSimplex(o.identity,o.identity,o.identity)
+        setattr(simp, 'isIdentity', True)
+        return o
+
+
+    def addMorphism(self,domain, codomain, **kwargs):
+        f = self.multigraph.addMorphism(domain, codomain, **kwargs)
+        setattr(f, 'isIdentity', False)
+        lsimp = self.addSimplex(f.domain.identity,f,f)
+        rsimp = self.addSimplex(f,f.codomain.identity,f)
+        setattr(rsimp, 'isIdentity', True)
+        setattr(lsimp, 'isIdentity', True)
+
+        return f
     def addSimplex(self, f ,g ,gof):
         #Check morphisms are in underlying multigraph
         if not {f,g} <= set(self.multigraph.morphisms):
@@ -181,6 +197,7 @@ class precategory:
             simp = simplicialDiag(self.multigraph, [f.domain,f.codomain,g.codomain],[f,g,gof])
             simp.index = len(self.simplecies.listImage())
             self.simplecies.addValue((f,g),simp)
+            setattr(simp, 'isIdentity', False)
             return simp
 
     #compose based on simplecies
