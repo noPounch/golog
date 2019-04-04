@@ -13,6 +13,9 @@ class functionBuilder:
         for x in domain:
             self.d.update({x:f(x)})
 
+    def __call__(self,o):
+        return self.eval(o)
+
 
     def addValue(self,input,output):
         #if f(input) already exists return true/false if outputs are the same
