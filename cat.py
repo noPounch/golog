@@ -26,7 +26,6 @@ class morphism:
 
         self.pprint = self.label + ":"+self.domain.label +" -> "+self.codomain.label
 
-
 class multigraph:
     def __init__(self,**kwargs):
         ###change Hom to a dictionary (calling hom(A,B) is easier this way)
@@ -137,6 +136,17 @@ class graphMap:
                     if Fgof != FgoFf: return False
                 return True
 
+    def asPrefunctor(self):
+        if self.domain.precategory == None or self.domain.precategory == None: return False
+        if not self.isPrefunctor: return False
+        if not self.prefunctor == None: return self.prefunctor
+
+        Ff = 'self.F1(simp.F1(simplex.morphisms[0]))'
+        Fg = 'self.F1(simp.F1(simplex.morphisms[1]))'
+        F2 = lambda simp:self.codomain.precategory.simplecies.eval((eval(Ff),eval(Fg)))
+        F = prefunctor(self.domain.precategory,self.codomain.precategory,self.F0,self.F1,F2, graphMap = self)
+        self.prefunctor = F
+        return F
     #def asPrefunctor(self):
         #return a prefunctorial version of itself if is functorial w.r.t. the over-precategories
 
@@ -213,13 +223,12 @@ class precategory:
 class prefunctor:
     def __init__(self,domain,codomain,F0,F1,F2,**kwargs):
 
-        defaults = {'label': '\'\''}
+        defaults = {'label': '\'\'','graphMap' : 'graphMap(domain.multigraph,codomain.multigraph,F0,F1, label = "U("+self.label+")", prefunctor = self )'}
         for key in defaults.keys():
             if key in kwargs.keys(): setattr(self,key,kwargs[key])
             else: setattr(self,key,eval(defaults[key]))
 
         ####PROBLEM: label and prefunctor not passing to graphMap class creator
-        self.graphMap = graphMap(domain.multigraph,codomain.multigraph,F0,F1, label = "U("+self.label+")", prefunctor = self )
         #Check domain and codomain are even correct functions ob -> ob,...
         # #self.graphMap = graphMap(domain.multigraph,codomain.multigraph,F0,F1)
         # self.graphMap.label = "U("+self.label+")"

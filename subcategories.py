@@ -11,10 +11,10 @@ def getSubcategories(C):
     #S = get simplecies as list
     Simps = C.simplecies.listImage()
     #remove identities (they will be added later with addObject + addMorphism)
-    print(len(Simps))
+    #print(len(Simps))
     nonIDSimps = []
     for simp in Simps:
-        print(simp.isIdentity,[simp.F1(cat.simplex.morphisms[i]).label for i in range(3)])
+        #print(simp.isIdentity,[simp.F1(cat.simplex.morphisms[i]).label for i in range(3)])
         if not simp.isIdentity: nonIDSimps.append(simp)
 
     for simp in nonIDSimps:

@@ -25,9 +25,15 @@ simp_D = D.addSimplex(f_D,g_D,gof_D)
 F0 = lambda o:D.multigraph.objects[o.index]
 F1 = lambda f:D.multigraph.morphisms[f.index]
 F2 = lambda simp:D.simplecies.listImage()[simp.index]
+UId_C = graphMap(C.multigraph,C.multigraph,lambda x:x,lambda x:x)
 Id_C = prefunctor(C,C,lambda x:x,lambda x:x,lambda x:x)
-#print(isFaithfull(Id_C))
-#F = prefunctor(C,D,F0,F1,F2,label = 'F')
+
+#print(isFaithfull(Id_C))F
+F = prefunctor(C,D,F0,F1,F2,label = 'F')
+UF = graphMap(C.multigraph,D.multigraph,F0,F1)
+G = UF.asPrefunctor()
+print([G.F0(o) == F.F0(o) for o in C.multigraph.objects])
+
 #print(F.graphMap.label)
 #print(F.graphMap.prefunctor)
 #print(Id_C.graphMap.isPrefunctor())
