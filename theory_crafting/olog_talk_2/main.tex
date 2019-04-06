@@ -71,18 +71,20 @@ A G-simplex is a graph Map $F:\Delta^2 \to G$ which we write as $(f,g,gof) = (F(
 A the set of G-simplecies is GSimp, and comes with two maps$\pi_f,\pi_g:GSimp \to mor^2(G)$ by \\ \center{$\pi_f(F) = F_1(01) \text{ and } \pi_g(F) = F_1(12)$}
 \end{block}
 Consider a subset of G-simplecies $Simp \subseteq GSimp$\\
-Simp is called coherant, if $\forall F \in simp$ F is the only simplex such that $F(01) = f$ and $F(12) = g$
-\\\center{(i.e. $|[\pi_01\times\pi_12]^{-1}(mor(G)^2)| \leq 1$.)}
+Simp is called coherant, if $\forall F \in Simp$, F is the only simplex such that $F(01) = f$ and $F(12) = g$
+\\\center{(i.e. $|[\pi_{f}\times\pi_{g}]^{-1}(mor(G)^2)| \leq 1$.)}
 
 \end{frame}
 
 
 \begin{frame}{simplicial graphs}
 \begin{block}{simplicial graph}
-A simplicial graph C = (G,Simp) is a multigraph G with a coherant set of simplecies Simp.
+A simplicial graph C = (G,Simp) is a multigraph G with a coherant set of simplecies Simp.\\
 \end{block}
+By the uniqueness of Simp, when $(f,g,h)\in Simp$ we can define composition $g\circ f = h$
+
     \begin{block}{simplicial map}
-        Let C, D be two simplicial graphs, a graph Map $F:G \to H$ is a \underline{simplicial map} if the following equations hold:\\
+        Let C, D be two simplicial graphs, a simplicial map is a double $(F,F^2) = (F^0,F^1,F^2)$, with F a graph Map and $F^2:Simp_C \to Simp_D$ a function of sets such that the following equations hold:\\
         i)$F_2(simp).ob = F_0(simp.ob)$\\
         ii)$F_2(simp).mor = F_1(simp.mor)$
     \end{block}
@@ -91,7 +93,7 @@ A simplicial graph C = (G,Simp) is a multigraph G with a coherant set of simplec
 
 \begin{frame}{identities}
     \begin{block}{Identity}
-        Let C and D be two simplicial graphs, a morphism $I:o \to o$ is an identity if $\forall f:A \to C, g:C \to B$ there is a simplex (f,I,f) and (I,g,g). 
+        Let C be a simplicial graph, a morphism $I:O \to O$ is an identity if $\forall f:A \to O, g:O \to B$ there is a simplex (f,I,f) and (I,g,g). 
     \end{block}
     \begin{block}{iCategory}
     an icategory is a simplicial graph such that every object o has an identity morphism $I(o) = I_o$, where $I:ob \to mor$
@@ -103,7 +105,7 @@ A simplicial graph C = (G,Simp) is a multigraph G with a coherant set of simplec
         an iFunctor $F:C \to D$ between icategories, is a simplicial map such that:\\
         $F^1(I(o)) = I(F^0(o))$\\
         Q: is this redundant? Can this be derived via simplecies?\\
-        A: yes, the simplecies $(I_o,I'_o,I_o)$ and $(I_o,I'_o,I'_o)$ results in $I_o = I'_o$ by uniqueness.
+        A: yes, the simplecies $(I_o,I'_o,I_o)$ and $(I_o,I'_o,I'_o)$ results in $I_o = I'_o$ by uniqueness. I.e. (defining two identities in an icategory will throw a uniqueness assertion error in Simp)
     \end{block}
 \end{frame}
 
@@ -113,8 +115,8 @@ A simplicial graph C = (G,Simp) is a multigraph G with a coherant set of simplec
     (this means that the inclusion maps $(i^1,i^2,i^3)$ satisfy the graph map, simplicial map and iFunctor conditions)
     \end{block}
     \begin{block}{submorphism}
-    Let $Hom_{C}(S,S')$ be the collection of maps $f:o \to o'$ such that $o,o' \in obj(S,S')$\\
-    A submorphism $\mathcal F: S \to  S'$ is a subset $\mathcal F \subseteq Hom_{C}(S,S')$
+    Let $Hom_{C}(S,S') = \{f:o \to o'|o \in S, o'\in S'\}$\\
+    A submorphism $\mathcal F: S \to  S'$ is a subset $\mathcal F \subseteq Hom_{C}(S,S')$ (i.e. some arbitrary collection of maps between objects of either subcategory
     \end{block}
 \end{frame}
 
@@ -132,8 +134,32 @@ $I_S = \{Id_o|o\in S\}$
 \begin{block}{Ontological Generator}
 An ontological generator is a Functor $OG: C \to sm(C) $
 \end{block}
-    
 \end{frame}
+
+\begin{frame}{computational ontologies}
+-git\\
+-variable instantiating\\
+-file systems\\
+\end{frame}
+
+\begin{frame}{ontologies in math}
+- Topological Ontology.\\
+- semantic / logical ontology
+\end{frame}
+
+\begin{frame}{math for ontologies}
+-Sheaf theory / $OG_\$$ makes $\mathbb C$ into a \underline{Site}\\
+-deduction as gluing property
+\end{frame}
+
+\begin{frame}{ontologies for ontologies}
+-Ontological Readers\\
+-Ontological Updaters / Actors\\
+-Axiom objects\\
+-Understanding as Axiomatic covering by generators\\
+\end{frame}
+
+
 
 
 
