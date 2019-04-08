@@ -67,13 +67,18 @@ class simpSet:
     def __init__(self,**kwargs):
         #simplecies are stored in a dictionary, their key is their domain and codomain
         defaults = {'label':'\'\'','simplecies':'dict()'}
-        #set self.key = given or default value
         for key in defaults.keys():
             if key in kwargs.keys(): setattr(self,key,kwargs[key])
             else: setattr(self,key,eval(defaults[key]))
-    def copy(self):
-        #create a new graph object and return it
-        pass
+    def copy(self,**kwargs):
+        #create a new simplicial set, with options to change arguements
+        new = copy.deepcopy(self)
+
+        defaults = {'label':'self.label'}
+        for key in defaults.keys():
+            if key in kwargs.keys(): setattr(new,key,kwargs[key])
+            else: setattr(new,key,eval(defaults[key]))
+        return new
 
     #new addObject takes an actual 1-simplex and adds that to the list (and changes hom)
     def addSimplex(self,simp,*args,**kwargs):
@@ -82,8 +87,6 @@ class simpSet:
         for F in simp.faces: assert F in self.simplecies[F.faces] #check if faces exist in graph
         if simp.faces not in list(self.simplecies.keys()): self.simplecies[simp.faces] = [] #add face key to simplex dictionary
         self.simplecies[simp.faces].append(simp)
-
-        print([[s.label for s in slist] for slist in C.simplecies.values()])
         return simp
 
 
@@ -98,17 +101,18 @@ class simpSet:
 
 #graphs and #graphmaps
 #simplecial graphs
-C = simpSet()
-
-A = Simplex(0,label = "A")
-C.addSimplex(A)
-B = C.addSimplex(0,label = "B")
-D = C.addSimplex(0,label = "D")
-
-f = Simplex(1,A,B, label = "f")
-C.addSimplex(f)
-
-g = C.addSimplex(1,B,D, label = "g")
-h = C.addSimplex(1,A,D, label = "h")
-
+C = simpSet(label = "C")
+a = C.addSimplex(0,label = "a")
+b = C.addSimplex(0,label = "b")
+c = C.addSimplex(0,label = "c")
+f = C.addSimplex(1,a,b, label = "f")
+g = C.addSimplex(1,b,c, label = "g")
+h = C.addSimplex(1,a,c, label = "h")
 S = C.addSimplex(2,f,g,h,label = "gof = h")
+print(C.label)
+D = C.copy(label = "D")
+print(C == D)
+D.addSimplex(0,label = "xX$ilect$pectorXx")
+
+print(C.label + ": ",[[s.label for s in slist] for slist in C.simplecies.values()])
+print(D.label + ": ",[[s.label for s in slist] for slist in D.simplecies.values()])
