@@ -1,6 +1,7 @@
 import tools
 from cat import *
 
+#Input UF:C.underlyingMultigraph() -> G
 def induce(UF):
     if not isinstance(UF,graphMap):
         return False
