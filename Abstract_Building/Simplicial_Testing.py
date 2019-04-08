@@ -1,15 +1,9 @@
-import copy
-
-
+####### RULES OF THUMB #########
+#the only free floating objects are simplecies
+#to create a structure on top of an underlying strucutre, you must copy the underlying structure first.
+#pass everything through *args and **kwargs and check internally
 #store everything in dictionaries to create pre-computed functions
-#everything is defined in terms of simplecies
 #lambda functions are all defined on actual instances, not their indecies
-
-
-
-
-
-#Copy newly Made items (no references to overlying objects, uderlying must be copied and tied to a overlying object)
 #Keywords for defining new objects from old stored in a defaults dictionary (this allows live instanciation instead of during compiling)
 
 
@@ -31,6 +25,7 @@ class Simplex0:
             for key in defaults.keys():
                 if key in kwargs.keys(): setattr(self,key,kwargs[key])
                 else: setattr(self,key,eval(defaults[key]))
+            #assertions
 
 #morphisms
 class Simplex1:
@@ -53,12 +48,11 @@ class Simplex2:
             if key in kwargs.keys(): setattr(self,key,kwargs[key])
             else: setattr(self,key,eval(defaults[key]))
 
+        #assert domains line up
+        assert self.faces[0].faces[1] == self.faces[1].faces[0], "domain of " + self.faces[0].label + " != codomain of " + self.faces[1].label
+        assert self.faces[2].faces[0] == self.faces[0].faces[0], "domain of " + self.faces[2].label + " != domain of " + self.faces[0].label
+        assert self.faces[2].faces[1] == self.faces[1].faces[1], "codomain of " + self.faces[2].label + " != codomain of "  + self.faces[1].label
 
-#####Graph ---> Simplicial Graph ((\inf,2)-simplicial set) ---> icategory (has identity)
-####### RULES OF THUMB #########
-#the only free floating objects are simplecies
-#to create a structure on top of an underlying strucutre, you must copy the underlying structure first.
-#pass everything through *args and **kwargs and check internally
 
 
 
@@ -70,28 +64,31 @@ class simpSet:
         for key in defaults.keys():
             if key in kwargs.keys(): setattr(self,key,kwargs[key])
             else: setattr(self,key,eval(defaults[key]))
+
     def copy(self,**kwargs):
-        #create a new simplicial set, with options to change arguements
-        newSimps = dict() #different set, same simplecies. Shallow copy
+        #Shallow copy: different sset and attributes, same simplecies
+        #If you want to copy certain attributes you have to pass them through kwargs
+
+        newSimps = dict() #create a new simplicial set, with options to change arguements
         for key in self.simplecies.keys():
             newSimps[key] = []
-            for simp in self.simplecies[key]:
-                newSimps[key].append(simp)
-        new = simpSet(simplecies = newSimps)
-        defaults = {'label':'self.label'}
-        for key in defaults.keys():
-            if key in kwargs.keys(): setattr(new,key,kwargs[key])
-            else: setattr(new,key,eval(defaults[key]))
+            for simp in self.simplecies[key]:newSimps[key].append(simp)
+        new = simpSet(simplecies = newSimps,**kwargs)
         return new
 
-    #new addObject takes an actual 1-simplex and adds that to the list (and changes hom)
-    def addSimplex(self,simp,*args,**kwargs):
+
+    def addSimplex(self,simp,*args,**kwargs): #add a simplex to simpSet.simplecies dictionary
         ######figure out how to check if faces are actually simplecies at all (may necessitate a global change to simplecies)
         if isinstance(simp,int): simp = Simplex(simp,*args,**kwargs) #if number is provided, add a new simplex (passing arguements)
         for F in simp.faces: assert F in self.simplecies[F.faces] #check if faces exist in graph
         if simp.faces not in list(self.simplecies.keys()): self.simplecies[simp.faces] = [] #add face key to simplex dictionary
         self.simplecies[simp.faces].append(simp)
         return simp
+
+    def hom(self, A ,B):
+        if (A,B) in self.simplecies.keys(): return self.simplecies[(A,B)]
+        return False
+
 
 
 
@@ -110,14 +107,17 @@ a = C.addSimplex(0,label = "a")
 b = C.addSimplex(0,label = "b")
 c = C.addSimplex(0,label = "c")
 f = C.addSimplex(1,a,b, label = "f")
+
 g = C.addSimplex(1,b,c, label = "g")
 h = C.addSimplex(1,a,c, label = "h")
 S = C.addSimplex(2,f,g,h,label = "gof = h")
-print(C.label)
 D = C.copy(label = "D")
 print(C == D)
+f1 = D.addSimplex(1,a,b, label = "f1")
 D.addSimplex(0,label = "xX$ilect$pectorXx")
 
 
 print(C.label + ": ",[[s.label for s in slist] for slist in C.simplecies.values()])
 print(D.label + ": ",[[s.label for s in slist] for slist in D.simplecies.values()])
+print([s.label for s in C.hom(a,b)])
+print([s.label for s in D.hom(a,b)])
