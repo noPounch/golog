@@ -72,8 +72,12 @@ class simpSet:
             else: setattr(self,key,eval(defaults[key]))
     def copy(self,**kwargs):
         #create a new simplicial set, with options to change arguements
-        new = simpSet(simplecies = copy.deepcopy(self.simplecies)) #different set, same objects. Shallow copy
-
+        newSimps = dict() #different set, same simplecies. Shallow copy
+        for key in self.simplecies.keys():
+            newSimps[key] = []
+            for simp in self.simplecies[key]:
+                newSimps[key].append(simp)
+        new = simpSet(simplecies = newSimps)
         defaults = {'label':'self.label'}
         for key in defaults.keys():
             if key in kwargs.keys(): setattr(new,key,kwargs[key])
