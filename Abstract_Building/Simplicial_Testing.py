@@ -1,3 +1,6 @@
+import itertools
+
+
 ####### RULES OF THUMB #########
 #the only free floating objects are simplecies
 #to create a structure on top of an underlying strucutre, you must copy the underlying structure first.
@@ -48,6 +51,7 @@ class Simplex2:
             if key in kwargs.keys(): setattr(self,key,kwargs[key])
             else: setattr(self,key,eval(defaults[key]))
 
+        ###need to generalize assertions before can generalize to SimplexN
         #assert domains line up
         assert self.faces[0].faces[1] == self.faces[1].faces[0], "domain of " + self.faces[0].label + " != codomain of " + self.faces[1].label
         assert self.faces[2].faces[0] == self.faces[0].faces[0], "domain of " + self.faces[2].label + " != domain of " + self.faces[0].label
@@ -64,6 +68,8 @@ class simpSet:
         for key in defaults.keys():
             if key in kwargs.keys(): setattr(self,key,kwargs[key])
             else: setattr(self,key,eval(defaults[key]))
+        self.rawSimps = list(set(itertools.chain(*list(self.simplecies.values()))))
+        self.height = max([simp.level for simp in self.rawSimps]+[-1]) #givens largest simplex, returns -1 for empty simplicial set
 
     def copy(self,**kwargs):
         #Shallow copy: different sset and attributes, same simplecies
@@ -83,6 +89,8 @@ class simpSet:
         for F in simp.faces: assert F in self.simplecies[F.faces] #check if faces exist in graph
         if simp.faces not in list(self.simplecies.keys()): self.simplecies[simp.faces] = [] #add face key to simplex dictionary
         self.simplecies[simp.faces].append(simp)
+        self.rawSimps.append(simp)
+        self.height = max(self.height, simp.level)
         return simp
 
     def hom(self, A ,B):
@@ -91,7 +99,31 @@ class simpSet:
 
 
 
+def isFunctor(dom,codom,F,**kwargs):
+    #F is a function of domain.simplecies
+    #check domain and codomain are correct
+    for simp in dom.rawSimps:
+        if F(simp) not in codom.rawSimps:
+            return (False,simp.label,F(simp).label,0)
 
+    #functorality
+    for simp in dom.rawSimps:
+        if tuple([F(face) for face in simp.faces])  != F(simp).faces:
+            return (False, simp.label, F(simp).label ,1)
+
+    return Functor(dom,codom,F,**kwargs)
+
+
+class Functor:
+    def __init__(self, dom, codom, F, **kwargs):
+        self.dom = dom
+        self.codom = codom
+        self.F = F
+
+        defaults = {'label':'\'\''}
+        for key in defaults.keys():
+            if key in kwargs.keys(): setattr(self,key,kwargs[key])
+            else: setattr(self,key,eval(defaults[key]))
 
 
 
@@ -116,8 +148,15 @@ print(C == D)
 f1 = D.addSimplex(1,a,b, label = "f1")
 D.addSimplex(0,label = "xX$ilect$pectorXx")
 
+#this is a functor
+i = isFunctor(C,D,lambda x:x)
 
-print(C.label + ": ",[[s.label for s in slist] for slist in C.simplecies.values()])
+
+#
+
+print([s.label for s in C.rawSimps])
+print(C.label + ": ",[[s.label for s in slist] for slist in C.simplecies.values()], "height = "+str(C.height))
 print(D.label + ": ",[[s.label for s in slist] for slist in D.simplecies.values()])
 print([s.label for s in C.hom(a,b)])
 print([s.label for s in D.hom(a,b)])
+print(i)
