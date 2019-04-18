@@ -1,0 +1,168 @@
+\documentclass[11pt]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz-cd}
+\usepackage{graphicx}
+\graphicspath{ {./Images/} }
+\usepackage{mathrsfs} 
+
+\mode<presentation> {
+\usetheme{Rochester}
+%\usecolortheme{albatross}
+}
+
+\title{Programming Ontological Generators}
+\author{Noah Chrein}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Olog Golog}
+\begin{center}
+    
+\includegraphics[width=10cm, height=7cm]{"olog golog"}
+\end{center}
+
+\end{frame}
+
+\begin{frame}{Table of Contents}
+-directed multigraphs\\
+-1- simplex\\
+-graphMaps / 1-simplex preservation\\
+-2 - simplex\\
+-2 - simplex in a graphMap\\
+-icategories\\
+-identity\\
+-identity simplecies\\
+-Functor / 2-simplex preservation\\
+-subcategories\\
+-submorphisms\\
+-sm(C)\\
+-Ontological Generation $OG:C \to sm(C)$\\
+\end{frame}
+
+\begin{frame}
+
+\begin{block}{Directed Multigraph}
+A directed multigraph is two sets Ob, Mor, with two functions $dom,codom:Mor \to Ob$
+\end{block}
+-create object class\\ \pause
+-create morphism class morphism.domain = object, morphism.codomain = object\\ \pause
+-create multigraph class multigraph.morphisms = [morphisms] multigraph.objects = [objects]
+
+\end{frame}
+
+
+\begin{frame}{Graph Maps}
+\begin{block}{Graph Map}
+Let G, H be two graphs, A pair $F = (F^0:ob(G) \to ob(H),F^1:mor(G) \to mor(H))$ is a \\graph map, if $F:G \to H$ satisfies:\\
+i)$F^1(f).dom = F^0(f.dom)$\\
+ii)$F^1(f).codom = F^0(f.codom)$
+
+\end{block}
+\end{frame}
+
+\begin{frame}{G-Simplecies/ simplicial graphs}
+
+Consider the following multigraph  $\Delta^2$:\\
+(tikz)\\
+\begin{block}{G-simplex}
+A G-simplex is a graph Map $F:\Delta^2 \to G$ which we write as $(f,g,gof) = (F(01),F(12),F(02))$\\
+A the set of G-simplecies is GSimp, and comes with two maps$\pi_f,\pi_g:GSimp \to mor^2(G)$ by \\ \center{$\pi_f(F) = F_1(01) \text{ and } \pi_g(F) = F_1(12)$}
+\end{block}
+Consider a subset of G-simplecies $Simp \subseteq GSimp$\\
+Simp is called coherant, if $\forall F \in Simp$, F is the only simplex such that $F(01) = f$ and $F(12) = g$
+\\\center{(i.e. $|[\pi_{f}\times\pi_{g}]^{-1}(mor(G)^2)| \leq 1$.)}
+
+\end{frame}
+
+
+\begin{frame}{simplicial graphs}
+\begin{block}{simplicial graph}
+A simplicial graph C = (G,Simp) is a multigraph G with a coherant set of simplecies Simp.\\
+\end{block}
+By the uniqueness of Simp, when $(f,g,h)\in Simp$ we can define composition $g\circ f = h$
+
+    \begin{block}{simplicial map}
+        Let C, D be two simplicial graphs, a simplicial map is a double $(F,F^2) = (F^0,F^1,F^2)$, with F a graph Map and $F^2:Simp_C \to Simp_D$ a function of sets such that the following equations hold:\\
+        i)$F_2(simp).ob = F_0(simp.ob)$\\
+        ii)$F_2(simp).mor = F_1(simp.mor)$
+    \end{block}
+\end{frame}
+
+
+\begin{frame}{identities}
+    \begin{block}{Identity}
+        Let C be a simplicial graph, a morphism $I:O \to O$ is an identity if $\forall f:A \to O, g:O \to B$ there is a simplex (f,I,f) and (I,g,g). 
+    \end{block}
+    \begin{block}{iCategory}
+    an icategory is a simplicial graph such that every object o has an identity morphism $I(o) = I_o$, where $I:ob \to mor$
+    \end{block}
+\end{frame}
+
+\begin{frame}{functors, subcategories}
+    \begin{block}{iFunctor}
+        an iFunctor $F:C \to D$ between icategories, is a simplicial map such that:\\
+        $F^1(I(o)) = I(F^0(o))$\\
+        Q: is this redundant? Can this be derived via simplecies?\\
+        A: yes, the simplecies $(I_o,I'_o,I_o)$ and $(I_o,I'_o,I'_o)$ results in $I_o = I'_o$ by uniqueness. I.e. (defining two identities in an icategory will throw a uniqueness assertion error in Simp)
+    \end{block}
+\end{frame}
+
+\begin{frame}{Sm(C)}
+    \begin{block}{subcategory}
+    a subcategory $S\leq C$ is three subsets $ob_S\leq ob_C$, $mor_S \leq mor_C$, $simp_S \leq simp_C$ such that the inclusion induces a functor $i:S \to C$ \\
+    (this means that the inclusion maps $(i^1,i^2,i^3)$ satisfy the graph map, simplicial map and iFunctor conditions)
+    \end{block}
+    \begin{block}{submorphism}
+    Let $Hom_{C}(S,S') = \{f:o \to o'|o \in S, o'\in S'\}$\\
+    A submorphism $\mathcal F: S \to  S'$ is a subset $\mathcal F \subseteq Hom_{C}(S,S')$ (i.e. some arbitrary collection of maps between objects of either subcategory
+    \end{block}
+\end{frame}
+
+\begin{frame}{Sm(C)}
+\begin{block}{Sm(C)}
+Let Sm(C) be the icategory of subcategories and submorphisms. 
+\end{block}
+
+of course we have to define the simplecies (and identities):\\
+let $$\mathcal G \circ \mathcal F = \{g\circ f|f:o \to o',g:o' \to o'' g.dom = f.codom\}$$ and define the simplecies $(\mathcal F,\mathcal G,\mathcal G \circ \mathcal F)$ then,\\
+$I_S = \{Id_o|o\in S\}$
+\end{frame}
+
+\begin{frame}{Ontological Generators}
+\begin{block}{Ontological Generator}
+An ontological generator is a Functor $OG: C \to sm(C) $
+\end{block}
+\end{frame}
+
+\begin{frame}{computational ontologies}
+-git\\
+-variable instantiating\\
+-file systems\\
+\end{frame}
+
+\begin{frame}{ontologies in math}
+- Topological Ontology.\\
+- semantic / logical ontology
+\end{frame}
+
+\begin{frame}{math for ontologies}
+-Sheaf theory / $OG_\$$ makes $\mathbb C$ into a \underline{Site}\\
+-deduction as gluing property
+\end{frame}
+
+\begin{frame}{ontologies for ontologies}
+-Ontological Readers\\
+-Ontological Updaters / Actors\\
+-Axiom objects\\
+-Understanding as Axiomatic covering by generators\\
+\end{frame}
+
+
+
+
+
+
+
+\end{document}
