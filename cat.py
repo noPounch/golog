@@ -1,6 +1,4 @@
 import itertools
-import sm
-
 
 ####### RULES OF THUMB #########
 #the only free floating objects are simplecies
@@ -90,7 +88,6 @@ class simpSet:
             newSimps[key] = []
             for simp in self.simplecies[key]:newSimps[key].append(simp)
         return simpSet(simplecies = newSimps,**kwargs)
-
 
 
     def addSimplex(self,simp,*args,**kwargs): #add a simplex to simpSet.simplecies dictionary
