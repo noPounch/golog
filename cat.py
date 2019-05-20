@@ -102,7 +102,7 @@ class simpSet:
         return simp
 
     def hom(self, A ,B):
-        if (A,B) in self.simplecies.keys(): return self.simplecies[(A,B)]
+        if [A,B] in self.simplecies.keys(): return self.simplecies[[A,B]]
         return False
 
 
