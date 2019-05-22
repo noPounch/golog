@@ -133,7 +133,7 @@ class simpSet:
         elif isinstance(ob, simpSet):
             for s in ob.rawSimps:
                 self.add(s)
-            return ob
+            return self
 
         #if ob is a list (of faces) add a new simplex with those faces
         elif isinstance(ob, tuple):
