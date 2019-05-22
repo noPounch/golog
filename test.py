@@ -4,16 +4,10 @@ from hcat import *
 
 
 C = simpSet(label = "C")
-s = createSimplex(2,label = "s")
-C.add(s)
-
-D = simpSet(label = "D")
-D.add(s)
-
-F = lambda x: x
-Functor(C,D,F)
-
-for s in C.rawSimps: print("F(" +s.label + ") = " + F(s).label)
+a = C.add(0)
+b = C.add(0)
+s = C.add((b,a),label = 'yo')
+print(s.label)
 
 
 #graphs and #graphmaps

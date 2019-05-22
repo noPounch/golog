@@ -1,56 +1,63 @@
 from math import pi, sin, cos, floor
 
+import hcat
+import tkinter
 from direct.showbase.ShowBase import ShowBase
 from direct.task import Task
 from direct.actor.Actor import Actor
 from direct.interval.IntervalGlobal import Sequence
 from panda3d.core import Point3
 
-class MyApp(ShowBase):
-    def __init__(self):
+class golog(ShowBase):
+    def __init__(self,*args, **kwargs):
         ShowBase.__init__(self)
         self.disableMouse()
-        self.model = self.loader.loadModel("models/box")
+        self.camera.setPos(0,-100,0)
+        self.metadata = {'tfloor', }
 
-        self.model.setPos(0,20,0)
-        self.model.setScale(1,1,1)
-        self.model.reparentTo(self.render)
-        self.camera.setPos(0,-20,0)
+        #create a golog, a dummy node represents the golog as a "universe"
+        #all simplecies should be child nodes of gologNode
+        self.gologNode = self.render.attachNewNode("golog")
+        self.sSet = hcat.simpSet(label = "golog", data = {'node':self.gologNode})
 
-        self.spheres = self.render.attachNewNode("boxes")
-        #self.boxes.reparentTo(self.render)
         self.sphere = self.loader.loadModel("models/misc/sphere")
-        self.sphere.setColor()
-        self.box.reparentTo(self.boxes)
-        self.taskMgr.add(self.boxMakerMover, "Box Maker Mover Task")
+        #self.sphere.reparentTo(self.gologNode)
 
+        a = self.createNewSimplex(0, setPos = (2,0,2),label = 'a')
+        b = self.createNewSimplex(0, label = 'b')
+        f = self.createNewSimplex((b,a), label = 'f')
+        self.taskMgr.add(lambda t: self.moverTask(self.sphere,t), "camera task")
+        self.sphere.ls()
 
-    def boxMakerMover(self,task):
+    def createNewSimplex(self, *args, **kwargs):
+        numsimps = len(self.sSet.rawSimps)
+
+        #create a simplex in the simplicial set
+        simplex = self.sSet.add(*args, **kwargs)
+
+        #create an instance of simplex graphics in golog, send to simplex.data['gr']
+        simplexGr = self.render.attachNewNode(simplex.label+" Node")
+        simplex.data['gr'] = simplexGr
+        self.sphere.instanceTo(simplexGr)
+
+        defaults = {'setPos':(2*numsimps,0,0)}
+        for key in defaults.keys():
+            if key in kwargs.keys(): getattr(simplexGr,key)(kwargs[key])
+            else: getattr(simplexGr,key)(defaults[key])
+        simplexGr.ls()
+        return simplex
+
+    def moverTask(self,ob,task):
         t = task.time
-        curve = lambda t: Point3( t, 0,sin(45*t))
-        self.boxes.setPos(curve(t))
-        self.box.setPos(-curve(t))
-        print(self.box.getX() == self.box.getX(self.boxes))
-        return Task.cont
+        curve = lambda t: Point3(sin(10*t),0,0)
+        ob.setPos(curve(t))
+        return task.cont
 
-
-
-
-    def boxMaker(self, task):
+    def cameraTask(self, task):
         t = task.time
-        print(t)
-        curve = lambda t: Point3( t, 0,sin(45*t))
-        model = self.loader.loadModel("models/box")
-        model.setPos(curve(t))
-        model.reparentTo(self.boxes)
-        return Task.cont
+        self.camera.setPos(50*cos(t),50*sin(t),0)
+        self.camera.lookAt(self.sSet.rawSimps[0].data['gr'])
+        return task.cont
 
-
-    def camera(self, task):
-        self.camera.lookAt(self.sphere)
-        self.camera.setPos(20 * sin(angleRadians), -20.0 * cos(angleRadians), 3)
-        self.camera.setHpr(angleDegrees, 0, 0)
-        return Task.cont
-
-app = MyApp()
+app = golog()
 app.run()

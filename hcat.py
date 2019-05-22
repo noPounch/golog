@@ -81,10 +81,10 @@ class simpSet:
     def __init__(self,*args,**kwargs):
 
     #simps stored in a dictionary, indexed by their Faces
-        defaults = {'label':'\'\'','simplecies':'dict()'}
+        defaults = {'label':'','simplecies':dict(),'data':dict()}
         for key in defaults.keys():
             if key in kwargs.keys(): setattr(self,key,kwargs[key])
-            else: setattr(self,key,eval(defaults[key]))
+            else: setattr(self,key,defaults[key])
 
         self.rawSimps = list(set(itertools.chain(*list(self.simplecies.values()))))
         self.height = max([simp.level for simp in self.rawSimps]+[-1])
