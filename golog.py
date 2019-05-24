@@ -27,6 +27,7 @@ class golog(ShowBase):
         a = self.createObject(setPos = (0,0,0),label = 'a')
         b = self.createObject(setPos = (5,0,0),label = 'b')
         c = self.createObject(setPos = (5,0,5),label = 'c')
+        #
         f = self.createMorphism((b,a),label = 'f')
         g = self.createMorphism((c,b),label = 'g')
 
