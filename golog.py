@@ -30,7 +30,9 @@ class golog(ShowBase):
         f = self.createMorphism((b,a),label = 'f')
         g = self.createMorphism((c,b),label = 'g')
 
-        #self.taskMgr.add(lambda t: self.moverTask(b.data['gr'],t), "mover task")
+        self.taskMgr.add(lambda t: self.obMoverTask(b,t), "mover task")
+        self.taskMgr.add(lambda t: self.morMoverTask(f,t),"moverTask")
+        self.taskMgr.add(self.cameraTask,"camera Task")
         #self.sphere.ls()
 
     #create a new simplex an bind graphics
@@ -58,27 +60,33 @@ class golog(ShowBase):
         codom = faces[0]
         simplex = self.sSet.add(faces,*args,**kwargs)
         simplexGr = Rope()
-        middlenode = self.gologNode.attachNewNode("")
-        dom.data['gr'].instanceTo(middlenode)
-        codom.data['gr'].instanceTo(middlenode)
-        print(middlenode.getPos())
+        middlenode = simplexGr.attachNewNode("middlenode")
+        middlenode.setPos((dom.data['gr'].getPos()+codom.data['gr'].getPos())/2)
 
         #set start and endpoint to be the domain and codomain graphics
 
         simplexGr.setup(3,[(dom.data['gr'],(0,0,0)),
                     (middlenode,(0,0,0)),
                     (codom.data['gr'],(0,0,0))])
-
-
         simplexGr.reparentTo(self.render)
-        simplexGr.ropeNode.setNumSubdiv(30)
+        simplex.data['gr'] = simplexGr
+        print(simplexGr.getPoints(3))
+        return simplex
 
 
-    def moverTask(self,ob,task):
+    def obMoverTask(self,ob,task):
         t = task.time
         curve = lambda t: Point3(5+3*sin(10*t),0,3*sin(10*t))
-        ob.setPos(curve(t))
+        ob.data['gr'].setPos(curve(t))
         return task.cont
+
+    def morMoverTask(self,mor,task):
+        t = task.time
+        curve = lambda t: Point3(5+3*sin(10*t),0,3*sin(10*t))
+        #get middlenode
+        mor.data['gr'].getChild(0).setPos(curve(t))
+        return task.cont
+
 
     def cameraTask(self, task):
         t = task.time
