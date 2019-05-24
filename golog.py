@@ -2,6 +2,7 @@ from math import pi, sin, cos, floor
 
 import hcat
 import tkinter
+from direct.showutil.Rope import Rope
 from direct.showbase.ShowBase import ShowBase
 from direct.task import Task
 from direct.actor.Actor import Actor
@@ -12,28 +13,33 @@ class golog(ShowBase):
     def __init__(self,*args, **kwargs):
         ShowBase.__init__(self)
         self.disableMouse()
-        self.camera.setPos(0,-100,0)
-        self.metadata = {'tfloor', }
+        self.camera.setPos(0,-30,0)
 
         #create a golog, a dummy node represents the golog as a "universe"
         #all simplecies should be child nodes of gologNode
         self.gologNode = self.render.attachNewNode("golog")
         self.sSet = hcat.simpSet(label = "golog", data = {'node':self.gologNode})
 
+
         self.sphere = self.loader.loadModel("models/misc/sphere")
         #self.sphere.reparentTo(self.gologNode)
 
-        a = self.createNewSimplex(0, setPos = (2,0,2),label = 'a')
-        b = self.createNewSimplex(0, label = 'b')
-        f = self.createNewSimplex((b,a), label = 'f')
-        self.taskMgr.add(lambda t: self.moverTask(self.sphere,t), "camera task")
-        self.sphere.ls()
+        a = self.createObject(setPos = (0,0,0),label = 'a')
+        b = self.createObject(setPos = (5,0,0),label = 'b')
+        c = self.createObject(setPos = (5,0,5),label = 'c')
+        f = self.createMorphism((b,a),label = 'f')
+        g = self.createMorphism((c,b),label = 'g')
 
-    def createNewSimplex(self, *args, **kwargs):
+        #self.taskMgr.add(lambda t: self.moverTask(b.data['gr'],t), "mover task")
+        #self.sphere.ls()
+
+    #create a new simplex an bind graphics
+    #pass graphics attributes and simplex kwargs
+    def createObject(self, *args, **kwargs):
         numsimps = len(self.sSet.rawSimps)
 
         #create a simplex in the simplicial set
-        simplex = self.sSet.add(*args, **kwargs)
+        simplex = self.sSet.add(0,*args, **kwargs)
 
         #create an instance of simplex graphics in golog, send to simplex.data['gr']
         simplexGr = self.render.attachNewNode(simplex.label+" Node")
@@ -44,12 +50,33 @@ class golog(ShowBase):
         for key in defaults.keys():
             if key in kwargs.keys(): getattr(simplexGr,key)(kwargs[key])
             else: getattr(simplexGr,key)(defaults[key])
-        simplexGr.ls()
+        #simplexGr.ls()
         return simplex
+
+    def createMorphism(self, faces, *args, **kwargs):
+        dom = faces[1]
+        codom = faces[0]
+        simplex = self.sSet.add(faces,*args,**kwargs)
+        simplexGr = Rope()
+        middlenode = self.gologNode.attachNewNode("")
+        dom.data['gr'].instanceTo(middlenode)
+        codom.data['gr'].instanceTo(middlenode)
+        print(middlenode.getPos())
+
+        #set start and endpoint to be the domain and codomain graphics
+
+        simplexGr.setup(3,[(dom.data['gr'],(0,0,0)),
+                    (middlenode,(0,0,0)),
+                    (codom.data['gr'],(0,0,0))])
+
+
+        simplexGr.reparentTo(self.render)
+        simplexGr.ropeNode.setNumSubdiv(30)
+
 
     def moverTask(self,ob,task):
         t = task.time
-        curve = lambda t: Point3(sin(10*t),0,0)
+        curve = lambda t: Point3(5+3*sin(10*t),0,3*sin(10*t))
         ob.setPos(curve(t))
         return task.cont
 
