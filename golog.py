@@ -31,8 +31,8 @@ class golog(ShowBase):
         f = self.createMorphism((b,a),label = 'f')
         g = self.createMorphism((c,b),label = 'g')
 
-        self.taskMgr.add(lambda t: self.obMoverTask(b,t), "mover task")
-        self.taskMgr.add(lambda t: self.morMoverTask(f,t),"moverTask")
+        #self.taskMgr.add(lambda t: self.obMoverTask(b,t), "mover task")
+        #self.taskMgr.add(lambda t: self.morMoverTask(f,t),"moverTask")
         self.taskMgr.add(self.cameraTask,"camera Task")
         #self.sphere.ls()
 
