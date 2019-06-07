@@ -1,5 +1,6 @@
 import sys
 from direct.showbase.ShowBase import ShowBase
+from golog import golog
 
 Camera_Distance = 30
 
@@ -10,7 +11,7 @@ class runner(ShowBase):
         self.disableMouse()
         self.accept('f5', sys.exit)
         self.accept('f6', sys.exit)
-
+        g = golog(self)
 
 
 r = runner()
