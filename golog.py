@@ -6,10 +6,10 @@ import tkinter
 from direct.showutil.Rope import Rope
 from direct.showbase.ShowBase import ShowBase
 from direct.task import Task
-from direct.actor.Actor import Actor
-from direct.interval.IntervalGlobal import Sequence
-from panda3d.core import Point3, LPoint3f
-from pandac.PandaModules import *
+from panda3d.core import Vec3, Point3, LPoint3f, Plane
+from panda3d.core import CollisionPlane, CollisionRay, CollisionSphere
+from panda3d.core import CollisionNode, CollisionTraverser, CollisionHandlerQueue
+
 
 #globals
 Camera_Distance = 30
@@ -18,53 +18,84 @@ Camera_Distance = 30
 
 class golog(ShowBase):
     def __init__(self,*args, **kwargs):
+        #set up showbase and debugging options
         ShowBase.__init__(self)
-        self.disableMouse()
         self.camera.setPos(0,-Camera_Distance,0)
-        #create a golog, a dummy node represents the golog as a "universe"
-        #all simplecies should be child nodes of gologNode
-        self.gologNode = self.render.attachNewNode("golog")
-        self.sSet = hcat.simpSet(label = "golog", data = {'node':self.gologNode})
-        self.sphere = self.loader.loadModel("models/misc/sphere")
-
+        self.disableMouse()
         self.accept('f5', sys.exit)
         self.accept('f6', sys.exit)
-        self.accept("mouse1",self.mouse1handler)
 
 
-        #self.sphere.reparentTo(self.gologNode)
 
-        a = self.createObject(setPos = (0,0,0),label = 'a')
-        b = self.createObject(setPos = (5,0,0),label = 'b')
-        c = self.createObject(setPos = (5,0,5),label = 'c')
-        #
-        f = self.createMorphism((b,a),label = 'f')
-        g = self.createMorphism((c,b),label = 'g')
-        #self.taskMgr.add()
-        #self.taskMgr.add(self.simpMoverTask, "mover task", extraArgs = [b,b.data['node'].getPos()], appendTask = True)
-        #self.taskMgr.add(self.simpMoverTask, "mover task", extraArgs = [a,a.data['node'].getPos()], appendTask = True)
+        # Initialize simplicial set
+        self.gologNode = self.render.attachNewNode("golog")
+        self.sSet = hcat.simpSet(label = "golog", data = {'node':self.gologNode})
 
-        #self.taskMgr.add(lambda t: self.morMoverTask(f,t),"moverTask")
-        #self.taskMgr.add(self.cameraTask,"camera Task")
-        #self.sphere.ls()
+        # Load Models
+        self.sphere = self.loader.loadModel("models/misc/sphere")
+
+        #Collision Handling
+        #set up traverser and handler
+        self.cTrav = CollisionTraverser('main traverser')
+        self.queue = CollisionHandlerQueue()
+        self.selected = []
+
+        #set up ray picker
+        self.pickerNode = CollisionNode('mouseRay')
+        self.pickerNP = camera.attachNewNode(self.pickerNode)
+        self.pickerRay = CollisionRay()
+        self.pickerNode.addSolid(self.pickerRay)
+
+        #traverser sends ray collisions to handler
+        self.cTrav.addCollider(self.pickerNP,self.queue)
+
+        #set up CollisionPlane
+        self.planeNode = self.render.attachNewNode("plane")
+        self.planeFromObject = self.planeNode.attachNewNode(CollisionNode("planeColNode"))
+        self.planeFromObject.node().addSolid(CollisionPlane(Plane(Vec3(0,-1,0),Point3(0,0,0))))
 
 
-    def mouse1handler(self):
-        x=self.mouseWatcherNode.getMouseX()
-        z=self.mouseWatcherNode.getMouseY()
-        print(x,z)
-        s = self.createObject(setPos = LPoint3f(x*(Camera_Distance+1),0,z*(Camera_Distance+1))/3.14)
-        self.taskMgr.add(self.simpMoverTask, "mover task", extraArgs = [s,s.data['node'].getPos()], appendTask = True)
-    #create a new simplex an bind graphics
-    #pass graphics attributes and simplex kwargs
+
+
+        self.accept("mouse1",self.mouse1)
+
+
+
+    def mouse1(self):
+        mpos = self.mouseWatcherNode.getMouse()
+        self.pickerRay.setFromLens(self.camNode,mpos.getX(),mpos.getY())
+        self.cTrav.traverse(self.render)
+
+
+        self.queue.sortEntries()
+        entry = self.queue.getEntry(0)
+        # print(entry.getIntoNodePath().getParent())
+        if entry.getIntoNodePath().getParent() == self.planeNode:
+            for node in self.selected: node.setColorScale(1,1,1,1) #turn white
+            self.selected = []
+
+            self.createObject(setPos = entry.getSurfacePoint(entry.getIntoNodePath()),
+                            label = str(len(self.sSet.rawSimps)))
+        else:
+            if entry.getIntoNodePath().getParent() not in self.selected:
+                self.selected.append(entry.getIntoNodePath().getParent())#.getTag('simplex'))
+            entry.getIntoNodePath().getParent().setColorScale(1,0,0,0) #turn red
+        print(self.selected)
+
+
     def createObject(self, *args, **kwargs):
         #create a simplex in the simplicial set
         simplex = self.sSet.add(0,*args, **kwargs)
 
         #create an instance of simplex graphics in golog, send to simplex.data['node']
         simplexGr = self.render.attachNewNode(simplex.label+" Node")
-        simplex.data['node'] = simplexGr
+        simplex.data['node'] = simplexGr #refer to node from simplex
+        # simplexGr.setTag('simplex',simplex) #refer to simplex from node
+
+        #attach sphere graphics and sphere collision node to node
         self.sphere.instanceTo(simplexGr)
+        collisionNode = simplexGr.attachNewNode(CollisionNode('sphereColNode'))
+        collisionNode.node().addSolid(CollisionSphere(0,0,0,1))
 
         #create a messenger name for simplex (for now just rawSimps index)
         simplex.data['_messengerName'] = 'simp' + str(self.sSet.rawSimps.index(simplex))
@@ -74,7 +105,6 @@ class golog(ShowBase):
             if key in kwargs.keys(): getattr(simplexGr,key)(kwargs[key])
             else: getattr(simplexGr,key)(defaults[key])
         #simplexGr.ls()
-        print(simplexGr.getPos())
         #accept other calls
         ####
         self.accept('Update' + simplex.data['_messengerName'],self.updateSimp,[simplex])
@@ -83,16 +113,6 @@ class golog(ShowBase):
         return simplex
 
     def updateSimp(self,simp,kwargs = dict()):
-        #since the task manager doesn't let you pass kwargs, you have to pass a number and index by that number
-
-        ####TODO: Make this method accept either kwargs or multiple args with some index
-
-        # kwargs = dict()
-        # for n in range(len(ntypes)): kwargs = kwargs + {inttokey[i]:}
-        #
-        #
-        # kwargs = [{inttokey[i],} for i in ntypes]
-
         if 'pos' in kwargs:
             #update morphism to be average position of it's faces nodes + some offset passed through kwargs['pos']
             pos = kwargs['pos']
@@ -100,7 +120,6 @@ class golog(ShowBase):
             for f in simp.faces: pos = pos + f.data['node'].getPos()/n #transform offset pos to offset from average of faces
             simp.data['node'].setPos(pos)
             self.messenger.send( simp.data['_messengerName']+' moved', [{'pos':Point3(0,0,0)}]) #sending (0,0,0) just updates the child nodes by default
-            if simp.level > 0: print("yoyoyoyoyoy")
 
     def createMorphism(self, faces, *args, **kwargs):
         dom = faces[1]
@@ -152,3 +171,5 @@ class golog(ShowBase):
 
 app = golog()
 app.run()
+sapp = golog()
+sapp.run()

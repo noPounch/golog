@@ -153,9 +153,7 @@ class simpSet:
         return False
 
 
-
-
-
+#functor takes a function F:dom.simplecies --> codom.simplecies and checks assertions
 class Functor:
     def __init__(self,dom,codom,F , **kwargs):
         for simp in dom.rawSimps:
@@ -166,8 +164,12 @@ class Functor:
         self.dom = dom
         self.codom = codom
         self.F = F
+
         #apply Kwargs
         defaults = {'label':'\'\''}
         for key in defaults.keys():
             if key in kwargs.keys(): setattr(self,key,kwargs[key])
             else: setattr(self,key,eval(defaults[key]))
+
+def isSubcategory():
+    pass
