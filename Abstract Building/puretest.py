@@ -1,19 +1,46 @@
-import sys
-from direct.showbase.ShowBase import ShowBase
-import headlesstest
+from direct.directbase.DirectStart import *
+from pandac.PandaModules import *
+from direct.actor.Actor import Actor
 
-Camera_Distance = 30
+a = Actor('panda.egg', {'walk' : 'panda-walk.egg'})
+a.pose('walk', 0)
 
-class runner(ShowBase):
-    def __init__(self):
-        ShowBase.__init__(self)
-        self.camera.setPos(0,-Camera_Distance,0)
-        self.disableMouse()
-        self.accept('f5', sys.exit)
-        self.accept('f6', sys.exit)
-        headlesstest.test(self)
+a.reparentTo(render)
 
+dlight = NodePath(DirectionalLight('dlight'))
+dlight.reparentTo(base.cam)
+render.setLight(dlight)
 
+base.disableMouse()
+camera.setPosHpr(-41, -23, 18, -61, -15, 0)
 
-r = runner()
-r.run()
+def makeNewDr():
+    dr2 = base.win.makeDisplayRegion(0.1, 0.4, 0.2, 0.6)
+    dr2.setClearColor(VBase4(0, 0, 0, 1))
+    dr2.setClearColorActive(True)
+    dr2.setClearDepthActive(True)
+
+    render2 = NodePath('render2')
+    cam2 = render2.attachNewNode(Camera('cam2'))
+    dr2.setCamera(cam2)
+
+    env = loader.loadModel('environment.egg')
+    env.reparentTo(render2)
+
+    cam2.setPos(-22.5, -387.3, 58.1999)
+    return cam2
+
+def splitScreen(cam, cam2):
+    dr = cam.node().getDisplayRegion(0)
+    dr2 = cam2.node().getDisplayRegion(0)
+
+    dr.setDimensions(0, 0.5, 0, 1)
+    dr2.setDimensions(0.5, 1, 0, 1)
+
+    cam.node().getLens().setAspectRatio(float(dr.getPixelWidth()) / float(dr.getPixelHeight()))
+    cam2.node().getLens().setAspectRatio(float(dr2.getPixelWidth()) / float(dr2.getPixelHeight()))
+
+cam2 = makeNewDr()
+splitScreen(base.cam, cam2)
+
+run()
