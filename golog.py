@@ -5,26 +5,35 @@ import hcat
 import tkinter
 from direct.showutil.Rope import Rope
 from direct.task import Task
+from panda3d.core import NodePath, Camera
 from panda3d.core import Vec3, Point3, LPoint3f, Plane
 from panda3d.core import CollisionPlane, CollisionRay, CollisionSphere
 from panda3d.core import CollisionNode, CollisionTraverser, CollisionHandlerQueue
 
+#Golog is a wrapper for a panda scenegraph and a hcat, it can be placed into a window by
+#win.getDisplayRegion(0).setCamera(golog.camera)
+
+Camera_Distance = 100
+
 class golog():
     def __init__(self,base ,*args, label = 'golog', **kwargs):
         #set up showbase and debugging options
-        defaults = {'render':base.render, 'camera':base.camera,'camNode':base.camNode,'loader':base.loader}
-        for key in defaults.keys():
-            if key in kwargs.keys(): setattr(self,key,kwargs[key])
+        defaults = {'mouseWatcherNode':base.mouseWatcherNode}
+        for key in defaults:
+            if key in kwargs: setattr(self,key,kwargs[key])
             else: setattr(self,key,defaults[key])
 
+        self.label = label
+        self.render = NodePath(label+"_render")
+        self.camNode = Camera(label+"camNode")
+        self.camera = self.render.attachNewNode(self.camNode)
+        self.camera.setPos(0,-Camera_Distance,0)
 
-
-        # Initialize simplicial set
-        self.gologNode = self.render.attachNewNode(label)
-        self.sSet = hcat.simpSet(label = "golog", data = {'node':self.gologNode})
+        # Initialize simplicial set=
+        self.sSet = hcat.simpSet(label = "golog", data = {'node':self.render})
 
         # Load Models
-        self.sphere = self.loader.loadModel("models/misc/sphere")
+        self.sphere = base.loader.loadModel("models/misc/sphere")
 
         #Collision Handling
         #set up traverser and handler
@@ -34,7 +43,7 @@ class golog():
 
         #set up ray picker
         self.pickerNode = CollisionNode('mouseRay')
-        self.pickerNP = self.camNode.attachNewNode(self.pickerNode)
+        self.pickerNP = self.camera.attachNewNode(self.pickerNode)
         self.pickerRay = CollisionRay()
         self.pickerNode.addSolid(self.pickerRay)
 
@@ -42,7 +51,7 @@ class golog():
         self.cTrav.addCollider(self.pickerNP,self.queue)
 
         #set up CollisionPlane
-        self.planeNode = self.gologNode.attachNewNode("plane")
+        self.planeNode = self.render.attachNewNode("plane")
         self.planeFromObject = self.planeNode.attachNewNode(CollisionNode("planeColNode"))
         self.planeFromObject.node().addSolid(CollisionPlane(Plane(Vec3(0,-1,0),Point3(0,0,0))))
 
@@ -50,15 +59,15 @@ class golog():
 
 
 
-        base.accept("mouse1",self.mouse1)
-        base.accept("mouse3",self.mouse3)
+        base.accept(label+"_mouse1",self.mouse1)
+        base.accept(label+"_mouse3",self.mouse3)
 
 
 
     def mouse1(self):
-        mpos = base.mouseWatcherNode.getMouse()
-        self.pickerRay.setFromLens(base.camNode,mpos.getX(),mpos.getY())
-        self.cTrav.traverse(base.render)
+        mpos = self.mouseWatcherNode.getMouse()
+        self.pickerRay.setFromLens(self.camNode,mpos.getX(),mpos.getY())
+        self.cTrav.traverse(self.render)
         self.queue.sortEntries()
         entry = self.queue.getEntry(0)
 
@@ -76,15 +85,15 @@ class golog():
 
 
     def mouse3(self):
-        mpos = base.mouseWatcherNode.getMouse()
-        self.pickerRay.setFromLens(base.camNode,mpos.getX(),mpos.getY())
-        self.cTrav.traverse(base.render)
+        mpos = self.mouseWatcherNode.getMouse()
+        self.pickerRay.setFromLens(self.camNode,mpos.getX(),mpos.getY())
+        self.cTrav.traverse(self.render)
         self.queue.sortEntries()
         entry = self.queue.getEntry(0)
         if entry.getIntoNodePath().getParent() == self.planeNode:
             for node in self.selected: node.setColorScale(1,1,1,1) #turn white
             self.selected = []
-
+            print(entry.getSurfacePoint(entry.getIntoNodePath()))
             self.createObject(setPos = entry.getSurfacePoint(entry.getIntoNodePath()),
                             label = str(len(self.sSet.rawSimps)))
 
@@ -94,7 +103,7 @@ class golog():
         simplex = self.sSet.add(0,*args, **kwargs)
 
         #create an instance of simplex graphics in golog, send to simplex.data['node']
-        simplexGr = self.gologNode.attachNewNode(simplex.label+" Node")
+        simplexGr = self.render.attachNewNode(simplex.label+" Node")
         simplex.data['node'] = simplexGr #refer to node from simplex
         self.graphicsToSimplex[simplexGr] = simplex #refer to simplex from node
 
@@ -115,7 +124,7 @@ class golog():
         ####
         base.accept('Update' + simplex.data['_messengerName'],self.updateSimp,[simplex])
         ####
-
+        self.render.ls()
         return simplex
 
     def updateSimp(self,simp,kwargs = dict()):
@@ -136,7 +145,7 @@ class golog():
 
 
         rope = Rope()
-        middlenode = self.gologNode.attachNewNode("middlenode")
+        middlenode = self.render.attachNewNode("middlenode")
         simplex.data['node'] = middlenode
         middlenode.setPos((dom.data['node'].getPos()+codom.data['node'].getPos())/2)
 
@@ -155,7 +164,7 @@ class golog():
         rope.setup(3,[(dom.data['node'],(0,0,0)),
                     (simplex.data['node'],(0,0,0)),
                     (codom.data['node'],(0,0,0))])
-        rope.reparentTo(self.gologNode)
+        rope.reparentTo(self.render)
         simplex.data['graphics'] = rope #simplex to Graphics
         self.graphicsToSimplex[rope] = simplex #graphics to simplex
 

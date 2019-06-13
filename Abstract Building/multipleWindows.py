@@ -2,74 +2,82 @@ import sys
 from math import cos, sin
 from direct.task import Task
 from direct.showbase.ShowBase import ShowBase
-from panda3d.core import WindowProperties, NodePath, MouseWatcher
+from panda3d.core import WindowProperties
+from panda3d.core import NodePath, MouseWatcher, ButtonThrower, MouseAndKeyboard, Camera
 
-
-
+rs = 1920-6
+ts = 60
+ws = 200
 Camera_Distance = 100
 
 class runner(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
-        self.disableMouse()
+        base.disableMouse()
+        #setup main window
+        wp = WindowProperties()
+        wp.setOrigin(rs-ws,ts)
+        wp.setSize(ws,ws)
+        self.win.requestProperties(wp)
+        self.buttonThrowers[0].node().setPrefix('win1_')
+        self.camera.setPos(0,-100,0)
 
 
-        ###### WINDOW 1
-        wp1 = WindowProperties()
-        wp1.setSize(500,500)
-        wp1.setOrigin(0,0)
-        win1 = self.winList[0]
-        cam1 = self.camList[0]
-        win1.requestProperties(wp1)
 
+
+        #Testing
         render1 = self.render
-        mouseWatcher1 = self.mouseWatcherNode
+        render2 = NodePath("render2")
+        render3 = NodePath("render3")
 
-
-        ####### END WINDOW 1
-
-        ####### WINDOW 2
-        wp2 = WindowProperties()
-        wp2.setSize(500,500)
-        wp2.setOrigin(1920-500,0)
-        win2 = self.openWindow(wp2)
-
-        # create new camera and bind it to window 2
-        cam2 = self.camList[1]
-        win2.getDisplayRegion(0).setCamera(cam2)
-
-        #create a new render and point the camera in it
-        render2 = NodePath("render 2")
-        cam2.reparentTo(render2)
-
-        # create a new mouseWatcher, make it watch window 2
-        mouseWatcher2 = MouseWatcher()
-        mouseWatcher2.setDisplayRegion(win2.getDisplayRegion(0))
-
-
-
-
-        ######### END WINDOW 2
-
-
-        ###### TEST
-        cam1.setPos(0,-100,0)
-        cam2.setPos(0,-100,0)
         sphere = self.loader.loadModel("models/misc/sphere")
-        sphere1 = render1.attachNewNode("sphere1")
-        sphere1.setPos(0,0,20)
-        sphere2 = render2.attachNewNode("sphere2")
+        sphere1 = self.render.attachNewNode("sphere1")
         sphere.instanceTo(sphere1)
+        sphere2 = render2.attachNewNode("sphere2")
         sphere.instanceTo(sphere2)
-        self.accept('f5', sys.exit)
-        self.accept('f6', sys.exit)
-        self.accept('mouse1',self.mousePrint, extraArgs = ['yo'])
-
-        # self.taskMgr.add()
+        sphere3 = render3.attachNewNode("sphere3")
+        sphere.instanceTo(sphere3)
 
 
-        def mouseprint(self,mouseNode,task):
-            if mouseNode.hasMouse(): print(mouseNode.getDisplayRegion())
+
+        self.windowMaker(render2,'win2')
+        self.windowMaker(render3,'win3')
+        self.accept("win1_mouse1", lambda: self.__on_left_down(1))
+        self.accept("win2_mouse1", lambda: self.__on_left_down(2))
+        self.accept("win3_mouse1", lambda: self.__on_left_down(3))
+
+    def windowMaker(self, render, label):
+        #Create Window, Display Region, mouseAndKeyboard control, mouse watcher and button thrower
+        #button thrower throws "label_event" (e.g. win2_mouse1)
+        i = len(self.winList)
+        newwin = self.openWindow()
+        displayRegion = newwin.getDisplayRegion(0)
+        mouseAndKeyboardNode = MouseAndKeyboard(newwin,0,label+"_keyboard_mouse")
+        mouseAndKeyboard = self.dataRoot.attachNewNode(mouseAndKeyboardNode)
+        mouseWatcherNode = MouseWatcher(label)
+        mouseWatcherNode.setDisplayRegion(displayRegion)
+        mouseWatcher = mouseAndKeyboard.attachNewNode(mouseWatcherNode)
+        buttonThrower = ButtonThrower(label+"_button_thrower")
+        buttonThrower.setPrefix(label+"_")
+        mouseWatcher.attachNewNode(buttonThrower)
+        #format window
+        wp = WindowProperties()
+        wp.setOrigin(rs-ws,ts+(ws+32)*i)
+        wp.setSize(ws,ws)
+        newwin.requestProperties(wp)
+
+        #point the camera to given render scene graph
+        camNode = Camera(label+"_Camera")
+        cam = render.attachNewNode(camNode)
+        displayRegion.setCamera(cam)
+        cam.setPos(0,-100,0)
+
+
+
+        return {'win':newwin,'camera':camera, }
+
+    def __on_left_down(self, window_id):
+        print("Left mouse button pressed in window {}!".format(window_id))
 
 r = runner()
 r.run()

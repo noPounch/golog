@@ -1,46 +1,31 @@
-from direct.directbase.DirectStart import *
-from pandac.PandaModules import *
-from direct.actor.Actor import Actor
+import sys
+import random
 
-a = Actor('panda.egg', {'walk' : 'panda-walk.egg'})
-a.pose('walk', 0)
+from direct.showbase.ShowBase import ShowBase
+from panda3d.core import NodePath, PandaNode, WindowProperties
 
-a.reparentTo(render)
+rs = 1920-6
+ts = 60
+ws = 200
+Camera_Distance = 100
 
-dlight = NodePath(DirectionalLight('dlight'))
-dlight.reparentTo(base.cam)
-render.setLight(dlight)
 
-base.disableMouse()
-camera.setPosHpr(-41, -23, 18, -61, -15, 0)
+class Base(ShowBase):
+    def __init__(self):
+        ShowBase.__init__(self)
+        base.disableMouse()
+        wp = WindowProperties()
+        wp.setOrigin(rs-ws,ts)
+        wp.setSize(ws,ws)
+        self.win.requestProperties(wp)
+        self.camera.setPos(0,-100,0)
+        sphere = self.loader.loadModel("models/misc/sphere")
+        sphere1 = self.render.attachNewNode("sphere1")
+        sphere.instanceTo(sphere1)
 
-def makeNewDr():
-    dr2 = base.win.makeDisplayRegion(0.1, 0.4, 0.2, 0.6)
-    dr2.setClearColor(VBase4(0, 0, 0, 1))
-    dr2.setClearColorActive(True)
-    dr2.setClearDepthActive(True)
+        print(self.camera)
 
-    render2 = NodePath('render2')
-    cam2 = render2.attachNewNode(Camera('cam2'))
-    dr2.setCamera(cam2)
 
-    env = loader.loadModel('environment.egg')
-    env.reparentTo(render2)
-
-    cam2.setPos(-22.5, -387.3, 58.1999)
-    return cam2
-
-def splitScreen(cam, cam2):
-    dr = cam.node().getDisplayRegion(0)
-    dr2 = cam2.node().getDisplayRegion(0)
-
-    dr.setDimensions(0, 0.5, 0, 1)
-    dr2.setDimensions(0.5, 1, 0, 1)
-
-    cam.node().getLens().setAspectRatio(float(dr.getPixelWidth()) / float(dr.getPixelHeight()))
-    cam2.node().getLens().setAspectRatio(float(dr2.getPixelWidth()) / float(dr2.getPixelHeight()))
-
-cam2 = makeNewDr()
-splitScreen(base.cam, cam2)
-
-run()
+if __name__ == '__main__':
+    app = Base()
+app.run()
