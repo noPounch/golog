@@ -18,13 +18,13 @@ Camera_Distance = 100
 class golog():
     def __init__(self,base ,*args, label = 'golog', **kwargs):
         #set up showbase and debugging options
-        defaults = {'mouseWatcherNode':base.mouseWatcherNode}
+        defaults = {'mouseWatcherNode':base.mouseWatcherNode,'render':NodePath(label+"_render")}
         for key in defaults:
             if key in kwargs: setattr(self,key,kwargs[key])
             else: setattr(self,key,defaults[key])
 
         self.label = label
-        self.render = NodePath(label+"_render")
+        # self.render = NodePath(label+"_render")
         self.camNode = Camera(label+"camNode")
         self.camera = self.render.attachNewNode(self.camNode)
         self.camera.setPos(0,-Camera_Distance,0)
@@ -124,7 +124,7 @@ class golog():
         ####
         base.accept('Update' + simplex.data['_messengerName'],self.updateSimp,[simplex])
         ####
-        self.render.ls()
+        print(simplexGr)
         return simplex
 
     def updateSimp(self,simp,kwargs = dict()):

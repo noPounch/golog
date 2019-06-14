@@ -21,6 +21,7 @@ class runner(ShowBase):
         self.win.requestProperties(wp)
         self.buttonThrowers[0].node().setPrefix('win1_')
         self.camera.setPos(0,-100,0)
+        print(self.camera.getParent().ls())
 
 
 
@@ -35,18 +36,26 @@ class runner(ShowBase):
         sphere.instanceTo(sphere1)
         sphere2 = render2.attachNewNode("sphere2")
         sphere.instanceTo(sphere2)
-        sphere3 = render3.attachNewNode("sphere3")
-        sphere.instanceTo(sphere3)
+        # sphere3 = render3.attachNewNode("sphere3")
+        # sphere.instanceTo(sphere3)
 
 
 
-        self.windowMaker(render2,'win2')
-        self.windowMaker(render3,'win3')
-        self.accept("win1_mouse1", lambda: self.__on_left_down(1))
-        self.accept("win2_mouse1", lambda: self.__on_left_down(2))
-        self.accept("win3_mouse1", lambda: self.__on_left_down(3))
+        win2 = self.windowMaker(render2,'win2')['win']
+        # print(win2.getDisplayRegion(0).getCamera())
+        # print(win2.getDisplayRegion(0).getCamera().getParent().ls())
+        win3dict = self.windowMaker(render3,'win3')
+        win3dict['win'].getDisplayRegion(0).setCamera(win3dict['camera'])
+        win3dict['camera'].reparentTo(render3)
+        # print(win3.getDisplayRegion(0).getCamera().getParent().ls())
 
-    def windowMaker(self, render, label):
+
+        self.accept("win1_mouse1", lambda: self.__on_left_down(0))
+        self.accept("win2_mouse1", lambda: self.__on_left_down(1))
+        self.accept("win3_mouse1", lambda: self.__on_left_down(2))
+        print()
+
+    def windowMaker(self, ren, label):
         #Create Window, Display Region, mouseAndKeyboard control, mouse watcher and button thrower
         #button thrower throws "label_event" (e.g. win2_mouse1)
         i = len(self.winList)
@@ -68,16 +77,17 @@ class runner(ShowBase):
 
         #point the camera to given render scene graph
         camNode = Camera(label+"_Camera")
-        cam = render.attachNewNode(camNode)
-        displayRegion.setCamera(cam)
-        cam.setPos(0,-100,0)
+        camNP = NodePath(camNode)
+        displayRegion.setCamera(camNP)
+        camNP.reparentTo(ren)
+        camNP.setPos(0,-100,0)
 
 
 
-        return {'win':newwin,'camera':camera, }
+        return {'win':newwin,'camera':camNP}
 
-    def __on_left_down(self, window_id):
-        print("Left mouse button pressed in window {}!".format(window_id))
+    def __on_left_down(self, i):
+        print(self.winList[i])
 
 r = runner()
 r.run()

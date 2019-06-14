@@ -8,35 +8,25 @@ from golog import golog as Golog
 
 rs = 1920-6
 ts = 60
-ws = 200
+ws = 500
 
 
 class runner(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
         self.disable_mouse()
-        #setup main window
-        wp = WindowProperties()
-        wp.setOrigin(rs-ws,ts)
-        wp.setSize(ws,ws)
+        self.closeWindow(self.win)
         # self.win.requestProperties(wp)
-        golog = Golog(self)
-        windict = {'win':self.win,'mw':self.mouseWatcher,'bt':self.buttonThrowers[0].node()}
-        self.gologToWindow(golog,windict)
-        print(self.win.getDisplayRegion(0).getCamera() == golog.camera)
-        print(self.win.getDisplayRegion(0).getCamera())
-        print(golog.camera.getHpr())
-
-        s = golog.render.attachNewNode("sphere")
-        self.sphere = base.loader.loadModel("models/misc/sphere")
-
-        self.sphere.instanceTo(s)
+        golog1 = Golog(self,label = "golog1")
+        golog2 = Golog(self,label = "golog2")
+        self.gologToWindow(golog1)
+        self.gologToWindow(golog2)
 
     def gologToWindow(self, golog, windict = None):
         if not windict:
             windict = self.windowMaker(golog.label)
         win = windict['win']; mw = windict['mw']; bt = windict['bt']
-        win.getDisplayRegion(0).setCamera(golog.camera) #set window to view camera
+        win.getDisplayRegion(1).setCamera(golog.camera) #set window to view camera
         golog.mouseWatcherNode = mw.node() #set golog.mouseWatcherNode to window's mousewatcher node
         bt.setPrefix(golog.label+"_")
 

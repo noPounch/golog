@@ -1,8 +1,5 @@
-import sys
-import random
-
 from direct.showbase.ShowBase import ShowBase
-from panda3d.core import NodePath, PandaNode, WindowProperties
+from panda3d.core import NodePath, WindowProperties, Camera
 
 rs = 1920-6
 ts = 60
@@ -14,16 +11,26 @@ class Base(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
         base.disableMouse()
-        wp = WindowProperties()
-        wp.setOrigin(rs-ws,ts)
-        wp.setSize(ws,ws)
-        self.win.requestProperties(wp)
-        self.camera.setPos(0,-100,0)
+        render2 = NodePath('render2')
+        cam = Camera('newcam')
+        camNP = NodePath(cam)
+        camNP.reparentTo(render2)
+        camNP.setPos(0,-Camera_Distance,0)
+        print(self.win.getActiveDisplayRegions())
+        self.win.getDisplayRegion(2).setCamera(camNP)
+
+
+        self.scenem = self.loader.load_model("environment")
+        self.scene = render2.attachNewNode("scene")
+        self.scenem.instanceTo(self.scene)
+        self.scenem.reparent_to(render2)
+        self.scene.set_scale(.25)
+        self.scene.set_pos(-8., 42., 0.)
+
         sphere = self.loader.loadModel("models/misc/sphere")
         sphere1 = self.render.attachNewNode("sphere1")
         sphere.instanceTo(sphere1)
-
-        print(self.camera)
+        sphere1.setPos(0,0,0)
 
 
 if __name__ == '__main__':
