@@ -33,6 +33,17 @@ class Base(ShowBase):
         sphere1.setPos(0,0,0)
 
 
+        base.accept("mouse1", messyKwargPasser, extraArgs = [ foo, ['hello' ], {'well':'hi there'} ] )
+
+def messyKwargPasser(f, arglist, kwargdict):
+    return f(*arglist,**kwargdict)
+
+def foo(*args,**kwargs):
+    print("args: ", args)
+    print("kwargs: ", kwargs)
+
+
+
 if __name__ == '__main__':
     app = Base()
 app.run()

@@ -17,21 +17,23 @@ Camera_Distance = 100
 
 class golog():
     def __init__(self,base ,*args, label = 'golog', **kwargs):
-        #set up showbase and debugging options
-        defaults = {'mouseWatcherNode':base.mouseWatcherNode,'render':NodePath(label+"_render")}
+        #initialize with an empty nodepath and no window
+        defaults = {'render':NodePath(label+"_render")}
         for key in defaults:
             if key in kwargs: setattr(self,key,kwargs[key])
             else: setattr(self,key,defaults[key])
 
-        self.label = label
+        #window stuff
         # self.render = NodePath(label+"_render")
+        self.windicts = []
+        self.buttons = {'mouse1':self.mouse1,'mouse3':self.mouse3}
         self.camNode = Camera(label+"camNode")
         self.camera = self.render.attachNewNode(self.camNode)
         self.camera.setPos(0,-Camera_Distance,0)
 
-        # Initialize simplicial set=
-        self.sSet = hcat.simpSet(label = "golog", data = {'node':self.render})
-
+        # Initialize simplicial set
+        self.label = label
+        self.sSet = hcat.simpSet(self.label, data = {'node':self.render})
         # Load Models
         self.sphere = base.loader.loadModel("models/misc/sphere")
 
@@ -64,8 +66,8 @@ class golog():
 
 
 
-    def mouse1(self):
-        mpos = self.mouseWatcherNode.getMouse()
+    def mouse1(self,mw):
+        mpos = mw.node().getMouse()
         self.pickerRay.setFromLens(self.camNode,mpos.getX(),mpos.getY())
         self.cTrav.traverse(self.render)
         self.queue.sortEntries()
@@ -84,8 +86,8 @@ class golog():
             self.createMorphism(faces) #reversed selected objects and creates a 1 - simplex from them
 
 
-    def mouse3(self):
-        mpos = self.mouseWatcherNode.getMouse()
+    def mouse3(self,mw):
+        mpos = mw.node().getMouse()
         self.pickerRay.setFromLens(self.camNode,mpos.getX(),mpos.getY())
         self.cTrav.traverse(self.render)
         self.queue.sortEntries()
@@ -93,7 +95,6 @@ class golog():
         if entry.getIntoNodePath().getParent() == self.planeNode:
             for node in self.selected: node.setColorScale(1,1,1,1) #turn white
             self.selected = []
-            print(entry.getSurfacePoint(entry.getIntoNodePath()))
             self.createObject(setPos = entry.getSurfacePoint(entry.getIntoNodePath()),
                             label = str(len(self.sSet.rawSimps)))
 
@@ -124,7 +125,6 @@ class golog():
         ####
         base.accept('Update' + simplex.data['_messengerName'],self.updateSimp,[simplex])
         ####
-        print(simplexGr)
         return simplex
 
     def updateSimp(self,simp,kwargs = dict()):
