@@ -58,46 +58,7 @@ class golog():
         self.planeFromObject = self.planeNode.attachNewNode(CollisionNode("planeColNode"))
         self.planeFromObject.node().addSolid(CollisionPlane(Plane(Vec3(0,-1,0),Point3(0,0,0))))
 
-        self.graphicsToSimplex = dict()
-
-
-
-    #     base.accept(label+"_mouse1",self.mouse1)
-    #     base.accept(label+"_mouse3",self.mouse3)
-    #
-    #
-    #
-    # def mouse1(self,mw):
-    #     mpos = mw.node().getMouse()
-    #     self.pickerRay.setFromLens(self.camNode,mpos.getX(),mpos.getY())
-    #     self.cTrav.traverse(self.render)
-    #     self.queue.sortEntries()
-    #     entry = self.queue.getEntry(0)
-    #
-    #     if entry.getIntoNodePath().getParent() == self.planeNode:
-    #         for node in self.selected: node.setColorScale(1,1,1,1) #turn white
-    #         self.selected = []
-    #     else:
-    #         if entry.getIntoNodePath().getParent() not in self.selected:
-    #             self.selected.append(entry.getIntoNodePath().getParent())#.getTag('simplex'))
-    #         entry.getIntoNodePath().getParent().setColorScale(1,0,0,0) #turn red
-    #
-    #     if len(self.selected) >= 2:
-    #         faces = tuple([self.graphicsToSimplex[faceGr] for faceGr in self.selected[-1:-3:-1]])
-    #         self.createMorphism(faces) #reversed selected objects and creates a 1 - simplex from them
-    #
-    #
-    # def mouse3(self,mw):
-    #     mpos = mw.node().getMouse()
-    #     self.pickerRay.setFromLens(self.camNode,mpos.getX(),mpos.getY())
-    #     self.cTrav.traverse(self.render)
-    #     self.queue.sortEntries()
-    #     entry = self.queue.getEntry(0)
-    #     if entry.getIntoNodePath().getParent() == self.planeNode:
-    #         for node in self.selected: node.setColorScale(1,1,1,1) #turn white
-    #         self.selected = []
-    #         self.createObject(setPos = entry.getSurfacePoint(entry.getIntoNodePath()),
-    #                         label = str(len(self.sSet.rawSimps)))
+        self.NPtoSimplex = dict()
 
 
     def createObject(self, *args, **kwargs):
@@ -107,7 +68,7 @@ class golog():
         #create an instance of simplex graphics in golog, send to simplex.data['node']
         simplexGr = self.render.attachNewNode(simplex.label+" Node")
         simplex.data['node'] = simplexGr #refer to node from simplex
-        self.graphicsToSimplex[simplexGr] = simplex #refer to simplex from node
+        self.NPtoSimplex[simplexGr] = simplex #refer to simplex from node
 
         #attach sphere graphics and sphere collision node to node
         self.sphere.instanceTo(simplexGr)
@@ -167,7 +128,7 @@ class golog():
                     (codom.data['node'],(0,0,0))])
         rope.reparentTo(self.render)
         simplex.data['graphics'] = rope #simplex to Graphics
-        self.graphicsToSimplex[rope] = simplex #graphics to simplex
+        self.NPtoSimplex[rope] = simplex #graphics to simplex
 
 
         return simplex

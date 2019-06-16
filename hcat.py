@@ -15,6 +15,7 @@ class Simplex():
         self.level = n
         self.faces = faces
 
+
         #check functorality
         if n>1:
             for j in range(n+1):

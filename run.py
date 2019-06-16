@@ -16,9 +16,9 @@ class runner(ShowBase):
         base.accept("f5",sys.exit)
         base.accept("f6",sys.exit)
 
-
+        golog = Golog(self, label = "run")
         # self.win.requestProperties(wp)
-        controllable_golog = selection_and_creation_mode(self)
+        controllable_golog = selection_and_creation_mode(self,golog)
         gologToWindow(self, controllable_golog.golog)
 
 
