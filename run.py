@@ -1,9 +1,6 @@
 import sys
 from math import cos, sin
 from direct.showbase.ShowBase import ShowBase
-from direct.task import Task
-from panda3d.core import WindowProperties
-from panda3d.core import NodePath, MouseWatcher, ButtonThrower, MouseAndKeyboard, Camera
 from golog import golog as Golog
 from window_manager import *
 

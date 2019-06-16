@@ -22,7 +22,7 @@ class Simplex():
                     assert self.faces[j].faces[i] == self.faces[i].faces[j-1], "Functorality Violated at: " + self.faces[j].faces[i].label+ " != " + self.faces[i].faces[j-1].label
 
         #Apply Kwargs
-        defaults = {'label':'','data':dict()}
+        defaults = {'label':'','data':dict(),'mathData':None}
         for key in defaults:
             if key in kwargs: setattr(self,key,kwargs[key])
             else: setattr(self,key,defaults[key])
