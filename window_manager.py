@@ -19,7 +19,7 @@ def gologToWindow(base, golog, windict = None):
     golog.windicts.append(windict) #set golog.mouseWatcherNode to window's mousewatcher node
     for button in golog.buttons.keys():
         base.accept(bt.prefix+button, golog.buttons[button], extraArgs = [mw]) #golog accepts window's events and sends them to specified handler function
-        print(golog.label+"now accepting: "+ bt.prefix+button)
+        # print(golog.label+"now accepting: "+ bt.prefix+button)
     return win
 
 

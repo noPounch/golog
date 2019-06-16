@@ -26,6 +26,7 @@ class golog():
         #window stuff
         # self.render = NodePath(label+"_render")
         self.windicts = []
+        self.buttons = dict()
         # self.buttons = {'mouse1':self.mouse1,'mouse3':self.mouse3}
         self.camNode = Camera(label+"camNode")
         self.camera = self.render.attachNewNode(self.camNode)
