@@ -26,7 +26,7 @@ class golog():
         #window stuff
         # self.render = NodePath(label+"_render")
         self.windicts = []
-        self.buttons = {'mouse1':self.mouse1,'mouse3':self.mouse3}
+        # self.buttons = {'mouse1':self.mouse1,'mouse3':self.mouse3}
         self.camNode = Camera(label+"camNode")
         self.camera = self.render.attachNewNode(self.camNode)
         self.camera.setPos(0,-Camera_Distance,0)
@@ -61,42 +61,42 @@ class golog():
 
 
 
-        base.accept(label+"_mouse1",self.mouse1)
-        base.accept(label+"_mouse3",self.mouse3)
-
-
-
-    def mouse1(self,mw):
-        mpos = mw.node().getMouse()
-        self.pickerRay.setFromLens(self.camNode,mpos.getX(),mpos.getY())
-        self.cTrav.traverse(self.render)
-        self.queue.sortEntries()
-        entry = self.queue.getEntry(0)
-
-        if entry.getIntoNodePath().getParent() == self.planeNode:
-            for node in self.selected: node.setColorScale(1,1,1,1) #turn white
-            self.selected = []
-        else:
-            if entry.getIntoNodePath().getParent() not in self.selected:
-                self.selected.append(entry.getIntoNodePath().getParent())#.getTag('simplex'))
-            entry.getIntoNodePath().getParent().setColorScale(1,0,0,0) #turn red
-
-        if len(self.selected) >= 2:
-            faces = tuple([self.graphicsToSimplex[faceGr] for faceGr in self.selected[-1:-3:-1]])
-            self.createMorphism(faces) #reversed selected objects and creates a 1 - simplex from them
-
-
-    def mouse3(self,mw):
-        mpos = mw.node().getMouse()
-        self.pickerRay.setFromLens(self.camNode,mpos.getX(),mpos.getY())
-        self.cTrav.traverse(self.render)
-        self.queue.sortEntries()
-        entry = self.queue.getEntry(0)
-        if entry.getIntoNodePath().getParent() == self.planeNode:
-            for node in self.selected: node.setColorScale(1,1,1,1) #turn white
-            self.selected = []
-            self.createObject(setPos = entry.getSurfacePoint(entry.getIntoNodePath()),
-                            label = str(len(self.sSet.rawSimps)))
+    #     base.accept(label+"_mouse1",self.mouse1)
+    #     base.accept(label+"_mouse3",self.mouse3)
+    #
+    #
+    #
+    # def mouse1(self,mw):
+    #     mpos = mw.node().getMouse()
+    #     self.pickerRay.setFromLens(self.camNode,mpos.getX(),mpos.getY())
+    #     self.cTrav.traverse(self.render)
+    #     self.queue.sortEntries()
+    #     entry = self.queue.getEntry(0)
+    #
+    #     if entry.getIntoNodePath().getParent() == self.planeNode:
+    #         for node in self.selected: node.setColorScale(1,1,1,1) #turn white
+    #         self.selected = []
+    #     else:
+    #         if entry.getIntoNodePath().getParent() not in self.selected:
+    #             self.selected.append(entry.getIntoNodePath().getParent())#.getTag('simplex'))
+    #         entry.getIntoNodePath().getParent().setColorScale(1,0,0,0) #turn red
+    #
+    #     if len(self.selected) >= 2:
+    #         faces = tuple([self.graphicsToSimplex[faceGr] for faceGr in self.selected[-1:-3:-1]])
+    #         self.createMorphism(faces) #reversed selected objects and creates a 1 - simplex from them
+    #
+    #
+    # def mouse3(self,mw):
+    #     mpos = mw.node().getMouse()
+    #     self.pickerRay.setFromLens(self.camNode,mpos.getX(),mpos.getY())
+    #     self.cTrav.traverse(self.render)
+    #     self.queue.sortEntries()
+    #     entry = self.queue.getEntry(0)
+    #     if entry.getIntoNodePath().getParent() == self.planeNode:
+    #         for node in self.selected: node.setColorScale(1,1,1,1) #turn white
+    #         self.selected = []
+    #         self.createObject(setPos = entry.getSurfacePoint(entry.getIntoNodePath()),
+    #                         label = str(len(self.sSet.rawSimps)))
 
 
     def createObject(self, *args, **kwargs):
