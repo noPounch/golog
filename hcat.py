@@ -139,7 +139,7 @@ class simpSet:
         #if ob is a list (of faces) add a new simplex with those faces
         elif isinstance(ob, tuple):
             n = ob[0].level+1
-            s = Simplex(n,ob,*args,**kwargs)
+            s = Simplex(n,ob,*args,**kwargs) #this will throw errors if simplex assumptions are violated
             self.add(s)
             return s
 

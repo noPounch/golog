@@ -25,9 +25,11 @@ class golog():
 
         #window stuff
         # self.render = NodePath(label+"_render")
-        self.windicts = []
-        self.buttons = dict()
-        # self.buttons = {'mouse1':self.mouse1,'mouse3':self.mouse3}
+        self.windicts = [] #keep track of windows displaying golog
+        self.buttons = dict() #keep track of buttons affecting golog
+
+
+        # set up camera
         self.camNode = Camera(label+"camNode")
         self.camera = self.render.attachNewNode(self.camNode)
         self.camera.setPos(0,-Camera_Distance,0)
@@ -35,30 +37,49 @@ class golog():
         # Initialize simplicial set
         self.label = label
         self.sSet = hcat.simpSet(self.label, data = {'node':self.render})
+        self.NPtoSimplex = dict()
+
         # Load Models
         self.sphere = base.loader.loadModel("models/misc/sphere")
 
+
+
+        ###### MIGRATE TO mouse_wrapper
         #Collision Handling
         #set up traverser and handler
         self.cTrav = CollisionTraverser('main traverser')
         self.queue = CollisionHandlerQueue()
         self.selected = []
+        ######
 
+
+
+        ###### Decide whether to keep in golog or migrate to mouse_wrapper
         #set up ray picker
         self.pickerNode = CollisionNode('mouseRay')
         self.pickerNP = self.camera.attachNewNode(self.pickerNode)
         self.pickerRay = CollisionRay()
         self.pickerNode.addSolid(self.pickerRay)
+        ######
 
+
+
+        ###### Should be part of a gologToMode function
         #traverser sends ray collisions to handler
         self.cTrav.addCollider(self.pickerNP,self.queue)
+        #####
 
+
+
+        ##### keep in golog (but will be generalized later)
         #set up CollisionPlane
         self.planeNode = self.render.attachNewNode("plane")
         self.planeFromObject = self.planeNode.attachNewNode(CollisionNode("planeColNode"))
         self.planeFromObject.node().addSolid(CollisionPlane(Plane(Vec3(0,-1,0),Point3(0,0,0))))
+        #####
 
-        self.NPtoSimplex = dict()
+
+
 
 
     def createObject(self, *args, **kwargs):
@@ -132,16 +153,3 @@ class golog():
 
 
         return simplex
-
-    def simpMoverTask(self,simp,orig,task):
-        t = task.time
-        curve = lambda t: Point3(sin(10*t),sin(10*t),sin(10*t))
-        self.updateSimp(simp, {'pos' : orig + curve(t)})
-        return task.cont
-
-
-    # def cameraTask(self, task):
-    #     t = task.time
-    #     base.camera.setPos(50*cos(t),50*sin(t),50*sin(t))
-    #     base.camera.lookAt(self.sSet.rawSimps[0].data['graphics'])
-    #     return task.cont

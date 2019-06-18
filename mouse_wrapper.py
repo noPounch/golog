@@ -22,6 +22,8 @@ class mode_manager():
 class selection_and_creation_mode():
     def __init__(self, base, golog = None, *args,**kwargs):
         self.base = base
+        self.buttons = {'mouse1':self.mouse1,'mouse3':self.mouse3, 'space':self.space}
+        
 
         if not golog:
             self.golog = golog.golog(base,*args,**kwargs)
@@ -64,7 +66,10 @@ class selection_and_creation_mode():
         self.golog.cTrav.traverse(self.golog.render)
         self.golog.queue.sortEntries()
         entry = self.golog.queue.getEntry(0)#.getIntoNodePath().getParent
+
         if entry.getIntoNodePath().getParent() != self.golog.planeNode: simplex = self.golog.NPtoSimplex[entry.getIntoNodePath().getParent()]
+        else: return
+
         if isinstance(simplex,hcat.Simplex):
             if simplex.mathData:
                 print('')
