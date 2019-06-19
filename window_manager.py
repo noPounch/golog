@@ -7,7 +7,7 @@ from golog import golog as Golog
 
 rs = 1920-6
 ts = 60
-ws = 500
+ws = 300
 
 def modeHeadToWindow(base, modeHead, windict = None):
     i = len(base.winList)

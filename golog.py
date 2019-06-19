@@ -10,8 +10,9 @@ from panda3d.core import Vec3, Point3, LPoint3f, Plane
 from panda3d.core import CollisionPlane, CollisionRay, CollisionSphere
 from panda3d.core import CollisionNode, CollisionTraverser, CollisionHandlerQueue
 
-#Golog is a wrapper for a panda scenegraph and a hcat, it can be placed into a window by
-#win.getDisplayRegion(0).setCamera(golog.camera)
+
+#golog is an extension to a simplicial set that provides graphics functionality via the panda3d library
+#explicitly: a golog is a panda scene graph and an hcat sSet with a mapping from Panda Nodes to Simplecies 
 
 Camera_Distance = 100
 
@@ -23,21 +24,17 @@ class golog():
             if key in kwargs: setattr(self,key,kwargs[key])
             else: setattr(self,key,defaults[key])
 
-        #window stuff
-        # self.render = NodePath(label+"_render")
-        self.windicts = [] #keep track of windows displaying golog
-        self.buttons = dict() #keep track of buttons affecting golog
-
-
         # set up camera
         self.camNode = Camera(label+"camNode")
         self.camera = self.render.attachNewNode(self.camNode)
         self.camera.setPos(0,-Camera_Distance,0)
 
+
         # Initialize simplicial set
         self.label = label
         self.sSet = hcat.simpSet(self.label, data = {'node':self.render})
         self.NPtoSimplex = dict()
+
 
         # Load Models
         self.sphere = base.loader.loadModel("models/misc/sphere")
@@ -64,11 +61,10 @@ class golog():
         for key in defaults.keys():
             if key in kwargs.keys(): getattr(simplexGr,key)(kwargs[key])
             else: getattr(simplexGr,key)(defaults[key])
-        #simplexGr.ls()
+
         #accept other calls
-        ####
-        base.accept('Update' + simplex.data['_messengerName'],self.updateSimp,[simplex])
-        ####
+        base.accept('Update' + simplex.data['_messengerName'], self.updateSimp, extraArgs = [simplex])
+
         return simplex
 
     def updateSimp(self,simp,kwargs = dict()):
@@ -78,7 +74,7 @@ class golog():
             n = len(simp.faces)
             for f in simp.faces: pos = pos + f.data['node'].getPos()/n #transform offset pos to offset from average of faces
             simp.data['node'].setPos(pos)
-            base.messenger.send( simp.data['_messengerName']+' moved', [{'pos':Point3(0,0,0)}]) #sending (0,0,0) just updates the child nodes by default
+            base.messenger.send( simp.data['_messengerName']+' moved', extraArgs = [{'pos':Point3(0,0,0)}]) #sending (0,0,0) just updates the child nodes by default
 
     def createMorphism(self, faces, *args, **kwargs):
         dom = faces[1]; codom = faces[0]
@@ -96,12 +92,12 @@ class golog():
 
         #create a middlenode listener for face movements
         ######
-        for f in simplex.faces: base.accept(f.data['_messengerName'] + ' moved',self.updateSimp,[simplex])
+        for f in simplex.faces: base.accept(f.data['_messengerName'] + ' moved',self.updateSimp,extraArgs = [simplex])
         #####
 
         #create a listener for other events
         #####
-        base.accept('Update' + simplex.data['_messengerName'],self.updateSimp,[simplex])
+        base.accept('Update' + simplex.data['_messengerName'],self.updateSimp,extraArgs = [simplex])
         #####
 
         #set start and endpoint to be the domain and codomain graphics

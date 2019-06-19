@@ -121,7 +121,6 @@ class simpSet:
         def recursiveAdd(simp):
             for f in simp.faces:
                 if f not in self.rawSimps:
-                    # print(f.label)
                     recursiveAdd(f)
             addSimplex(simp)
 
