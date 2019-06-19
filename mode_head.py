@@ -64,22 +64,21 @@ class mode_head():
             self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY())
             self.cTrav.traverse(self.golog.render)
             self.queue.sortEntries()
+            print([e.getIntoNodePath().getParent().getTag("mode_head")for e in self.queue.getEntries()])
             # entry = self.queue.getEntry(0)
 
-
-            ########
-            # need to define a list of relevant collision solids so that two mode_heads won't conflict
-            # for example, currently the two planeColNodes are being checked, but should only check own
-            ########
-
+            # get the first relevant node traversed by mouseRay
+            # ignore everything with a mode_head tag that is not defined by this mode_head
             for e in self.queue.getEntries():
                 if e.getIntoNodePath().getParent().hasTag("mode_head"):
                     if e.getIntoNodePath().getParent().getTag("mode_head") == self.label:
                         entry = e
                         break
-                entry = e
-                break
+                else:
+                    entry = e
+                    break
 
+            print(entry.getIntoNodePath().getParent().getTag("mode_head"))
 
 
             if entry.getIntoNodePath().getParent().getTag("mode_head") == self.label:
@@ -100,7 +99,17 @@ class mode_head():
             self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY())
             self.cTrav.traverse(self.golog.render)
             self.queue.sortEntries()
-            entry = self.queue.getEntry(0)#.getIntoNodePath().getParent
+
+            # get the first relevant node traversed by mouseRay
+            # ignore everything with a mode_head tag that is not defined by this mode_head
+            for e in self.queue.getEntries():
+                if e.getIntoNodePath().getParent().hasTag("mode_head"):
+                    if e.getIntoNodePath().getParent().getTag("mode_head") == self.label:
+                        entry = e
+                        break
+                else:
+                    entry = e
+                    break
 
             if entry.getIntoNodePath().getParent() != self.planeNode: simplex = self.golog.NPtoSimplex[entry.getIntoNodePath().getParent()]
             else: return
@@ -112,7 +121,8 @@ class mode_head():
                         print('Math Data is a golog!')
                         #if it has a mode_head, just create a window to view golog (no controls), otherwise create a mode_head in selection_and_creation mode
                         controllable_golog = mode_head(self.base, simplex.mathData)
-                        if not hasattr(simplex.mathData,"mode_heads"): controllable_golog.selection_and_creation()
+                        # if not hasattr(simplex.mathData,"mode_heads"):
+                        controllable_golog.selection_and_creation()
 
                         window_manager.modeHeadToWindow(self.base, controllable_golog)
 
@@ -130,7 +140,18 @@ class mode_head():
             self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY())
             self.cTrav.traverse(self.golog.render)
             self.queue.sortEntries()
-            entry = self.queue.getEntry(0)
+
+            # get the first relevant node traversed by mouseRay
+            # ignore everything with a mode_head tag that is not defined by this mode_head
+            for e in self.queue.getEntries():
+                if e.getIntoNodePath().getParent().hasTag("mode_head"):
+                    if e.getIntoNodePath().getParent().getTag("mode_head") == self.label:
+                        entry = e
+                        break
+                else:
+                    entry = e
+                    break
+                    
             if entry.getIntoNodePath().getParent() == self.planeNode:
                 for node in self.selected: node.setColorScale(1,1,1,1) #turn white
                 self.selected = []
