@@ -12,7 +12,7 @@ from panda3d.core import CollisionNode, CollisionTraverser, CollisionHandlerQueu
 
 
 #golog is an extension to a simplicial set that provides graphics functionality via the panda3d library
-#explicitly: a golog is a panda scene graph and an hcat sSet with a mapping from Panda Nodes to Simplecies 
+#explicitly: a golog is a panda scene graph and an hcat sSet with a mapping from Panda Nodes to Simplecies
 
 Camera_Distance = 100
 
@@ -38,6 +38,9 @@ class golog():
 
         # Load Models
         self.sphere = base.loader.loadModel("models/misc/sphere")
+
+        #set up collision traverser
+        self.cTrav = CollisionTraverser(self.label+'_traverser')
 
 
     def createObject(self, *args, **kwargs):

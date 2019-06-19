@@ -4,10 +4,11 @@
 #--That The faces even exist (raise exception)
 #--That they satisfy the face conditions (return in conditions string)
 #--That they satisfy degeneracy conditions (return in conditions string)
-
+from sys import exit
 import hcat
 import golog
 import window_manager
+from direct.showbase.DirectObject import DirectObject
 from panda3d.core import Vec3, Point3
 from panda3d.core import Plane, CollisionPlane, CollisionRay, CollisionNode, CollisionTraverser, CollisionHandlerQueue
 
@@ -17,9 +18,8 @@ class mode_head():
         self.base = base
         self.golog = Golog
         self.buttons = dict()
-
-        #resetDict is a dictionary who's keys are objects, and values are methods to remove said objects
-        self.resetDict = dict()
+        self.callsto = []
+        self.listener = DirectObject()
 
         #label modehead uniquely
         # make a dictionary of mode data in modes
@@ -36,15 +36,20 @@ class mode_head():
             self.label = self.golog.label+"_mode_head_"+ str(self.index)
             self.golog.mode_heads[self.index] = self
 
-    def reset(self):
-        #resetDict is a dictionary who's keys are objects, and values are methods to remove said objects
-        for ob in self.resetDict.key(): resetDict[ob]()
+        self.reset = self.basic_reset()
+
+    def basic_reset(self):
+        self.buttons = dict()
+        for call in self.callsto:
+            base.ignore(call)
+
+
+
 
     def selection_and_creation(self):
 
         #Collision Handling
         #set up traverser and handler
-        self.cTrav = CollisionTraverser('main traverser')
         self.queue = CollisionHandlerQueue()
         self.selected = []
         self.pickerNode = CollisionNode('mouseRay')
@@ -52,7 +57,7 @@ class mode_head():
         self.pickerRay = CollisionRay()
         self.pickerNode.addSolid(self.pickerRay)
         self.pickerNode.set_into_collide_mask(0) #so that collision rays don't collide into each other if there are two mode_heads
-        self.cTrav.addCollider(self.pickerNP,self.queue)
+        self.golog.cTrav.addCollider(self.pickerNP,self.queue)
         self.planeNode = self.golog.render.attachNewNode("plane")
         self.planeNode.setTag("mode_head",self.label)
         self.planeFromObject = self.planeNode.attachNewNode(CollisionNode("planeColNode"))
@@ -62,7 +67,7 @@ class mode_head():
         def mouse1(mw):
             mpos = mw.node().getMouse()
             self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY())
-            self.cTrav.traverse(self.golog.render)
+            self.golog.cTrav.traverse(self.golog.render)
             self.queue.sortEntries()
             print([e.getIntoNodePath().getParent().getTag("mode_head")for e in self.queue.getEntries()])
             # entry = self.queue.getEntry(0)
@@ -97,7 +102,7 @@ class mode_head():
             if not mw.node().hasMouse(): return
             mpos = mw.node().getMouse()
             self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY())
-            self.cTrav.traverse(self.golog.render)
+            self.golog.cTrav.traverse(self.golog.render)
             self.queue.sortEntries()
 
             # get the first relevant node traversed by mouseRay
@@ -138,7 +143,7 @@ class mode_head():
 
             mpos = mw.node().getMouse()
             self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY())
-            self.cTrav.traverse(self.golog.render)
+            self.golog.cTrav.traverse(self.golog.render)
             self.queue.sortEntries()
 
             # get the first relevant node traversed by mouseRay
@@ -151,11 +156,28 @@ class mode_head():
                 else:
                     entry = e
                     break
-                    
+
             if entry.getIntoNodePath().getParent() == self.planeNode:
                 for node in self.selected: node.setColorScale(1,1,1,1) #turn white
                 self.selected = []
                 self.golog.createObject(setPos = entry.getSurfacePoint(entry.getIntoNodePath()),
                                 label = str(len(self.golog.sSet.rawSimps)))
 
-        self.buttons = {'mouse1':mouse1,'mouse3':mouse3, 'space':space}
+
+        def reset():
+            self.golog.cTrav.removeCollider(self.pickerNP)
+            del self.queue
+            for node in self.selected: node.setColorScale(1,1,1,1)
+            del self.selected
+            del self.pickerNode
+            self.pickerNP.removeNode()
+            del self.pickerRay
+            self.planeNode.removeNode()
+            self.planeFromObject.removeNode()
+            self.buttons = dict()
+            self.listener.ignoreAll()
+            print("reset")
+            self.reset = self.basic_reset
+
+        self.reset = reset
+        self.buttons = {'mouse1':mouse1,'mouse3':mouse3, 'space':space, 'f5':exit, 'f6':exit, 'escape':lambda x:self.reset()}
