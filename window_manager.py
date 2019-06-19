@@ -18,21 +18,6 @@ def modeHeadToWindow(base, modeHead, windict = None):
     # golog.windicts.append(windict) #set golog.mouseWatcherNode to window's mousewatcher node
     for button in modeHead.buttons.keys():
         base.accept(bt.prefix+button, modeHead.buttons[button], extraArgs = [mw]) #golog accepts window's events and sends them to specified handler function
-        print(modeHead.label+" now accepting: "+ bt.prefix+button)
-        print(mw)
-    return win
-
-
-def gologToWindow(base, golog, windict = None):
-    i = len(base.winList)
-    if not windict:
-        windict = windowMaker(base, "win{}".format(i))
-    win = windict['win']; mw = windict['mw']; bt = windict['bt']
-    win.getDisplayRegion(1).setCamera(golog.camera) #set window to view camera
-    golog.windicts.append(windict) #set golog.mouseWatcherNode to window's mousewatcher node
-    for button in golog.buttons.keys():
-        base.accept(bt.prefix+button, golog.buttons[button], extraArgs = [mw]) #golog accepts window's events and sends them to specified handler function
-        # print(golog.label+"now accepting: "+ bt.prefix+button)
     return win
 
 

@@ -19,6 +19,7 @@ class mode_head():
         self.base = base
         self.golog = Golog
         self.label = self.golog.label+ "_mode_head"
+        self.buttons = dict()
 
         #label modehead uniquely
         #make a dictionary of mode data in modes
@@ -87,9 +88,10 @@ class mode_head():
                     if isinstance(simplex.mathData,golog.golog):
                         print('Math Data is a golog!')
                 else:
-                    newgolog = golog.golog(self.base, label = simplex.label+"_subgolog")
-                    controllable_golog = mode_head(self.base, newgolog)
-                    window_manager.gologToWindow(self.base, controllable_golog.golog)
+                    new_golog = golog.golog(self.base, label = simplex.label+"_subgolog")
+                    controllable_golog = mode_head(self.base, new_golog)
+                    controllable_golog.selection_and_creation()
+                    window_manager.modeHeadToWindow(self.base, controllable_golog)
             # subgolog =
 
         def mouse3(mw):
