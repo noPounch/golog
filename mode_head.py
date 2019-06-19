@@ -38,7 +38,7 @@ class mode_head():
 
         self.reset = self.basic_reset()
 
-    def basic_reset(self):
+    def basic_reset(self,*args):
         self.buttons = dict()
         for call in self.callsto:
             base.ignore(call)
@@ -69,7 +69,6 @@ class mode_head():
             self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY())
             self.golog.cTrav.traverse(self.golog.render)
             self.queue.sortEntries()
-            print([e.getIntoNodePath().getParent().getTag("mode_head")for e in self.queue.getEntries()])
             # entry = self.queue.getEntry(0)
 
             # get the first relevant node traversed by mouseRay
@@ -83,7 +82,6 @@ class mode_head():
                     entry = e
                     break
 
-            print(entry.getIntoNodePath().getParent().getTag("mode_head"))
 
 
             if entry.getIntoNodePath().getParent().getTag("mode_head") == self.label:
@@ -164,7 +162,7 @@ class mode_head():
                                 label = str(len(self.golog.sSet.rawSimps)))
 
 
-        def reset():
+        def reset(*args):
             self.golog.cTrav.removeCollider(self.pickerNP)
             del self.queue
             for node in self.selected: node.setColorScale(1,1,1,1)
@@ -180,4 +178,4 @@ class mode_head():
             self.reset = self.basic_reset
 
         self.reset = reset
-        self.buttons = {'mouse1':mouse1,'mouse3':mouse3, 'space':space, 'f5':exit, 'f6':exit, 'escape':lambda x:self.reset()}
+        self.buttons = {'mouse1':mouse1,'mouse3':mouse3, 'space':space, 'escape':self.reset}
