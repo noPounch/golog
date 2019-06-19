@@ -2,7 +2,7 @@ import sys
 from direct.showbase.ShowBase import ShowBase
 from golog import golog as Golog
 from window_manager import *
-from mouse_wrapper import *
+from mode_head import *
 
 
 class runner(ShowBase):
@@ -18,8 +18,9 @@ class runner(ShowBase):
 
         golog = Golog(self, label = "run")
         # self.win.requestProperties(wp)
-        controllable_golog = selection_and_creation_mode(self,golog)
-        gologToWindow(self, controllable_golog.golog)
+        controllable_golog = mode_head(self,golog)
+        controllable_golog.selection_and_creation()
+        modeHeadToWindow(self, controllable_golog)
 
 
 r = runner()

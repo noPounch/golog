@@ -7,7 +7,20 @@ from golog import golog as Golog
 
 rs = 1920-6
 ts = 60
-ws = 200
+ws = 500
+
+def modeHeadToWindow(base, modeHead, windict = None):
+    i = len(base.winList)
+    if not windict:
+        windict = windowMaker(base, "win{}".format(i))
+    win = windict['win']; mw = windict['mw']; bt = windict['bt']
+    win.getDisplayRegion(1).setCamera(modeHead.golog.camera) #set window to view golog camera
+    # golog.windicts.append(windict) #set golog.mouseWatcherNode to window's mousewatcher node
+    for button in modeHead.buttons.keys():
+        base.accept(bt.prefix+button, modeHead.buttons[button], extraArgs = [mw]) #golog accepts window's events and sends them to specified handler function
+        print(modeHead.label+" now accepting: "+ bt.prefix+button)
+        print(mw)
+    return win
 
 
 def gologToWindow(base, golog, windict = None):

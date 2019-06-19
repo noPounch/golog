@@ -43,40 +43,39 @@ class golog():
         self.sphere = base.loader.loadModel("models/misc/sphere")
 
 
-
         ###### MIGRATE TO mouse_wrapper
         #Collision Handling
-        #set up traverser and handler
-        self.cTrav = CollisionTraverser('main traverser')
-        self.queue = CollisionHandlerQueue()
-        self.selected = []
-        ######
-
-
-
-        ###### Decide whether to keep in golog or migrate to mouse_wrapper
-        #set up ray picker
-        self.pickerNode = CollisionNode('mouseRay')
-        self.pickerNP = self.camera.attachNewNode(self.pickerNode)
-        self.pickerRay = CollisionRay()
-        self.pickerNode.addSolid(self.pickerRay)
-        ######
-
-
-
-        ###### Should be part of a gologToMode function
-        #traverser sends ray collisions to handler
-        self.cTrav.addCollider(self.pickerNP,self.queue)
-        #####
-
-
-
-        ##### keep in golog (but will be generalized later)
-        #set up CollisionPlane
-        self.planeNode = self.render.attachNewNode("plane")
-        self.planeFromObject = self.planeNode.attachNewNode(CollisionNode("planeColNode"))
-        self.planeFromObject.node().addSolid(CollisionPlane(Plane(Vec3(0,-1,0),Point3(0,0,0))))
-        #####
+        # #set up traverser and handler
+        # self.cTrav = CollisionTraverser('main traverser')
+        # self.queue = CollisionHandlerQueue()
+        # self.selected = []
+        # ######
+        #
+        #
+        #
+        # ###### Decide whether to keep in golog or migrate to mouse_wrapper
+        # #set up ray picker
+        # self.pickerNode = CollisionNode('mouseRay')
+        # self.pickerNP = self.camera.attachNewNode(self.pickerNode)
+        # self.pickerRay = CollisionRay()
+        # self.pickerNode.addSolid(self.pickerRay)
+        # ######
+        #
+        #
+        #
+        # ###### Should be part of a gologToMode function
+        # #traverser sends ray collisions to handler
+        # self.cTrav.addCollider(self.pickerNP,self.queue)
+        # #####
+        #
+        #
+        #
+        # ##### keep in golog (but will be generalized later)
+        # #set up CollisionPlane
+        # self.planeNode = self.render.attachNewNode("plane")
+        # self.planeFromObject = self.planeNode.attachNewNode(CollisionNode("planeColNode"))
+        # self.planeFromObject.node().addSolid(CollisionPlane(Plane(Vec3(0,-1,0),Point3(0,0,0))))
+        # #####
 
 
 
