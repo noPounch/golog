@@ -19,7 +19,7 @@ class runner(ShowBase):
         golog = Golog(self, label = "run")
         # self.win.requestProperties(wp)
         controllable_golog = mode_head(self,golog)
-        controllable_golog.selection_and_creation()
+        controllable_golog.testing_mode()
         modeHeadToWindow(self, controllable_golog)
 
 

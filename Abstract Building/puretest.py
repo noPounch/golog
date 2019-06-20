@@ -1,7 +1,21 @@
-# get minimum unused key from a dictionary
+import os, sys
+sys.path.append(os.path.abspath('..'))
 
-d = {0:0,3:3,4:4,7:7}
-m=0
-while m in d.keys():
-    m+=1
-print(m)
+from root.hcat import simpSet
+import pickle
+
+
+
+s = simpSet(label = "test" )
+print(s.label)
+s.add(1, label = "testSimp")
+print([simp.label for simp in s.rawSimps])
+
+with open("test.golog", mode = 'wb') as file:
+    pickle.dump(s, file)
+
+with open("test.golog", mode = 'rb') as file:
+    l = pickle.load(file)
+
+print(l.label)
+print([simp.label for simp in l.rawSimps])

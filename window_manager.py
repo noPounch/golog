@@ -6,6 +6,7 @@ from panda3d.core import WindowProperties
 from panda3d.core import NodePath, MouseWatcher, ButtonThrower, MouseAndKeyboard, Camera
 from golog import golog as Golog
 from direct.showbase.DirectObject import DirectObject
+from golog_export import gexport
 
 rs = 1920-6 #side minus some padding
 bs = 1080-30 #bottom minus toolbar
@@ -24,8 +25,6 @@ def modeHeadToWindow(base, mode_head, windict = None):
         windict = windowMaker(base, "win{}".format(i))
 
     win = windict['win']; mw = windict['mw']; bt = windict['bt']; mk = windict['mk']
-    # win.setCloseRequestEvent()
-    print(win.getWindowEvent())
     win.getDisplayRegion(1).setCamera(mode_head.golog.camera) #set window to view golog camera
     windict['mode_head'] = mode_head
     # golog.windicts.append(windict) #set golog.mouseWatcherNode to window's mousewatcher node
@@ -50,8 +49,6 @@ def windowMaker(base,label):
         break
     if not grid: return False
     position = grid_to_screen_pos(*grid)
-
-    print(position)
     newwin = base.openWindow(name = label)
     newwin.setWindowEvent(label+"-event")
     listener.accept(newwin.getWindowEvent(),windowEvent)
@@ -81,9 +78,9 @@ def windowEvent(win):
         return
 
 def windowCloseCleaner(windict):
-    print(windict['label']+" closed")
     if 'mode_head' in windict:
         golog = windict['mode_head'].golog
+        sSet = gexport(golog)
         mode_head = windict['mode_head']
         del windict['mode_head']
         mode_head.reset()
@@ -91,6 +88,4 @@ def windowCloseCleaner(windict):
     occupied[windict['grid'][0]][windict['grid'][1]] = False
     listener.ignore(windict['win'].getWindowEvent())
     del win_to_windict[windict['win']]
-
-    print(golog.mode_heads)
     del windict

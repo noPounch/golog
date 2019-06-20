@@ -16,8 +16,10 @@ from panda3d.core import CollisionNode, CollisionTraverser, CollisionHandlerQueu
 
 Camera_Distance = 100
 
+# messenger = DirectObject()
+
 class golog():
-    def __init__(self,base ,*args, label = 'golog', **kwargs):
+    def __init__(self,base,*args, label = 'golog', **kwargs):
         #initialize with an empty nodepath and no window
         defaults = {'render':NodePath(label+"_render")}
         for key in defaults:
@@ -37,7 +39,7 @@ class golog():
 
 
         # Load Models
-        self.sphere = base.loader.loadModel("models/misc/sphere")
+        self.sphere = loader.loadModel("models/misc/sphere")
 
         #set up collision traverser
         self.cTrav = CollisionTraverser(self.label+'_traverser')
@@ -77,7 +79,7 @@ class golog():
             n = len(simp.faces)
             for f in simp.faces: pos = pos + f.data['node'].getPos()/n #transform offset pos to offset from average of faces
             simp.data['node'].setPos(pos)
-            base.messenger.send( simp.data['_messengerName']+' moved', extraArgs = [{'pos':Point3(0,0,0)}]) #sending (0,0,0) just updates the child nodes by default
+            base.messenger.send(simp.data['_messengerName']+' moved', [{'pos':Point3(0,0,0)}]) #sending (0,0,0) just updates the child nodes by default
 
     def createMorphism(self, faces, *args, **kwargs):
         dom = faces[1]; codom = faces[0]
