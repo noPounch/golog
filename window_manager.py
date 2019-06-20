@@ -1,73 +1,60 @@
 import sys
+import gc
 from math import cos, sin
 from direct.task import Task
 from panda3d.core import WindowProperties
 from panda3d.core import NodePath, MouseWatcher, ButtonThrower, MouseAndKeyboard, Camera
 from golog import golog as Golog
+from direct.showbase.DirectObject import DirectObject
 
 rs = 1920-6 #side minus some padding
 bs = 1080-30 #bottom minus toolbar
 ts = 30
-grid_size = [3 , 2] #number of columns , rows of windows
+grid_size = [4 , 3] #number of columns , rows of windows
 grid_to_screen_pos = lambda i,j: [round(i/grid_size[0]*rs),round(j/grid_size[1]*(bs))+ts]
 occupied = [[False for j in range(grid_size[1])] for i in range(grid_size[0])] #create an array of "unoccupied" slots
 ws = [round(rs/grid_size[0]), round(bs/grid_size[1])-ts] #set window size
 buttons = {'f5':sys.exit,'f6':sys.exit}
+listener = DirectObject()
+win_to_windict = dict()
 
-def modeHeadToWindow(base, modeHead, windict = None):
+def modeHeadToWindow(base, mode_head, windict = None):
     i = len(base.winList)
     if not windict:
-        windict = newwindowMaker(base, "win{}".format(i))
+        windict = windowMaker(base, "win{}".format(i))
 
-    win = windict['win']; mw = windict['mw']; bt = windict['bt']
-    win.getDisplayRegion(1).setCamera(modeHead.golog.camera) #set window to view golog camera
+    win = windict['win']; mw = windict['mw']; bt = windict['bt']; mk = windict['mk']
+    # win.setCloseRequestEvent()
+    print(win.getWindowEvent())
+    win.getDisplayRegion(1).setCamera(mode_head.golog.camera) #set window to view golog camera
+    windict['mode_head'] = mode_head
     # golog.windicts.append(windict) #set golog.mouseWatcherNode to window's mousewatcher node
-    listener = modeHead.listener
-    for button in modeHead.buttons.keys():
-        modeHead.listener.accept(bt.prefix+button, modeHead.buttons[button], extraArgs = [mw]) #golog accepts window's events and sends them to specified handler function
+    for button in mode_head.buttons.keys():
+        mode_head.listener.accept(bt.prefix+button, mode_head.buttons[button], extraArgs = [mw]) #golog accepts window's events and sends them to specified handler function
     for button in buttons:
-        base.accept(bt.prefix+button,buttons[button])
+        listener.accept(bt.prefix+button,buttons[button])
     return win
 
 
-def windowMaker(base, label):
-    #Create Window, Display Region, mouseAndKeyboard control, mouse watcher and button thrower
-    #button thrower throws "label_event" (e.g. win2_mouse1)
-    i = len(base.winList)
-    newwin = base.openWindow()
-    displayRegion = newwin.getDisplayRegion(0)
-    mouseAndKeyboardNode = MouseAndKeyboard(newwin,0,label+"_keyboard_mouse")
-    mouseAndKeyboard = base.dataRoot.attachNewNode(mouseAndKeyboardNode)
-    mouseWatcherNode = MouseWatcher(label)
-    mouseWatcherNode.setDisplayRegion(displayRegion)
-    mouseWatcher = mouseAndKeyboard.attachNewNode(mouseWatcherNode)
-    buttonThrower = ButtonThrower(label+"_button_thrower")
-    buttonThrower.setPrefix(label+"_")
-    mouseWatcher.attachNewNode(buttonThrower)
-    #format window
-    wp = WindowProperties()
-    wp.setOrigin(rs-ws,ts+(ws+32)*i)
-    wp.setSize(ws,ws)
-    newwin.requestProperties(wp)
-
-    return {'win':newwin, 'mw':mouseWatcher, 'bt':buttonThrower}
-
-
-def newwindowMaker(base,label):
+def windowMaker(base,label):
     # find an open slot, if none, return false
-    position = None
+
+    grid = None
     for i in range(grid_size[0]):
         for j in range(grid_size[1]):
             if occupied[i][j] == False:
-                print(i,j)
-                position = grid_to_screen_pos(i,j)
+                grid = (i,j)
                 occupied[i][j] = True
                 break
         else: continue
         break
-    if not position: return False
+    if not grid: return False
+    position = grid_to_screen_pos(*grid)
+
     print(position)
-    newwin = base.openWindow()
+    newwin = base.openWindow(name = label)
+    newwin.setWindowEvent(label+"-event")
+    listener.accept(newwin.getWindowEvent(),windowEvent)
     displayRegion = newwin.getDisplayRegion(0)
     mkNode = MouseAndKeyboard(newwin,0,label+"_keyboard_mouse")
     mk = base.dataRoot.attachNewNode(mkNode)
@@ -82,5 +69,28 @@ def newwindowMaker(base,label):
     wp.setOrigin(*position)
     wp.setSize(*ws)
     newwin.requestProperties(wp)
+    windict =  {'win':newwin, 'mw':mw, 'bt':bt,'mk':mk,'label':label,'grid':grid}
+    win_to_windict[newwin] = windict
 
-    return {'win':newwin, 'mw':mw, 'bt':bt,'mk':mk}
+    return windict
+
+def windowEvent(win):
+    windict = win_to_windict[win]
+    if win.closed:
+        windowCloseCleaner(windict)
+        return
+
+def windowCloseCleaner(windict):
+    print(windict['label']+" closed")
+    if 'mode_head' in windict:
+        golog = windict['mode_head'].golog
+        mode_head = windict['mode_head']
+        del windict['mode_head']
+        mode_head.reset()
+        mode_head.clean()
+    occupied[windict['grid'][0]][windict['grid'][1]] = False
+    listener.ignore(windict['win'].getWindowEvent())
+    del win_to_windict[windict['win']]
+
+    print(golog.mode_heads)
+    del windict

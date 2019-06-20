@@ -36,12 +36,17 @@ class mode_head():
             self.label = self.golog.label+"_mode_head_"+ str(self.index)
             self.golog.mode_heads[self.index] = self
 
-        self.reset = self.basic_reset()
+        self.reset = self.basic_reset
 
     def basic_reset(self,*args):
         self.buttons = dict()
-        for call in self.callsto:
-            base.ignore(call)
+        self.listener.ignoreAll()
+
+    def clean(self):
+        self.reset()
+        del self.golog.mode_heads[self.index]
+        del self.reset
+
 
 
 
@@ -174,7 +179,7 @@ class mode_head():
             self.planeFromObject.removeNode()
             self.buttons = dict()
             self.listener.ignoreAll()
-            print("reset")
+            print(self.label+ " reset")
             self.reset = self.basic_reset
 
         self.reset = reset
