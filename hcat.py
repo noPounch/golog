@@ -28,15 +28,10 @@ class Simplex():
             if key in kwargs: setattr(self,key,kwargs[key])
             else: setattr(self,key,defaults[key])
 
-    def copy(clean = False):
-        # return a new simplex supported on new simplecies
-        # is shallow in that underlying data isn't changed
-        # passing clean destroys all kwargs
-        pass
 
 #return a simplex of height n with a single simplex
 def createSimplex(n,*args, **kwargs):
-    sSet = simpSet()
+    sSet = simpSet(label = "temp_simplicial_set_for_creating_simplex ")
     # create a new simplex and pass kwargs
     def createMessySimplex(n,*args, **kwargs):
         faces = []
@@ -90,26 +85,14 @@ class simpSet:
         self.rawSimps = list(set(itertools.chain(*list(self.simplecies.values()))))
         self.height = max([simp.level for simp in self.rawSimps]+[-1])
 
-    def copy(self,**kwargs):
-        #Shallow copy: different sset and attributes, same simplecies
-        #If you want to copy certain attributes you have to pass them through kwargs
 
-        newSimps = dict() #create a new simplicial set, with options to change arguements
-        for key in self.simplecies.keys():
-            newSimps[key] = []
-            for simp in self.simplecies[key]:newSimps[key].append(simp)
-        return simpSet(simplecies = newSimps,**kwargs)
 
-    #append simplicial set to current simplicial set
-    # def appendsSet(self,sSet):
-    #     for key in sSet.simplecies.keys():
-    #         for simp in sSet.simpleces
-
+    # functionality for adding simplecies, creating new ones, or inheriting an entire simplicial set
     def add(self,ob,*args, **kwargs):
-
         #raw addSimplex, will add simplex to sSet without
         #caring if faces are in sSet (used to add objects)
         def addSimplex(simp):
+            if simp in self.rawSimps: return
             if simp.faces not in list(self.simplecies.keys()):
                 self.simplecies[simp.faces] = []
             if simp not in self.simplecies[simp.faces]:
@@ -132,20 +115,25 @@ class simpSet:
         #if ob is a Simplicial set, add all of it's simplecies
         elif isinstance(ob, simpSet):
             for s in ob.rawSimps:
-                self.add(s)
+                recursiveAdd(s)
             return self
 
         #if ob is a list (of faces) add a new simplex with those faces
         elif isinstance(ob, tuple):
+            if len(ob)==0:
+                s = Simplex(0,*args,**kwargs)
+                recursiveAdd(s)
+
+                return s
             n = ob[0].level+1
             s = Simplex(n,ob,*args,**kwargs) #this will throw errors if simplex assumptions are violated
-            self.add(s)
+            recursiveAdd(s)
             return s
 
         #if ob is an integer, create a whole new simplex and add all supports
         elif isinstance(ob, int):
             s = createSimplex(ob,*args,**kwargs)
-            self.add(s)
+            recursiveAdd(s)
             return s
 
     def hom(self, A ,B):

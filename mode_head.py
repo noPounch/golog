@@ -233,8 +233,8 @@ class mode_head():
                     self.selected.append(entry.getIntoNodePath().getParent())#.getTag('simplex'))
                 entry.getIntoNodePath().getParent().setColorScale(1,0,0,0) #turn red
                 origpos = entry.getIntoNodePath().getParent().getPos()
-                simplex = self.golog.NPtoSimplex[entry.getIntoNodePath().getParent()]
-                base.taskMgr.add(test_moving,'move test',extraArgs = [simplex,origpos], appendTask=True)
+                node = entry.getIntoNodePath().getParent()
+                base.taskMgr.add(test_moving,'move test',extraArgs = [node,origpos], appendTask=True)
 
             if len(self.selected) >= 2:
                 faces = tuple([self.golog.NPtoSimplex[faceGr] for faceGr in self.selected[-1:-3:-1]])
@@ -306,9 +306,10 @@ class mode_head():
                                 label = str(len(self.golog.sSet.rawSimps)))
 
 
-        def test_moving(simplex, origpos, task):
+        def test_moving(node, origpos, task):
             t = task.time
-            self.golog.updateSimp(simplex, kwargs = {'pos':Point3(10*sin(t/6),0,10*cos(t/6))})
+            pos = origpos + Point3(1/3*sin(t*10),0,1/3*cos(t*10))
+            self.golog.updateSimp(node, kwargs = {'pos':pos})
             return task.cont
 
 
