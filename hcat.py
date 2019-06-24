@@ -15,6 +15,7 @@ class Simplex():
         self.level = n
         self.faces = faces
 
+
         #check functorality
         if n>1:
             for j in range(n+1):
@@ -22,20 +23,15 @@ class Simplex():
                     assert self.faces[j].faces[i] == self.faces[i].faces[j-1], "Functorality Violated at: " + self.faces[j].faces[i].label+ " != " + self.faces[i].faces[j-1].label
 
         #Apply Kwargs
-        defaults = {'label':'','data':dict()}
+        defaults = {'label':'','data':dict(),'mathData':None}
         for key in defaults:
             if key in kwargs: setattr(self,key,kwargs[key])
             else: setattr(self,key,defaults[key])
 
-    def copy(clean = False):
-        # return a new simplex supported on new simplecies
-        # is shallow in that underlying data isn't changed
-        # passing clean destroys all kwargs
-        pass
 
 #return a simplex of height n with a single simplex
 def createSimplex(n,*args, **kwargs):
-    sSet = simpSet()
+    sSet = simpSet(label = "temp_simplicial_set_for_creating_simplex ")
     # create a new simplex and pass kwargs
     def createMessySimplex(n,*args, **kwargs):
         faces = []
@@ -89,26 +85,14 @@ class simpSet:
         self.rawSimps = list(set(itertools.chain(*list(self.simplecies.values()))))
         self.height = max([simp.level for simp in self.rawSimps]+[-1])
 
-    def copy(self,**kwargs):
-        #Shallow copy: different sset and attributes, same simplecies
-        #If you want to copy certain attributes you have to pass them through kwargs
 
-        newSimps = dict() #create a new simplicial set, with options to change arguements
-        for key in self.simplecies.keys():
-            newSimps[key] = []
-            for simp in self.simplecies[key]:newSimps[key].append(simp)
-        return simpSet(simplecies = newSimps,**kwargs)
 
-    #append simplicial set to current simplicial set
-    # def appendsSet(self,sSet):
-    #     for key in sSet.simplecies.keys():
-    #         for simp in sSet.simpleces
-
+    # functionality for adding simplecies, creating new ones, or inheriting an entire simplicial set
     def add(self,ob,*args, **kwargs):
-
         #raw addSimplex, will add simplex to sSet without
         #caring if faces are in sSet (used to add objects)
         def addSimplex(simp):
+            if simp in self.rawSimps: return
             if simp.faces not in list(self.simplecies.keys()):
                 self.simplecies[simp.faces] = []
             if simp not in self.simplecies[simp.faces]:
@@ -120,7 +104,6 @@ class simpSet:
         def recursiveAdd(simp):
             for f in simp.faces:
                 if f not in self.rawSimps:
-                    # print(f.label)
                     recursiveAdd(f)
             addSimplex(simp)
 
@@ -132,20 +115,25 @@ class simpSet:
         #if ob is a Simplicial set, add all of it's simplecies
         elif isinstance(ob, simpSet):
             for s in ob.rawSimps:
-                self.add(s)
+                recursiveAdd(s)
             return self
 
         #if ob is a list (of faces) add a new simplex with those faces
         elif isinstance(ob, tuple):
+            if len(ob)==0:
+                s = Simplex(0,*args,**kwargs)
+                recursiveAdd(s)
+
+                return s
             n = ob[0].level+1
-            s = Simplex(n,ob,*args,**kwargs)
-            self.add(s)
+            s = Simplex(n,ob,*args,**kwargs) #this will throw errors if simplex assumptions are violated
+            recursiveAdd(s)
             return s
 
         #if ob is an integer, create a whole new simplex and add all supports
         elif isinstance(ob, int):
             s = createSimplex(ob,*args,**kwargs)
-            self.add(s)
+            recursiveAdd(s)
             return s
 
     def hom(self, A ,B):
@@ -153,9 +141,7 @@ class simpSet:
         return False
 
 
-
-
-
+#functor takes a function F:dom.simplecies --> codom.simplecies and checks assertions
 class Functor:
     def __init__(self,dom,codom,F , **kwargs):
         for simp in dom.rawSimps:
@@ -166,8 +152,12 @@ class Functor:
         self.dom = dom
         self.codom = codom
         self.F = F
+
         #apply Kwargs
         defaults = {'label':'\'\''}
         for key in defaults.keys():
             if key in kwargs.keys(): setattr(self,key,kwargs[key])
             else: setattr(self,key,eval(defaults[key]))
+
+def isSubcategory():
+    pass
