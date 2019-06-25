@@ -158,6 +158,9 @@ class Functor:
         for key in defaults.keys():
             if key in kwargs.keys(): setattr(self,key,kwargs[key])
             else: setattr(self,key,eval(defaults[key]))
+    def __call__(self,simplex):
+        assert simplex in self.dom.rawSimps
+        return self.F(simplex)
 
 def isSubcategory():
     pass

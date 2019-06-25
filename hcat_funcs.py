@@ -4,7 +4,7 @@ def stripSimp(simp):
     newsimp = Simplex(label = simp.label)
 
 
-def simpCopy(sSet):
+def stripsSet(sSet):
     newsSet = simpSet(label = sSet.label+" stripped")
     old_to_new = dict()
     def strip_and_add(simp):
@@ -28,13 +28,15 @@ def simpCopy(sSet):
     return old_to_new_functor
 
 
-sSet = simpSet(label = 'test')
-a=sSet.add(0,label = 'a')
-b=sSet.add(0,label = 'b')
-c=sSet.add(0,label = 'c')
-f= sSet.add((b,a),label = 'f')
-g= sSet.add((c,b),label = 'g')
-h= sSet.add((c,a),label = 'h')
-s= sSet.add((g,h,f),label = 'gof = h')
-F = simpCopy(sSet)
-print([s.label for s in F.dom.rawSimps])
+
+############## TESTING ################
+# sSet = simpSet(label = 'test')
+# a=sSet.add(0,label = 'a')
+# b=sSet.add(0,label = 'b')
+# c=sSet.add(0,label = 'c')
+# f= sSet.add((b,a),label = 'f')
+# g= sSet.add((c,b),label = 'g')
+# h= sSet.add((c,a),label = 'h')
+# s= sSet.add((g,h,f),label = 'gof = h')
+# F = simpCopy(sSet)
+# print([s.label for s in F.dom.rawSimps])

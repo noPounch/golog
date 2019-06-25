@@ -30,6 +30,7 @@ class golog():
         self.label = label
         self.sSet = hcat.simpSet(self.label, data = {'node':self.render})
         self.sSet.simplex_to_graphics = dict()
+        self.sSet.data['export_tag'] = 'golog'
 
         self.NPtoSimplex = dict()
 
