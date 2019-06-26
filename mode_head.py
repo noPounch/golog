@@ -6,6 +6,8 @@
 #--That they satisfy degeneracy conditions (return in conditions string)
 from sys import exit
 from math import sin,cos
+from golog_export import gexport
+import time
 import hcat
 import golog
 import window_manager
@@ -231,14 +233,17 @@ class mode_head():
             else:
                 if entry.getIntoNodePath().getParent() not in self.selected:
                     self.selected.append(entry.getIntoNodePath().getParent())#.getTag('simplex'))
+                print(entry.getIntoNodePath().getParent())
                 entry.getIntoNodePath().getParent().setColorScale(1,0,0,0) #turn red
                 origpos = entry.getIntoNodePath().getParent().getPos()
                 node = entry.getIntoNodePath().getParent()
-                base.taskMgr.add(test_moving,'move test',extraArgs = [node,origpos], appendTask=True)
+                # base.taskMgr.add(test_moving,'move test',extraArgs = [node,origpos], appendTask=True)
+
 
             if len(self.selected) >= 2:
                 faces = tuple([self.golog.NPtoSimplex[faceGr] for faceGr in self.selected[-1:-3:-1]])
                 self.golog.createMorphism(faces) #reversed selected objects and creates a 1 - simplex from them
+            
 
         def space(mw):
             if not mw.node().hasMouse(): return
@@ -306,8 +311,11 @@ class mode_head():
                                 label = str(len(self.golog.sSet.rawSimps)))
 
 
-        def s(mw):
-            print('yo')
+        def save(mw):
+            filename = "test.golog"
+            file_location = 'save/'+filename
+            gexport(self.golog, file_location)
+
 
         def test_moving(node, origpos, task):
             t = task.time
@@ -332,7 +340,7 @@ class mode_head():
             self.reset = self.basic_reset
 
         self.reset = reset
-        self.buttons = {'mouse1':mouse1,'mouse3':mouse3, 'space':space, 'escape':self.reset,'s':s}
+        self.buttons = {'mouse1':mouse1,'mouse3':mouse3, 'space':space, 'escape':self.reset,'s':save}
 
     def viewing_mode(self):
         self.reset()

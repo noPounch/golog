@@ -80,7 +80,6 @@ def windowEvent(win):
 def windowCloseCleaner(windict):
     if 'mode_head' in windict:
         golog = windict['mode_head'].golog
-        sSet = gexport(golog)
         mode_head = windict['mode_head']
         del windict['mode_head']
         mode_head.reset()

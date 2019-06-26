@@ -97,13 +97,15 @@ def sSet_to_golog(base, import_sSet):
                 if simplex.mathData.export_tag == 'golog': golog_simplex.mathData = sSet_to_golog(base, simplex.mathData)
                 #else import mathData normally
                 else: golog_simplex.mathData = simplex.mathData
-                return import_simplex_to_golog_simplex[simplex]
+            return import_simplex_to_golog_simplex[simplex]
 
-                if simplex.level == 1:
-                    #return the already setup simplecies, or if they aren't yet set up, set them up
-                    faces = (setupSimplex(face) for face in simplex.faces)
-                    golog_simplex = golog.createMorphism(label = simplex.label)
-                    import_simplex_to_golog_simplex[simplex] = golog_simplex
+        if simplex.level == 1:
+            #return the already setup simplecies, or if they aren't yet set up, set them up
+            faces = tuple(setupSimplex(face) for face in simplex.faces)
+            print([s.label for s in simplex.faces])
+            print(faces)
+            golog_simplex = golog.createMorphism(faces, label = simplex.label)
+            import_simplex_to_golog_simplex[simplex] = golog_simplex
 
 
     golog = Golog.golog(base, label = import_sSet.label)

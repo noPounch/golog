@@ -17,27 +17,9 @@ class runner(ShowBase):
         base.accept("f5",sys.exit)
         base.accept("f6",sys.exit)
 
-        # golog = Golog(self, label = "run")
-        # controllable_golog = mode_head(self,golog)
-        # controllable_golog.testing_mode()
-        # modeHeadToWindow(self, controllable_golog)
-
-        #make a golog
-        golog = Golog(self, label = "golog")
-        subgolog = Golog(self,label = 'subgolog')
-        subgolog.createObject(label = 'subobject 1')
-        a = golog.createObject(label = "object 1",mathData = subgolog)
-        b = golog.createObject(label = "object 2")
-        golog.createMorphism((b,a),label = "morphism 1")
-
-        #view golog
-
-
-        #export golog
-        file_location = gexport(golog,'save/test.golog')
-
-        newgolog = gimport(self, file_location)
-        controllable_golog = mode_head(self,newgolog)
+        # golog = Golog(self, label = 'run')
+        golog = gimport(self,'save/test.golog')
+        controllable_golog = mode_head(self,golog)
         controllable_golog.testing_mode()
         modeHeadToWindow(self, controllable_golog)
 
