@@ -306,6 +306,9 @@ class mode_head():
                                 label = str(len(self.golog.sSet.rawSimps)))
 
 
+        def s(mw):
+            print('yo')
+
         def test_moving(node, origpos, task):
             t = task.time
             pos = origpos + Point3(3*sin(t),0,3*cos(t))
@@ -329,7 +332,7 @@ class mode_head():
             self.reset = self.basic_reset
 
         self.reset = reset
-        self.buttons = {'mouse1':mouse1,'mouse3':mouse3, 'space':space, 'escape':self.reset}
+        self.buttons = {'mouse1':mouse1,'mouse3':mouse3, 'space':space, 'escape':self.reset,'s':s}
 
     def viewing_mode(self):
         self.reset()

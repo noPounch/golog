@@ -34,10 +34,9 @@ class runner(ShowBase):
 
 
         #export golog
-        export_sSet = gexport(golog)
+        file_location = gexport(golog,'save/test.golog')
 
-
-        newgolog = gimport(self, export_sSet)
+        newgolog = gimport(self, file_location)
         controllable_golog = mode_head(self,newgolog)
         controllable_golog.testing_mode()
         modeHeadToWindow(self, controllable_golog)
