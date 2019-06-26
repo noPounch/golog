@@ -1,5 +1,5 @@
 import sys
-from golog_export import gexport
+from golog_export import *
 from direct.showbase.ShowBase import ShowBase
 from golog import golog as Golog
 from window_manager import *
@@ -22,15 +22,25 @@ class runner(ShowBase):
         # controllable_golog.testing_mode()
         # modeHeadToWindow(self, controllable_golog)
 
-
+        #make a golog
         golog = Golog(self, label = "golog")
         subgolog = Golog(self,label = 'subgolog')
         subgolog.createObject(label = 'subobject 1')
         a = golog.createObject(label = "object 1",mathData = subgolog)
         b = golog.createObject(label = "object 2")
         golog.createMorphism((b,a),label = "morphism 1")
-        gexport(golog)
 
+        #view golog
+
+
+        #export golog
+        export_sSet = gexport(golog)
+
+
+        newgolog = gimport(self, export_sSet)
+        controllable_golog = mode_head(self,newgolog)
+        controllable_golog.testing_mode()
+        modeHeadToWindow(self, controllable_golog)
 
 r = runner()
 r.run()

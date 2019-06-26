@@ -263,7 +263,7 @@ class mode_head():
 
             if isinstance(simplex,hcat.Simplex):
                 if simplex.mathData:
-                    print('Simplex has Math Data!')
+                    print('Simplex has Math Data of type {}'.format(str(type(simplex.mathData))))
                     if isinstance(simplex.mathData,golog.golog):
                         print('Math Data is a golog!')
                         #if it has a mode_head, just create a window to view golog (no controls), otherwise create a mode_head in selection_and_creation mode
@@ -308,7 +308,7 @@ class mode_head():
 
         def test_moving(node, origpos, task):
             t = task.time
-            pos = origpos + Point3(1/3*sin(t*10),0,1/3*cos(t*10))
+            pos = origpos + Point3(3*sin(t),0,3*cos(t))
             self.golog.updateSimp(node, kwargs = {'pos':pos})
             return task.cont
 
@@ -330,3 +330,6 @@ class mode_head():
 
         self.reset = reset
         self.buttons = {'mouse1':mouse1,'mouse3':mouse3, 'space':space, 'escape':self.reset}
+
+    def viewing_mode(self):
+        self.reset()

@@ -28,7 +28,7 @@ class golog():
 
         # Initialize simplicial set
         self.label = label
-        self.sSet = hcat.simpSet(self.label, data = {'node':self.render})
+        self.sSet = hcat.simpSet(label = self.label, data = {'node':self.render})
         self.sSet.simplex_to_graphics = dict()
         self.sSet.data['export_tag'] = 'golog'
 

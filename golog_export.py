@@ -4,50 +4,76 @@ from hcat import simpSet
 from hcat_funcs import *
 import golog as Golog
 sSet = None
+
 def gexport(golog):
-    #create a copy of underlying simplicial set without data
+
+    def create_export_data(simplex):
+
+        export_simplex = old_to_new_functor(simplex)
+        if export_simplex.data['exported'] == True: return export_simplex #if simplex has already been exported, return it's finished export simplex
+
+        graphics = golog_sSet.simplex_to_graphics[simplex]
+        print(export_simplex.label + " is handling {}\'s data:".format(simplex.label),simplex.data)
+        data = simplex.data
+        export_simplex.data['export_data'] = dict()
+        export_simplex.data['export_data']['pos'] = tuple(graphics['node'].getPos())
+
+
+        print(export_simplex.label + " is handling {}\'s mathData:".format(simplex.label),simplex.mathData)
+        mathData = simplex.mathData
+        if isinstance(mathData, Golog.golog):
+            print(export_simplex.label+"\'s mathData is a golog!")
+            export_simplex.mathData = gexport(mathData)
+        else:
+            export_simplex.mathData = mathData
+        export_simplex.data['exported'] = True
+        return export_simplex
+
+    def rundiags(old_to_new_functor):
+        (golog_sSet, export_sSet, old_to_new_lambda) = (old_to_new_functor.dom,old_to_new_functor.codom, old_to_new_functor.F)
+        print("done handling "+golog_sSet.label+"\'s data")
+        print("---------------------")
+        for s in export_sSet.rawSimps: print(s.label+"\'s exported mathData:\n", s.mathData,"\n")
+        print("---------------------")
+
+
+
+
     old_to_new_functor = stripsSet(golog.sSet) #this is a functor, the domain, codomain and lambda function are as below:
     (golog_sSet, export_sSet, old_to_new_lambda) = (old_to_new_functor.dom,old_to_new_functor.codom, old_to_new_functor.F)
+    export_sSet.export_tag = 'golog' #tell importer that the data in the simplicial set should be read as golog data
     for simplex in export_sSet.rawSimps: simplex.data['exported'] = False #set a tag to keep track of which simplecies have already been exported
-    for simplex in golog_sSet.rawSimps: create_export_data(simplex, golog_sSet.simplex_to_graphics[simplex], old_to_new_functor(simplex))
-
-        # export_sSet.export_data[simplex]['pos'] = golog.sSet.simplex_to_graphics[simplex]['node'].getPos()
+    for simplex in golog_sSet.rawSimps: create_export_data(simplex)
     rundiags(old_to_new_functor)
     return export_sSet
 
+def gimport(base, import_sSet):
 
-def gimport(golog_sSet,math_sSet, base = None):
-    #import pure math data and follow instructions to create a scenegraph
-    if base == None:
-        return sSet
+    def setupSimplex(simplex):
+        if simplex.data['imported'] == True: return import_simplex_to_golog_simplex[simplex]
+        if simplex.level == 0:
+            # set up panda3d object
+            golog_simplex = golog.createObject(setPos = simplex.data['export_data']['pos'], label = simplex.label)
+            #store simplex in a mapping (to prevent double computing)
+            import_simplex_to_golog_simplex[simplex] = golog_simplex
 
+            #if imported simplex has mathData and it is tagged handle it
+            if hasattr(simplex.mathData,'export_tag'):
+                #if simplex.mathData had export_tag golog, then import it as a golog
+                if simplex.mathData.export_tag == 'golog': golog_simplex.mathData = gimport(base, simplex.mathData)
+                #else import mathData normally
+                else: golog_simplex.mathData = simplex.mathData
+                return import_simplex_to_golog_simplex[simplex]
 
-def create_export_data(data_simplex, graphics, export_simplex):
-    if export_simplex.data['exported'] = True: return export_simplex #if simplex has already been exported, return it's finished export simplex
-    print(export_simplex.label + " is handling {}\'s data:".format(data_simplex.label),data_simplex.data)
-    print(export_simplex.label + " is handling {}\'s mathData:".format(data_simplex.label),data_simplex.mathData)
-    mathData = simplex.mathData
-    data = simplex.data
-    # graphics = golog_sSet.simplex_to_graphics[simplex]
-    model = graphics['model']
-    pos = tuple(graphics['node'].getPos())
-    #1) create a dictionary for the graphics, place in data['graphics']
-    #2) create export for it's simplex.mathData and return it to export_simplex.mathData
-
-    # if not data:
-    #     print("no data in {} \n".format(simplex.label))
-    #     return
-    # elif isinstance(data, Golog.golog):
-    #     print(simplex.label+"\'s data is a golog named " +data.label +"\n")
-    #     simplex.mathData = gexport(data) #transform golog data into a math_sSet as well
-    #
-    # else: print("pickling" + str(type(data))+"\n")
+                if simplex.level == 1:
+                    #return the already setup simplecies, or if they aren't yet set up, set them up
+                    faces = (setupSimplex(face) for face in simplex.faces)
+                    golog_simplex = golog.createMorphism(label = simplex.label)
+                    import_simplex_to_golog_simplex[simplex] = golog_simplex
 
 
-################# DIAGNOSTICS FOR EXPORT MODULE ###################
-def rundiags(old_to_new_functor):
-    (golog_sSet, export_sSet, old_to_new_lambda) = (old_to_new_functor.dom,old_to_new_functor.codom, old_to_new_functor.F)
-    print("done handling "+golog_sSet.label+"\'s data")
-    print("---------------------")
-    for s in export_sSet.rawSimps: print(s.label+"\'s export data:\n", s.data,"\n")
-    print("---------------------")
+    golog = Golog.golog(base, label = import_sSet.label)
+    import_simplex_to_golog_simplex = dict()
+    for simplex in import_sSet.rawSimps:simplex.data['imported'] = False
+    for simplex in import_sSet.rawSimps: setupSimplex(simplex)
+    return golog
