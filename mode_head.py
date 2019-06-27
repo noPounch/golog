@@ -18,8 +18,6 @@ from panda3d.core import Camera, NodePath, OrthographicLens
 from panda3d.core import Vec3, Point3
 from panda3d.core import Plane, CollisionPlane, CollisionRay, CollisionNode, CollisionTraverser, CollisionHandlerQueue
 
-font_path = str(os.getcwd())+'/misc_data/fonts/DejaVuMathTeXGyre.ttf'
-
 class mode_head():
     def __init__(self,base,Golog):
         self.base = base
@@ -87,12 +85,8 @@ class mode_head():
         self.planeFromObject.node().addSolid(CollisionPlane(Plane(Vec3(0,-1,0),Point3(0,0,0))))
 
         self.textNP = self.render2d.attachNewNode(TextNode('text node'))
-        self.textNP.setScale(.01)
+        self.textNP.setScale(.1)
         self.textNP.setPos(-1+.2,0,-1+.2)
-        font = base.loader.loadFont(font_path)
-        font.setPointSize(64)
-        font.setSpaceAdvance(2)
-        self.textNP.node().setFont(font)
 
         # ###
         # self.textNP.node().setText('hello')
@@ -220,13 +214,21 @@ class mode_head():
                     entry = e
                     break
 
-            if entry.getIntoNodePath().getParent() != self.planeNode: simplex = self.golog.NPtoSimplex[entry.getIntoNodePath().getParent()]
-            else: return task.cont
+            if entry.getIntoNodePath().getParent() != self.planeNode:
+                simplex = self.golog.NPtoSimplex[entry.getIntoNodePath().getParent()]
+            else:
+                self.textNP.hide()
+                return task.cont
 
-
+            self.textNP.show()
             self.textNP.node().setText("label: " +simplex.label+"\n math data type: " + str(type(simplex.mathData)))
             # self.textNP.setPos(mpos.getX(),0,mpos.getY())
             return task.cont
+
+        def save(mw):
+            filename = "test.golog"
+            file_location = 'save/'+filename
+            gexport(self.golog, file_location)
 
 
         def reset(*args):
@@ -246,7 +248,7 @@ class mode_head():
             self.reset = self.basic_reset
 
         self.reset = reset
-        self.buttons = {'mouse1':mouse1,'mouse3':mouse3, 'space':space, 'escape':self.reset}
+        self.buttons = {'mouse1':mouse1,'mouse3':mouse3, 'space':space, 'escape':self.reset, 's':save}
         self.window_tasks = [mouse_watch_test]
 
     def testing_mode(self):
