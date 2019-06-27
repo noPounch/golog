@@ -4,9 +4,7 @@ from math import cos, sin
 from direct.task import Task
 from panda3d.core import WindowProperties
 from panda3d.core import NodePath, MouseWatcher, ButtonThrower, MouseAndKeyboard, Camera
-from golog import golog as Golog
 from direct.showbase.DirectObject import DirectObject
-from golog_export import gexport
 
 rs = 1920-6 #side minus some padding
 bs = 1080-30 #bottom minus toolbar

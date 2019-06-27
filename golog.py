@@ -5,6 +5,7 @@ import hcat
 import tkinter
 from direct.showutil.Rope import Rope
 from direct.task import Task
+from direct.showbase.DirectObject import DirectObject
 from panda3d.core import NodePath, Camera
 from panda3d.core import Vec3, Point3, LPoint3f, Plane
 from panda3d.core import CollisionPlane, CollisionRay, CollisionSphere
@@ -58,7 +59,12 @@ class golog():
 
         #create an instance of simplex graphics in golog, send to simplex.data['node']
         node = self.render.attachNewNode(simplex.label+" Node")
+        #create a direct object to listen for update events (instead of using showbase messenger)
+        #this will allow for more fine-tuned control with how a node-path accepts calls
+        listener = DirectObject()
+
         self.sSet.simplex_to_graphics[simplex]['node'] = node #refer to node in attached graphics data from simplex
+        self.sSet.simplex_to_graphics[simplex]['listener'] = listener #refer to listener in attached graphics data from simplex
         self.sSet.simplex_to_graphics[simplex]['model'] = 'sphere'
         self.NPtoSimplex[node] = simplex #refer to simplex from node
 
@@ -67,8 +73,9 @@ class golog():
         collisionNode = node.attachNewNode(CollisionNode('sphereColNode'))
         collisionNode.node().addSolid(CollisionSphere(0,0,0,1))
 
-        #create a messenger name for simplex (for now just rawSimps index)
-        node.setTag('_messengerName', 'simp' + str(self.sSet.rawSimps.index(simplex)))
+        #reference name for node events is the memory identity of the simplex
+        #(**) this might be an issue if multiple gologs share a simplex, but since golog instanciation is done with a fresh sSet, this probably won't happen
+        node.setTag('_messengerName', str(id(simplex)))
 
         defaults = {'setPos':(0,0,0)}
         for key in defaults.keys():
@@ -76,7 +83,7 @@ class golog():
             else: getattr(node, key)(defaults[key])
 
         #accept other calls
-        base.accept('Update' + node.getTag('_messengerName'), self.updateSimp, extraArgs = [node])
+        listener.accept('Update' + node.getTag('_messengerName'), self.updateSimp, extraArgs = [node])
 
         return simplex
 
@@ -94,6 +101,7 @@ class golog():
         dom = faces[1]; codom = faces[0]
         simplex = self.sSet.add(faces,*args,**kwargs)
         self.sSet.simplex_to_graphics[simplex] = dict()
+
         domNode = self.sSet.simplex_to_graphics[dom]['node']
         codomNode = self.sSet.simplex_to_graphics[codom]['node']
 
@@ -104,22 +112,24 @@ class golog():
 
         rope = Rope()
         middlenode = self.render.attachNewNode(simplex.label+" middle_node")
+        listener = DirectObject()
+        self.sSet.simplex_to_graphics[simplex]['listener'] = listener
         self.sSet.simplex_to_graphics[simplex]['node'] = middlenode
         self.NPtoSimplex[middlenode] = simplex #graphics to simplex
         middlenode.setPos((domNode.getPos()+codomNode.getPos())/2)
 
-        middlenode.setTag('_messengerName', 'simp' + str(self.sSet.rawSimps.index(simplex)))
+        middlenode.setTag('_messengerName', str(id(simplex)))
 
         #create a middlenode listener for face movements
         ######
         for f in simplex.faces:
             fNode = self.sSet.simplex_to_graphics[f]['node']
-            base.accept(fNode.getTag('_messengerName') + ' moved',self.updateSimp, extraArgs = [middlenode])
+            listener.accept(fNode.getTag('_messengerName') + ' moved',self.updateSimp, extraArgs = [middlenode])
         #####
 
         #create a listener for other events
         #####
-        base.accept('Update' + middlenode.getTag('_messengerName'), self.updateSimp, extraArgs = [middlenode])
+        listener.accept('Update' + middlenode.getTag('_messengerName'), self.updateSimp, extraArgs = [middlenode])
         #####
 
         #set start and endpoint to be the domain and codomain graphics

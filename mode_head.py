@@ -22,7 +22,6 @@ class mode_head():
         self.base = base
         self.golog = Golog
         self.buttons = dict()
-        self.callsto = []
         self.listener = DirectObject()
 
         #label modehead uniquely
@@ -237,13 +236,13 @@ class mode_head():
                 entry.getIntoNodePath().getParent().setColorScale(1,0,0,0) #turn red
                 origpos = entry.getIntoNodePath().getParent().getPos()
                 node = entry.getIntoNodePath().getParent()
-                # base.taskMgr.add(test_moving,'move test',extraArgs = [node,origpos], appendTask=True)
+                base.taskMgr.add(test_moving,'move test',extraArgs = [node,origpos], appendTask=True)
 
 
             if len(self.selected) >= 2:
                 faces = tuple([self.golog.NPtoSimplex[faceGr] for faceGr in self.selected[-1:-3:-1]])
                 self.golog.createMorphism(faces) #reversed selected objects and creates a 1 - simplex from them
-            
+
 
         def space(mw):
             if not mw.node().hasMouse(): return
@@ -319,7 +318,7 @@ class mode_head():
 
         def test_moving(node, origpos, task):
             t = task.time
-            pos = origpos + Point3(3*sin(t),0,3*cos(t))
+            pos = origpos + Point3(1/3*sin(t*10),0,1/3*cos(t*10))
             self.golog.updateSimp(node, kwargs = {'pos':pos})
             return task.cont
 
