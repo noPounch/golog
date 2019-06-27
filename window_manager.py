@@ -18,18 +18,24 @@ listener = DirectObject()
 win_to_windict = dict()
 
 def modeHeadToWindow(base, mode_head, windict = None):
+
     i = len(base.winList)
     if not windict:
         windict = windowMaker(base, "win{}".format(i))
 
     win = windict['win']; mw = windict['mw']; bt = windict['bt']; mk = windict['mk']
-    win.getDisplayRegion(1).setCamera(mode_head.golog.camera) #set window to view golog camera
+
+    win.getDisplayRegion(1).setCamera(mode_head.golog.camera) #set window to view golog's 3d camera
+    win.getDisplayRegion(2).setCamera(mode_head.camera2D)
+    print([dr.getCamera() for dr in win.getDisplayRegions()])
     windict['mode_head'] = mode_head
     # golog.windicts.append(windict) #set golog.mouseWatcherNode to window's mousewatcher node
     for button in mode_head.buttons.keys():
         mode_head.listener.accept(bt.prefix+button, mode_head.buttons[button], extraArgs = [mw]) #golog accepts window's events and sends them to specified handler function
     for button in buttons:
         listener.accept(bt.prefix+button,buttons[button])
+    for window_task in mode_head.window_tasks:
+        base.taskMgr.add(window_task, 'window_task_name', extraArgs = [mw], appendTask = True)
     return win
 
 
@@ -64,6 +70,10 @@ def windowMaker(base,label):
     wp.setOrigin(*position)
     wp.setSize(*ws)
     newwin.requestProperties(wp)
+    #create a displayRegion for 2d
+    dr2d = newwin.makeDisplayRegion()
+    dr2d.setSort(2)
+
     windict =  {'win':newwin, 'mw':mw, 'bt':bt,'mk':mk,'label':label,'grid':grid}
     win_to_windict[newwin] = windict
 

@@ -20,7 +20,7 @@ class runner(ShowBase):
         # golog = Golog(self, label = 'run')
         golog = gimport(self,'save/test.golog')
         controllable_golog = mode_head(self,golog)
-        controllable_golog.testing_mode()
+        controllable_golog.selection_and_creation()
         modeHeadToWindow(self, controllable_golog)
 
 r = runner()

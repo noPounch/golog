@@ -5,6 +5,7 @@
 #--That they satisfy the face conditions (return in conditions string)
 #--That they satisfy degeneracy conditions (return in conditions string)
 from sys import exit
+import os
 from math import sin,cos
 from golog_export import gexport
 import time
@@ -12,17 +13,30 @@ import hcat
 import golog
 import window_manager
 from direct.showbase.DirectObject import DirectObject
-
+from panda3d.core import TextNode, TextFont
+from panda3d.core import Camera, NodePath, OrthographicLens
 from panda3d.core import Vec3, Point3
 from panda3d.core import Plane, CollisionPlane, CollisionRay, CollisionNode, CollisionTraverser, CollisionHandlerQueue
 
+font_path = str(os.getcwd())+'/misc_data/fonts/DejaVuMathTeXGyre.ttf'
 
 class mode_head():
     def __init__(self,base,Golog):
         self.base = base
         self.golog = Golog
         self.buttons = dict()
+        self.window_tasks = []
         self.listener = DirectObject()
+
+        #create a 2d render
+        self.render2d = NodePath('2d render')
+        self.camera2D = self.render2d.attachNewNode(Camera('2d Camera'))
+        self.camera2D.setDepthTest(False)
+        self.camera2D.setDepthWrite(False)
+        lens = OrthographicLens()
+        lens.setFilmSize(2, 2)
+        lens.setNearFar(-1000, 1000)
+        self.camera2D.node().setLens(lens)
 
         #label modehead uniquely
         # make a dictionary of mode data in modes
@@ -43,6 +57,7 @@ class mode_head():
 
     def basic_reset(self,*args):
         self.buttons = dict()
+        self.window_tasks = dict()
         self.listener.ignoreAll()
 
     def clean(self):
@@ -70,6 +85,22 @@ class mode_head():
         self.planeNode.setTag("mode_head",self.label)
         self.planeFromObject = self.planeNode.attachNewNode(CollisionNode("planeColNode"))
         self.planeFromObject.node().addSolid(CollisionPlane(Plane(Vec3(0,-1,0),Point3(0,0,0))))
+
+        self.textNP = self.render2d.attachNewNode(TextNode('text node'))
+        self.textNP.setScale(.01)
+        self.textNP.setPos(-1+.2,0,-1+.2)
+        font = base.loader.loadFont(font_path)
+        font.setPointSize(64)
+        font.setSpaceAdvance(2)
+        self.textNP.node().setFont(font)
+
+        # ###
+        # self.textNP.node().setText('hello')
+        # self.textNP.setPos(0,0,0)
+        #
+        # ###
+
+
         ######
 
         def mouse1(mw):
@@ -169,6 +200,34 @@ class mode_head():
                 self.golog.createObject(setPos = entry.getSurfacePoint(entry.getIntoNodePath()),
                                 label = str(len(self.golog.sSet.rawSimps)))
 
+        def mouse_watch_test(mw,task):
+
+            if not mw.node().hasMouse(): return task.cont
+            mpos = mw.node().getMouse()
+            self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY())
+            self.golog.cTrav.traverse(self.golog.render)
+            if not self.queue.sortEntries: return task.cont # if collision traverser doesn't pick anything up, return
+            self.queue.sortEntries()
+
+            # get the first relevant node traversed by mouseRay
+            # ignore everything with a mode_head tag that is not defined by this mode_head
+            for e in self.queue.getEntries():
+                if e.getIntoNodePath().getParent().hasTag("mode_head"):
+                    if e.getIntoNodePath().getParent().getTag("mode_head") == self.label:
+                        entry = e
+                        break
+                else:
+                    entry = e
+                    break
+
+            if entry.getIntoNodePath().getParent() != self.planeNode: simplex = self.golog.NPtoSimplex[entry.getIntoNodePath().getParent()]
+            else: return task.cont
+
+
+            self.textNP.node().setText("label: " +simplex.label+"\n math data type: " + str(type(simplex.mathData)))
+            # self.textNP.setPos(mpos.getX(),0,mpos.getY())
+            return task.cont
+
 
         def reset(*args):
             self.golog.cTrav.removeCollider(self.pickerNP)
@@ -181,12 +240,14 @@ class mode_head():
             self.planeNode.removeNode()
             self.planeFromObject.removeNode()
             self.buttons = dict()
+            self.window_tasks = []
             self.listener.ignoreAll()
             # print(self.label+ " reset")
             self.reset = self.basic_reset
 
         self.reset = reset
         self.buttons = {'mouse1':mouse1,'mouse3':mouse3, 'space':space, 'escape':self.reset}
+        self.window_tasks = [mouse_watch_test]
 
     def testing_mode(self):
 
@@ -236,7 +297,7 @@ class mode_head():
                 entry.getIntoNodePath().getParent().setColorScale(1,0,0,0) #turn red
                 origpos = entry.getIntoNodePath().getParent().getPos()
                 node = entry.getIntoNodePath().getParent()
-                base.taskMgr.add(test_moving,'move test',extraArgs = [node,origpos], appendTask=True)
+                # base.taskMgr.add(test_moving,'move test',extraArgs = [node,origpos], appendTask=True)
 
 
             if len(self.selected) >= 2:
@@ -321,6 +382,11 @@ class mode_head():
             pos = origpos + Point3(1/3*sin(t*10),0,1/3*cos(t*10))
             self.golog.updateSimp(node, kwargs = {'pos':pos})
             return task.cont
+
+        def display_info(mw):
+            #display high level info about a simplex (e.g. mathData type, label)
+            pass
+
 
 
         def reset(*args):

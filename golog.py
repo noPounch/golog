@@ -53,12 +53,13 @@ class golog():
 
 
     def createObject(self, *args, **kwargs):
-        #create a simplex in the simplicial set
+        #create a 0-simplex in the simplicial set
         simplex = self.sSet.add(0,*args, **kwargs)
         self.sSet.simplex_to_graphics[simplex] = dict()
 
         #create an instance of simplex graphics in golog, send to simplex.data['node']
         node = self.render.attachNewNode(simplex.label+" Node")
+
         #create a direct object to listen for update events (instead of using showbase messenger)
         #this will allow for more fine-tuned control with how a node-path accepts calls
         listener = DirectObject()

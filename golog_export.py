@@ -103,8 +103,6 @@ def sSet_to_golog(base, import_sSet):
         if simplex.level == 1:
             #return the already setup simplecies, or if they aren't yet set up, set them up
             faces = tuple(setupSimplex(face) for face in simplex.faces)
-            print([s.label for s in simplex.faces])
-            print(faces)
             golog_simplex = golog.createMorphism(faces, label = simplex.label)
             import_simplex_to_golog_simplex[simplex] = golog_simplex
             simplex.data['imported'] = True
