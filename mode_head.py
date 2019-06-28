@@ -12,6 +12,7 @@ import time
 import hcat
 import golog
 import window_manager
+import tk_funcs
 from direct.showbase.DirectObject import DirectObject
 from panda3d.core import TextNode, TextFont
 from panda3d.core import Camera, NodePath, OrthographicLens
@@ -162,12 +163,14 @@ class mode_head():
 
                         window_manager.modeHeadToWindow(self.base, controllable_golog)
 
-                else:
-                    new_golog = golog.golog(self.base, label = self.golog.label+"_subgolog_at_simplex"+simplex.label)
-                    controllable_golog = mode_head(self.base, new_golog)
-                    controllable_golog.selection_and_creation()
-                    window_manager.modeHeadToWindow(self.base, controllable_golog)
-                    simplex.mathData = new_golog
+                elif not simplex.mathData:
+                    (label, mathDataType) = tk_funcs.ask_math_type()
+                    if mathDataType == 'golog' :
+                        new_golog = golog.golog(self.base, label = label)
+                        controllable_golog = mode_head(self.base, new_golog)
+                        controllable_golog.selection_and_creation()
+                        window_manager.modeHeadToWindow(self.base, controllable_golog)
+                        simplex.mathData = new_golog
             # subgolog =
 
         def mouse3(mw):
@@ -191,8 +194,11 @@ class mode_head():
             if entry.getIntoNodePath().getParent() == self.planeNode:
                 for node in self.selected: node.setColorScale(1,1,1,1) #turn white
                 self.selected = []
-                self.golog.createObject(setPos = entry.getSurfacePoint(entry.getIntoNodePath()),
-                                label = str(len(self.golog.sSet.rawSimps)))
+                (label, mathDataType) =  tk_funcs.ask_simplex_data()
+                simp = self.golog.createObject(setPos = entry.getSurfacePoint(entry.getIntoNodePath()), label = label)
+                if mathDataType == 'golog':
+                    simp.mathData = golog.golog(self.base, label = label)
+
 
         def mouse_watch_test(mw,task):
 
