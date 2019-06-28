@@ -20,12 +20,13 @@ from panda3d.core import Vec3, Point3
 from panda3d.core import Plane, CollisionPlane, CollisionRay, CollisionNode, CollisionTraverser, CollisionHandlerQueue
 
 class mode_head():
-    def __init__(self,base,Golog):
+    def __init__(self,base,Golog, save_location = 'save/test.golog'):
         self.base = base
         self.golog = Golog
         self.buttons = dict()
         self.window_tasks = []
         self.listener = DirectObject()
+        self.save_location = save_location
 
         #create a 2d render
         self.render2d = NodePath('2d render')
@@ -232,9 +233,7 @@ class mode_head():
             return task.cont
 
         def save(mw):
-            filename = "test.golog"
-            file_location = 'save/'+filename
-            gexport(self.golog, file_location)
+            gexport(self.golog, self.save_location)
 
 
         def reset(*args):

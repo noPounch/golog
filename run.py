@@ -1,9 +1,14 @@
 import sys
+import tkinter as tk
 from golog_export import *
 from direct.showbase.ShowBase import ShowBase
 from golog import golog as Golog
 from window_manager import *
 from mode_head import *
+from tk_funcs import save_load_new
+
+
+
 
 
 class runner(ShowBase):
@@ -17,11 +22,21 @@ class runner(ShowBase):
         base.accept("f5",sys.exit)
         base.accept("f6",sys.exit)
 
-        # golog = Golog(self, label = 'run')
-        golog = gimport(self,'save/test.golog')
-        controllable_golog = mode_head(self,golog)
-        controllable_golog.selection_and_creation()
-        modeHeadToWindow(self, controllable_golog)
+        (newv, save_location) = save_load_new()
+
+        if newv:
+            golog = Golog(self, label = 'run')
+            gexport(golog,save_location)
+            controllable_golog = mode_head(self,golog, save_location = save_location)
+            controllable_golog.selection_and_creation()
+            modeHeadToWindow(self, controllable_golog)
+
+        elif not newv:
+            golog = gimport(self,save_location)
+            controllable_golog = mode_head(self,golog, save_location = save_location)
+            controllable_golog.selection_and_creation()
+            modeHeadToWindow(self, controllable_golog)
+
 
 r = runner()
 r.run()

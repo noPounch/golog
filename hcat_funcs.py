@@ -5,7 +5,7 @@ def stripSimp(simp):
 
 
 def stripsSet(sSet):
-    newsSet = simpSet(label = sSet.label+" stripped")
+    newsSet = simpSet(label = sSet.label)
     old_to_new = dict()
     def strip_and_add(simp):
 
@@ -13,7 +13,7 @@ def stripsSet(sSet):
         if simp in old_to_new.keys():
             # print(simp.label+" already in new sSet")
             return old_to_new[simp]
-        print("adding stripped "+simp.label)
+        # print("adding stripped "+simp.label)
         #if s hasn't yet been handled, handle faces
         newfaces = tuple(strip_and_add(f) for f in simp.faces)
         #once faces are handled, create a new simplex

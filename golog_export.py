@@ -15,16 +15,16 @@ def golog_to_sSet(golog):
         if export_simplex.data['exported'] == True: return export_simplex #if simplex has already been exported, return it's finished export simplex
 
         graphics = golog_sSet.simplex_to_graphics[simplex]
-        print(export_simplex.label + " is handling {}\'s data:".format(simplex.label),simplex.data)
+        # print(export_simplex.label + " is handling {}\'s data:".format(simplex.label),simplex.data)
         data = simplex.data
         export_simplex.data['export_data'] = dict()
         export_simplex.data['export_data']['pos'] = tuple(graphics['node'].getPos())
 
 
-        print(export_simplex.label + " is handling {}\'s mathData:".format(simplex.label),simplex.mathData)
+        # print(export_simplex.label + " is handling {}\'s mathData:".format(simplex.label),simplex.mathData)
         mathData = simplex.mathData
         if isinstance(mathData, Golog.golog):
-            print(export_simplex.label+"\'s mathData is a golog!")
+            # print(export_simplex.label+"\'s mathData is a golog!")
             export_simplex.mathData = golog_to_sSet(mathData)
         else:
             export_simplex.mathData = mathData
@@ -33,10 +33,10 @@ def golog_to_sSet(golog):
 
     def rundiags(old_to_new_functor):
         (golog_sSet, export_sSet, old_to_new_lambda) = (old_to_new_functor.dom,old_to_new_functor.codom, old_to_new_functor.F)
-        print("done handling "+golog_sSet.label+"\'s data")
-        print("---------------------")
-        for s in export_sSet.rawSimps: print(s.label+"\'s exported mathData:\n", s.mathData,"\n")
-        print("---------------------")
+        # # print("done handling "+golog_sSet.label+"\'s data")
+        # # print("---------------------")
+        # for s in export_sSet.rawSimps: print(s.label+"\'s exported mathData:\n", s.mathData,"\n")
+        # print("---------------------")
 
 
     old_to_new_functor = stripsSet(golog.sSet) #this is a functor, the domain, codomain and lambda function are as below:
@@ -50,10 +50,10 @@ def golog_to_sSet(golog):
 def picklesSet(sSet, location_string):
     #first check if sSet is an exported golog
     if not hasattr(sSet,'export_tag'):
-        print('attempted to export unhandled sSet')
+        # print('attempted to export unhandled sSet')
         return
     if not sSet.export_tag == 'golog':
-        print('this exporter function is for gologs')
+        # print('this exporter function is for gologs')
         return
 
     with open(location_string,'wb') as file:
@@ -62,19 +62,20 @@ def picklesSet(sSet, location_string):
     #prompt user for save location
 
 def gexport(golog, location_string):
+    print('saved to {}'.format(location_string))
     return picklesSet(golog_to_sSet(golog), location_string)
 
 
 def unpicklesSet(location_string):
+
+    print('loading from to {}'.format(location_string))
     with open(location_string,'rb') as file:
         import_sSet = pickle.load(file)
     if not isinstance(import_sSet,simpSet):
-        print('imported object not a simplicial set')
+        return
     if not hasattr(import_sSet,'export_tag'):
-        print('imported object has no export tag')
         return
     if not import_sSet.export_tag == 'golog':
-        print('imported simplex does not represent a golog')
         return
     return import_sSet
     #check if upickled thing is actually an sSet representing a golog
