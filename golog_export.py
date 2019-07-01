@@ -1,6 +1,6 @@
 import pickle
 import os, sys
-from hcat import simpSet
+from hcat import simpSet, Math_Data
 from hcat_funcs import *
 import golog as Golog
 sSet = None
@@ -21,21 +21,27 @@ def golog_to_sSet(golog):
         export_simplex.data['export_data']['pos'] = tuple(graphics['node'].getPos())
 
 
-        # print(export_simplex.label + " is handling {}\'s mathData:".format(simplex.label),simplex.mathData)
-        mathData = simplex.mathData
-        if isinstance(mathData, Golog.golog):
-            # print(export_simplex.label+"\'s mathData is a golog!")
-            export_simplex.mathData = golog_to_sSet(mathData)
-        else:
-            export_simplex.mathData = mathData
+        if simplex.math_data.type == 'golog':
+            export_simplex.math_data = Math_Data(math_data = golog_to_sSet(simplex.math_data()),type = 'sSet')
+        else: export_simplex.math_data = simplex.math_data
         export_simplex.data['exported'] = True
         return export_simplex
+
+        # print(export_simplex.label + " is handling {}\'s math_data:".format(simplex.label),simplex.math_data)
+        # math_data = simplex.math_data
+        # if isinstance(math_data, Golog.golog):
+        #     # print(export_simplex.label+"\'s math_data is a golog!")
+        #     export_simplex.math_data = golog_to_sSet(math_data)
+        # else:
+        #     export_simplex.math_data = math_data
+        # export_simplex.data['exported'] = True
+        # return export_simplex
 
     def rundiags(old_to_new_functor):
         (golog_sSet, export_sSet, old_to_new_lambda) = (old_to_new_functor.dom,old_to_new_functor.codom, old_to_new_functor.F)
         # # print("done handling "+golog_sSet.label+"\'s data")
         # # print("---------------------")
-        # for s in export_sSet.rawSimps: print(s.label+"\'s exported mathData:\n", s.mathData,"\n")
+        # for s in export_sSet.rawSimps: print(s.label+"\'s exported math_data:\n", s.math_data,"\n")
         # print("---------------------")
 
 
@@ -83,7 +89,7 @@ def unpicklesSet(location_string):
 
 
 def sSet_to_golog(base, import_sSet):
-
+    if not (hasattr(import_sSet,'export_tag') and import_sSet.export_tag== 'golog'): return #full sSet should have a golog export_tag
     def setupSimplex(simplex):
         if simplex.data['imported'] == True: return import_simplex_to_golog_simplex[simplex]
         if simplex.level == 0:
@@ -92,12 +98,13 @@ def sSet_to_golog(base, import_sSet):
             #store simplex in a mapping (to prevent double computing)
             import_simplex_to_golog_simplex[simplex] = golog_simplex
 
-            #if imported simplex has mathData and it is tagged handle it
-            if hasattr(simplex.mathData,'export_tag'):
-                #if simplex.mathData had export_tag golog, then import it as a golog
-                if simplex.mathData.export_tag == 'golog': golog_simplex.mathData = sSet_to_golog(base, simplex.mathData)
-                #else import mathData normally
-                else: golog_simplex.mathData = simplex.mathData
+            #if imported simplex is a sSet with a golog export_tag handle it with a gimport as well
+            if hasattr(simplex.math_data(),'export_tag'):
+                #if simplex.math_data had export_tag golog, then import it as a golog
+                if simplex.math_data().export_tag == 'golog':
+                    golog_simplex.math_data = Math_Data(math_data = sSet_to_golog(base, simplex.math_data()),type = 'golog')
+            #else import math_data normally
+            else: golog_simplex.math_data = simplex.math_data
             simplex.data['imported'] = True
             return import_simplex_to_golog_simplex[simplex]
 

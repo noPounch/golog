@@ -7,7 +7,7 @@ from copy import copy
 class Math_Data():
     def __init__(self,**kwargs):
         #math_data stores type, actual math data, and a function to open it
-        defaults = {'type':'\'None\'', 'math_data':'None', 'open':'lambda x:None'}
+        defaults = {'type':'\'None\'', 'math_data':'None'}
         for key in defaults:
             if key in kwargs: setattr(self,key,kwargs[key])
             else: setattr(self,key,eval(defaults[key]))

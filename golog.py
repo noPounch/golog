@@ -21,6 +21,8 @@ Camera_Distance = 100
 
 class golog():
     def __init__(self,base,*args, label = 'golog', **kwargs):
+        self.base = base
+
         #initialize with an empty nodepath and no window
         defaults = {'render':NodePath(label+"_render")}
         for key in defaults:

@@ -20,6 +20,19 @@ from panda3d.core import Vec3, Point3
 from panda3d.core import Plane, CollisionPlane, CollisionRay, CollisionNode, CollisionTraverser, CollisionHandlerQueue
 
 #functionality for updating a simplex's math_data
+
+def open_math_data(math_data):
+    if math_data.type == 'golog':
+        base = math_data().base
+        controllable_golog = mode_head(base, math_data())
+        controllable_golog.selection_and_creation()
+        window_manager.modeHeadToWindow(base, controllable_golog)
+    if math_data.type == 'file':
+        file_name, file_extension = os.path.splitext(math_data())
+        print(file_name, file_extension)
+        if file_extension == '.txt':
+            tk_funcs.edit_txt(math_data())
+
 def update_math_data(simplex, math_data_type, **kwargs):
     if math_data_type == 'None':
         simplex.math_data = hcat.Math_Data()
@@ -30,7 +43,18 @@ def update_math_data(simplex, math_data_type, **kwargs):
             controllable_golog = mode_head(kwargs['base'], simplex.math_data())
             controllable_golog.selection_and_creation()
             window_manager.modeHeadToWindow(kwargs['base'], controllable_golog)
-        simplex.math_data = hcat.Math_Data(math_data = new_golog, type = 'golog', open = newopen)
+        simplex.math_data = hcat.Math_Data(math_data = new_golog, type = 'golog')
+
+    if math_data_type == 'file':
+        file_location = tk_funcs.ask_file_location()
+        if not file_location: return #if user cancels
+        file_name, file_extension = os.path.splitext(file_location)
+        if file_extension == '.txt':
+            print('setting mathdata as a text file:' + file_location)
+            simplex.math_data = hcat.Math_Data(math_data = file_location, type = 'file')
+        # room for more extensions
+
+
     return simplex.math_data
 
 
@@ -186,9 +210,12 @@ class mode_head():
                     print('simplex has no math data')
                     (label, math_data_type) = tk_funcs.ask_math_type()
                     update_math_data(simplex, math_data_type, base= self.base, label = label)
-                    simplex.math_data.open()
+                    open_math_data(simplex.math_data)
+                    #for future asynchronounisity
+                    #self.base.taskMgr.add(open_math_data,'asynch open task', extraArgs = [simplex.math_data])
+
                 else:
-                    simplex.math_data.open()
+                    open_math_data(simplex.math_data)
             # subgolog =
 
         def mouse3(mw):
@@ -215,7 +242,7 @@ class mode_head():
                 (label, math_data_type) =  tk_funcs.ask_simplex_data() #ask for simplex data
                 simplex = self.golog.createObject(setPos = entry.getSurfacePoint(entry.getIntoNodePath()), label = label) #create a simplex
                 update_math_data(simplex, math_data_type, base = self.base, label = label)
-                simplex.math_data.open()
+                open_math_data(simplex.math_data)
 
 
         def mouse_watch_test(mw,task):
@@ -250,7 +277,9 @@ class mode_head():
             return task.cont
 
         def save(mw):
-            gexport(self.golog, self.save_location)
+            print(os.path.abspath(os.path.dirname(__file__))+'/'+self.save_location)
+            save_location = tk_funcs.ask_file_location(initial_dir = os.path.abspath(os.path.dirname(__file__))+'/'+self.save_location)
+            gexport(self.golog, save_location)
 
 
         def reset(*args):

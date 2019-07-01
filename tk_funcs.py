@@ -1,6 +1,7 @@
 import os
 import sys
 from tkinter import *
+from tkinter import filedialog
 
 def ask_simplex_data():
 
@@ -114,4 +115,9 @@ def edit_txt(fname):
             root.destroy()
     root.bind('<Control-Key-s>', save_and_exit)
     root.mainloop()
-    sys.exit()
+
+def ask_file_location(initial_dir = os.path.abspath(os.path.dirname(__file__))):
+    root = Tk()
+    filename =  filedialog.askopenfilename(initialdir = initial_dir,title = "Select file")#,filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
+    root.destroy()
+    return filename

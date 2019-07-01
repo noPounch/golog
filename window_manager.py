@@ -27,7 +27,7 @@ def modeHeadToWindow(base, mode_head, windict = None):
 
     win.getDisplayRegion(1).setCamera(mode_head.golog.camera) #set window to view golog's 3d camera
     win.getDisplayRegion(2).setCamera(mode_head.camera2D)
-    print([dr.getCamera() for dr in win.getDisplayRegions()])
+    # print([dr.getCamera() for dr in win.getDisplayRegions()])
     windict['mode_head'] = mode_head
     # golog.windicts.append(windict) #set golog.mouseWatcherNode to window's mousewatcher node
     for button in mode_head.buttons.keys():
