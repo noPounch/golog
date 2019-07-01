@@ -28,6 +28,9 @@ def stripsSet(sSet):
     return old_to_new_functor
 
 
+def open_math_data(simplex):
+    # open actual math data and provide callback
+    return simplex.math_data.open(simplex.Math_Data())
 
 ############## TESTING ################
 # sSet = simpSet(label = 'test')

@@ -19,6 +19,22 @@ from panda3d.core import Camera, NodePath, OrthographicLens
 from panda3d.core import Vec3, Point3
 from panda3d.core import Plane, CollisionPlane, CollisionRay, CollisionNode, CollisionTraverser, CollisionHandlerQueue
 
+#functionality for updating a simplex's math_data
+def update_math_data(simplex, math_data_type, **kwargs):
+    if math_data_type == 'None':
+        simplex.math_data = hcat.Math_Data()
+
+    if math_data_type == 'golog':
+        new_golog = golog.golog(kwargs['base'], label = kwargs['label']) #create a new golog
+        def newopen(): #create an open function for the golog math data
+            controllable_golog = mode_head(kwargs['base'], simplex.math_data())
+            controllable_golog.selection_and_creation()
+            window_manager.modeHeadToWindow(kwargs['base'], controllable_golog)
+        simplex.math_data = hcat.Math_Data(math_data = new_golog, type = 'golog', open = newopen)
+    return simplex.math_data
+
+
+
 class mode_head():
     def __init__(self,base,Golog, save_location = 'save/test.golog'):
         self.base = base
@@ -39,7 +55,7 @@ class mode_head():
         self.camera2D.node().setLens(lens)
 
         #label modehead uniquely
-        # make a dictionary of mode data in modes
+        # make a dictionary of mode_heads in the underlying golog
         if hasattr(self.golog,'mode_heads'):
             m = 0
             while m in self.golog.mode_heads.keys(): m+=1 #get smallest unused mode_head index
@@ -53,13 +69,16 @@ class mode_head():
             self.label = self.golog.label+"_mode_head_"+ str(self.index)
             self.golog.mode_heads[self.index] = self
 
+        #if mode_head reset function, should be set at the end of every mode
         self.reset = self.basic_reset
 
+    #basic reset functionality
     def basic_reset(self,*args):
         self.buttons = dict()
         self.window_tasks = dict()
         self.listener.ignoreAll()
 
+    #cleans mode_head to preparte for garbage collecting.
     def clean(self):
         self.reset()
         del self.golog.mode_heads[self.index]
@@ -68,7 +87,15 @@ class mode_head():
 
 
 
-
+    #basic mode for selecting and creating simplecies
+    #controls
+    #mouse_over: display label and mata_data_type
+    #left click: select simplex.
+    #selecting two 0-simplecies creates a 1-simplex
+    #right click: create simplex
+    #dialog box pops up prompting for default labels and math_data
+    #space with mouse over simplex: open math_data
+    #s saves golog to a .golog file (using hcat_funcs.gexport)
     def selection_and_creation(self):
 
         #Collision Handling
@@ -86,6 +113,7 @@ class mode_head():
         self.planeFromObject = self.planeNode.attachNewNode(CollisionNode("planeColNode"))
         self.planeFromObject.node().addSolid(CollisionPlane(Plane(Vec3(0,-1,0),Point3(0,0,0))))
 
+        #text node for displaying simplex math_data meta data
         self.textNP = self.render2d.attachNewNode(TextNode('text node'))
         self.textNP.setScale(.1)
         self.textNP.setPos(-1+.2,0,-1+.2)
@@ -153,25 +181,14 @@ class mode_head():
             else: return
 
             if isinstance(simplex,hcat.Simplex):
-                if simplex.mathData:
-                    print('Simplex has Math Data!')
-                    if isinstance(simplex.mathData,golog.golog):
-                        print('Math Data is a golog!')
-                        #if it has a mode_head, just create a window to view golog (no controls), otherwise create a mode_head in selection_and_creation mode
-                        controllable_golog = mode_head(self.base, simplex.mathData)
-                        # if not hasattr(simplex.mathData,"mode_heads"):
-                        controllable_golog.selection_and_creation()
-
-                        window_manager.modeHeadToWindow(self.base, controllable_golog)
-
-                elif not simplex.mathData:
-                    (label, mathDataType) = tk_funcs.ask_math_type()
-                    if mathDataType == 'golog' :
-                        new_golog = golog.golog(self.base, label = label)
-                        controllable_golog = mode_head(self.base, new_golog)
-                        controllable_golog.selection_and_creation()
-                        window_manager.modeHeadToWindow(self.base, controllable_golog)
-                        simplex.mathData = new_golog
+                # if simplex has actual math_data
+                if not simplex.math_data():
+                    print('simplex has no math data')
+                    (label, math_data_type) = tk_funcs.ask_math_type()
+                    update_math_data(simplex, math_data_type, base= self.base, label = label)
+                    simplex.math_data.open()
+                else:
+                    simplex.math_data.open()
             # subgolog =
 
         def mouse3(mw):
@@ -195,10 +212,10 @@ class mode_head():
             if entry.getIntoNodePath().getParent() == self.planeNode:
                 for node in self.selected: node.setColorScale(1,1,1,1) #turn white
                 self.selected = []
-                (label, mathDataType) =  tk_funcs.ask_simplex_data()
-                simp = self.golog.createObject(setPos = entry.getSurfacePoint(entry.getIntoNodePath()), label = label)
-                if mathDataType == 'golog':
-                    simp.mathData = golog.golog(self.base, label = label)
+                (label, math_data_type) =  tk_funcs.ask_simplex_data() #ask for simplex data
+                simplex = self.golog.createObject(setPos = entry.getSurfacePoint(entry.getIntoNodePath()), label = label) #create a simplex
+                update_math_data(simplex, math_data_type, base = self.base, label = label)
+                simplex.math_data.open()
 
 
         def mouse_watch_test(mw,task):
@@ -228,7 +245,7 @@ class mode_head():
                 return task.cont
 
             self.textNP.show()
-            self.textNP.node().setText("label: " +simplex.label+"\n math data type: " + str(type(simplex.mathData)))
+            self.textNP.node().setText("label: " +simplex.label+"\n math data type: " + simplex.math_data.type)
             # self.textNP.setPos(mpos.getX(),0,mpos.getY())
             return task.cont
 
@@ -334,13 +351,13 @@ class mode_head():
             else: return
 
             if isinstance(simplex,hcat.Simplex):
-                if simplex.mathData:
-                    print('Simplex has Math Data of type {}'.format(str(type(simplex.mathData))))
-                    if isinstance(simplex.mathData,golog.golog):
+                if simplex.math_data:
+                    print('Simplex has Math Data of type {}'.format(str(type(simplex.math_data))))
+                    if isinstance(simplex.math_data,golog.golog):
                         print('Math Data is a golog!')
                         #if it has a mode_head, just create a window to view golog (no controls), otherwise create a mode_head in selection_and_creation mode
-                        controllable_golog = mode_head(self.base, simplex.mathData)
-                        # if not hasattr(simplex.mathData,"mode_heads"):
+                        controllable_golog = mode_head(self.base, simplex.math_data)
+                        # if not hasattr(simplex.math_data,"mode_heads"):
                         controllable_golog.selection_and_creation()
 
                         window_manager.modeHeadToWindow(self.base, controllable_golog)
@@ -350,7 +367,7 @@ class mode_head():
                     controllable_golog = mode_head(self.base, new_golog)
                     controllable_golog.selection_and_creation()
                     window_manager.modeHeadToWindow(self.base, controllable_golog)
-                    simplex.mathData = new_golog
+                    simplex.math_data = new_golog
             # subgolog =
 
         def mouse3(mw):
@@ -391,7 +408,7 @@ class mode_head():
             return task.cont
 
         def display_info(mw):
-            #display high level info about a simplex (e.g. mathData type, label)
+            #display high level info about a simplex (e.g. math_data type, label)
             pass
 
 

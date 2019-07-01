@@ -7,13 +7,15 @@ from copy import copy
 class Math_Data():
     def __init__(self,**kwargs):
         #math_data stores type, actual math data, and a function to open it
-        self.type = kwargs['type'] if 'type' in kwargs.keys() else self.type = None
-        self.math_data = kwargs['math_data'] if 'math_data' in kwargs.keys() else self.math_data = None
-        self.open = kwargs['open'] if 'open' in kwargs.keys() else self.open = lambda x:None
+        defaults = {'type':'\'None\'', 'math_data':'None', 'open':'lambda x:None'}
+        for key in defaults:
+            if key in kwargs: setattr(self,key,kwargs[key])
+            else: setattr(self,key,eval(defaults[key]))
+
 
     def __call__(self):
         return self.math_data
-    
+
 class Simplex():
     def __init__(self, n, faces = (), *args, **kwargs):
 
@@ -33,11 +35,11 @@ class Simplex():
                 for i in range(j):
                     assert self.faces[j].faces[i] == self.faces[i].faces[j-1], "Functorality Violated at: " + self.faces[j].faces[i].label+ " != " + self.faces[i].faces[j-1].label
 
-        #Apply Kwargs
-        defaults = {'label':'','data':dict(),'mathData':None}
+        #Apply default kwargs
+        defaults = {'label':'\'\'','data':'dict()','math_data':'Math_Data()'}
         for key in defaults:
             if key in kwargs: setattr(self,key,kwargs[key])
-            else: setattr(self,key,defaults[key])
+            else: setattr(self,key,eval(defaults[key]))
 
 
 #return a simplex of height n with a single simplex
