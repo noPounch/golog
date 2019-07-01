@@ -1,4 +1,5 @@
-
+import os
+import sys
 from tkinter import *
 
 def ask_simplex_data():
@@ -30,7 +31,6 @@ def ask_simplex_data():
     labelentry.focus()
     master.mainloop()
     return (labelvar.get(), MathDataVariable.get())
-
 
 def ask_math_type():
     master = Tk()
@@ -81,3 +81,37 @@ def save_load_new():
     master.mainloop()
     #do after master tkbox is destroyed
     return (newvar.get(), savevar.get())
+
+def edit_txt(fname):
+    root = Tk()
+    height = 300
+    width = 300
+    text_box = Text(root)
+
+
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    left = (screen_width / 2) - (width / 2)
+    top = (screen_height / 2) - (height /2)
+    root.geometry('%dx%d+%d+%d' % (width, height, left, top))
+    root.grid_rowconfigure(0, weight=1)
+    root.grid_columnconfigure(0, weight=1)
+    text_box.grid(sticky = N + E + S + W)
+
+    #open file and place in textbox
+    try:
+            root.wm_iconbitmap("Notepad.ico")
+    except:
+            pass
+    root.title(os.path.basename(fname) + " - Notepad")
+    with open(fname,"r") as file:
+        text_box.delete(1.0,END)
+        text_box.insert(1.0,file.read())
+
+    def save_and_exit(event):
+        with open(fname,'w') as file:
+            file.write(text_box.get(1.0,END))
+            root.destroy()
+    root.bind('<Control-Key-s>', save_and_exit)
+    root.mainloop()
+    sys.exit()

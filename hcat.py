@@ -3,6 +3,17 @@ from copy import copy
 
 # Create a new simplex with specified faces and kwargs
 # Usage: Simplex(level, faces, *args, **{label:'', data:dict())
+
+class Math_Data():
+    def __init__(self,**kwargs):
+        #math_data stores type, actual math data, and a function to open it
+        self.type = kwargs['type'] if 'type' in kwargs.keys() else self.type = None
+        self.math_data = kwargs['math_data'] if 'math_data' in kwargs.keys() else self.math_data = None
+        self.open = kwargs['open'] if 'open' in kwargs.keys() else self.open = lambda x:None
+
+    def __call__(self):
+        return self.math_data
+    
 class Simplex():
     def __init__(self, n, faces = (), *args, **kwargs):
 
