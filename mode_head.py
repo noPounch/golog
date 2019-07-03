@@ -32,8 +32,14 @@ def open_math_data(math_data):
         print(file_name, file_extension)
         if file_extension == '.txt':
             tk_funcs.edit_txt(math_data())
+        else:
+            #prompt user to select a program
+            tk_funcs.run_program('',math_data())
+
 
 def update_math_data(simplex, math_data_type, **kwargs):
+    if 'label' in kwargs: simplex.label = kwargs['label']
+
     if math_data_type == 'None':
         simplex.math_data = hcat.Math_Data()
 
@@ -49,9 +55,8 @@ def update_math_data(simplex, math_data_type, **kwargs):
         file_location = tk_funcs.ask_file_location()
         if not file_location: return #if user cancels
         file_name, file_extension = os.path.splitext(file_location)
-        if file_extension == '.txt':
-            print('setting mathdata as a text file:' + file_location)
-            simplex.math_data = hcat.Math_Data(math_data = file_location, type = 'file')
+        simplex.math_data = hcat.Math_Data(math_data = file_location, type = 'file')
+
         # room for more extensions
 
 
@@ -210,7 +215,7 @@ class mode_head():
                     print('simplex has no math data')
                     (label, math_data_type) = tk_funcs.ask_math_type()
                     update_math_data(simplex, math_data_type, base= self.base, label = label)
-                    open_math_data(simplex.math_data)
+                    # open_math_data(simplex.math_data)
                     #for future asynchronounisity
                     #self.base.taskMgr.add(open_math_data,'asynch open task', extraArgs = [simplex.math_data])
 
@@ -242,7 +247,7 @@ class mode_head():
                 (label, math_data_type) =  tk_funcs.ask_simplex_data() #ask for simplex data
                 simplex = self.golog.createObject(setPos = entry.getSurfacePoint(entry.getIntoNodePath()), label = label) #create a simplex
                 update_math_data(simplex, math_data_type, base = self.base, label = label)
-                open_math_data(simplex.math_data)
+                # open_math_data(simplex.math_data)
 
 
         def mouse_watch_test(mw,task):

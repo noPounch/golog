@@ -2,6 +2,7 @@ import os
 import sys
 from tkinter import *
 from tkinter import filedialog
+import subprocess
 
 def ask_simplex_data():
 
@@ -121,3 +122,35 @@ def ask_file_location(initial_dir = os.path.abspath(os.path.dirname(__file__))):
     filename =  filedialog.askopenfilename(initialdir = initial_dir,title = "Select file")#,filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
     root.destroy()
     return filename
+
+def run_program(default_program = '', file=''):
+    root = Tk()
+    root.title('Command')
+    programvar = StringVar(root)
+    programvar.set(default_program)
+    programentry = Entry(root, textvariable=programvar)
+    programentry.grid(row = 0,column = 0)
+    root.bind("<FocusIn>", lambda *event: programentry.selection_range(0, END))
+
+    filevar = StringVar(root)
+    filevar.set(file)
+    filelabel=Label(textvariable = filevar)
+    filelabel.grid(row=0,column = 1)
+    def getprogram():
+        programpath = filedialog.askopenfilename(initialdir = os.path.abspath(os.path.dirname(__file__)),title = "Select Program")
+        programvar.set(programpath)
+    Button(root, text = 'Select Program',command=getprogram).grid(row=1,column=0)
+
+    def selectfile():
+        filepath = filedialog.askopenfilename(initialdir = os.path.abspath(os.path.dirname(__file__)),title = "Select File")
+        filevar.set(filepath)
+    Button(root, text = 'Select File',command=selectfile).grid(row=1,column=1)
+
+    def docommand():
+        #do command
+        root.destroy()
+        if not programvar.get(): subprocess.run(['xdg-open',filevar.get()], check = True)
+        else: subprocess.run([programvar.get(),filevar.get()])
+
+    Button(root, text = 'run command', command = docommand).grid(row=1,column=2)
+    root.mainloop()
