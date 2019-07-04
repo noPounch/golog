@@ -129,7 +129,6 @@ def ask_folder_location(initial_dir = os.path.abspath(os.path.dirname(__file__))
     root.destroy()
     return folder_path
 
-
 def run_program(default_program = '', file=''):
     root = Tk()
     root.title('Command')
@@ -160,4 +159,19 @@ def run_program(default_program = '', file=''):
         else: subprocess.run([programvar.get(),filevar.get()])
 
     Button(root, text = 'run command', command = docommand).grid(row=1,column=2)
+    root.mainloop()
+
+def pdf_or_tex(pdf_file,tex_file):
+    root = Tk()
+    def openpdf():
+        root.destroy()
+        run_program('',file=pdf_file)
+    if pdf_file: Button(root, text ='open'+os.path.basename(pdf_file),command = openpdf).grid(row = 0 , column = 0)
+    else: Label(root, text ='tex not yet compiled').grid(row = 0 , column = 0)
+
+    def opentex():
+        root.destroy()
+        run_program('',file=tex_file)
+    if tex_file: Button(root, text ='open'+os.path.basename(tex_file),command = opentex).grid(row = 0 , column = 1)
+    else: Label(root, text ='tex not yet compiled').grid(row = 0 , column = 1)
     root.mainloop()

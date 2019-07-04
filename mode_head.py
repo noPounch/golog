@@ -37,14 +37,13 @@ def open_math_data(math_data):
             tk_funcs.run_program('',math_data())
     if math_data.type == 'latex':
         #try to open .pdf
-        if os.path.exists(math_data()['folder']+'/'+math_data()['name']+'.pdf'):
-            tk_funcs.run_program('',math_data()['folder']+'/'+math_data()['name']+'.pdf')
-        elif os.path.exists(math_data()['folder']+'/'+math_data()['name']+'.tex'):
-            tk_funcs.run_program('',math_data()['folder']+'/'+math_data()['name']+'.tex')
-        else:
-            return
+        #get existing files
 
-            #open pdf
+        pdf_file = None; tex_file = None
+        if os.path.exists(math_data()['folder']+'/'+math_data()['name']+'.pdf'): pdf_file = math_data()['folder']+'/'+math_data()['name']+'.pdf'
+        if os.path.exists(math_data()['folder']+'/'+math_data()['name']+'.tex'): tex_file = math_data()['folder']+'/'+math_data()['name']+'.tex'
+        #make a tk box with two buttons which are enabled iff file exists
+        tk_funcs.pdf_or_tex(pdf_file,tex_file)
 
 
 
