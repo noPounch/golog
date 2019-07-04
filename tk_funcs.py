@@ -19,7 +19,7 @@ def ask_simplex_data():
 
 
     #data options on click
-    options = ['None','golog', 'olog', 'text', 'file']
+    options = ['None','golog', 'latex', 'file']
     Label( master, text = "Add Math Data?").grid(row = 1,column = 0)
     MathDataVariable = StringVar(master)
     MathDataVariable.set(options[0])
@@ -46,7 +46,7 @@ def ask_math_type():
 
 
     #data options on click
-    options = ['None','golog', 'olog', 'text', 'file']
+    options = ['None','golog', 'file','latex']
     Label( master, text = "Math Data Type: ").grid(row = 1,column = 0)
     MathDataVariable = StringVar(master)
     MathDataVariable.set(options[0])
@@ -122,6 +122,13 @@ def ask_file_location(initial_dir = os.path.abspath(os.path.dirname(__file__))):
     filename =  filedialog.askopenfilename(initialdir = initial_dir,title = "Select file")#,filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
     root.destroy()
     return filename
+
+def ask_folder_location(initial_dir = os.path.abspath(os.path.dirname(__file__))):
+    root = Tk()
+    folder_path = filedialog.askdirectory(initialdir = initial_dir, title = "Select Folder")
+    root.destroy()
+    return folder_path
+
 
 def run_program(default_program = '', file=''):
     root = Tk()

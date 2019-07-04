@@ -35,6 +35,17 @@ def open_math_data(math_data):
         else:
             #prompt user to select a program
             tk_funcs.run_program('',math_data())
+    if math_data.type == 'latex':
+        #try to open .pdf
+        if os.path.exists(math_data()['folder']+'/'+math_data()['name']+'.pdf'):
+            tk_funcs.run_program('',math_data()['folder']+'/'+math_data()['name']+'.pdf')
+        elif os.path.exists(math_data()['folder']+'/'+math_data()['name']+'.tex'):
+            tk_funcs.run_program('',math_data()['folder']+'/'+math_data()['name']+'.tex')
+        else:
+            return
+
+            #open pdf
+
 
 
 def update_math_data(simplex, math_data_type, **kwargs):
@@ -57,7 +68,12 @@ def update_math_data(simplex, math_data_type, **kwargs):
         file_name, file_extension = os.path.splitext(file_location)
         simplex.math_data = hcat.Math_Data(math_data = file_location, type = 'file')
 
-        # room for more extensions
+    if math_data_type == 'latex':
+        folder_location = tk_funcs.ask_folder_location()+'/'+simplex.label
+        file_dict = {'name':simplex.label, 'folder':folder_location}
+        os.mkdir(folder_location)
+        simplex.math_data = hcat.Math_Data(math_data = file_dict, type = 'latex')
+        open(folder_location+'/'+simplex.label+'.tex','w').close() #create a .tex file
 
 
     return simplex.math_data

@@ -1,6 +1,6 @@
 from math import pi, sin, cos, floor
 
-import sys
+import sys, os
 import hcat
 import tkinter
 from direct.showutil.Rope import Rope
@@ -48,7 +48,8 @@ class golog():
 
 
         # Load Models
-        self.sphere = loader.loadModel("models/misc/sphere")
+        self.sphere = base.loader.loadModel("models/misc/sphere")
+        self.tetra = base.loader.loadModel(os.path.abspath(os.path.dirname(__file__))+'/models/Tetrahedron.egg')
 
         #set up collision traverser
         self.cTrav = CollisionTraverser(self.label+'_traverser')
@@ -115,6 +116,7 @@ class golog():
 
         rope = Rope()
         middlenode = self.render.attachNewNode(simplex.label+" middle_node")
+        self.tetra.instanceTo(middlenode)
         listener = DirectObject()
         self.sSet.simplex_to_graphics[simplex]['listener'] = listener
         self.sSet.simplex_to_graphics[simplex]['node'] = middlenode
