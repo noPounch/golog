@@ -13,12 +13,39 @@ from panda3d.core import CollisionNode, CollisionTraverser, CollisionHandlerQueu
 
 
 #golog is an extension to a simplicial set that provides graphics functionality via the panda3d library
-#explicitly: a golog is a panda scene graph and an hcat sSet with a mapping from Panda Nodes to Simplecies
+#The main object is a Graphics_Data, A graphics data is a subset of a panda3d scenegraph with some messenger functionality
+#explicitly: a golog is a panda scene graph and an hcat sSet with a mapping from Graphics Data to Simplecies
 
 Camera_Distance = 100
 
-# messenger = DirectObject()
+#A Graphics Data Houses panda3d information for a simplex
+# Any Nodes the simplex might have
+# Any Extra graphics objects (for example ropes for 1-simplecies or planes for 2-simplecies)
+# Lists of children and parents
+# A messenger to handle any calls to children and from parents
+class Graphics_Data():
+    def __init__(self, simplex, golog):
+        self.simplex = simplex
+        self.golog = golog
+        if simplex.level = 0:
+            self.NP = golog.render.attachNewNode(NodePath(simplex.label))
+            golog.sphere.instanceTo(self.NP)
+            self.messenger = DirectObject()
+            self.collision = self.NP.attachNewNode(CollisionNode('sphereColNode'))
+            self.collision.node().addSolid(CollisionSphere(0,0,0,1))
+            self.messengerNames = {'node':str(id(self.NP))}
+            golog.Simplex_to_Graphics[simplex] = self
+            golog.Graphics_to_Simplex[self] = simplex
 
+    #supress attribute errors
+    def __getattr__(self, attr):
+        print('graphics_data for '+str(self.simplex.level)+'-simplex has no panda3d object ' + attr)
+        return None
+
+
+
+#a golog is essentially just a sSet with a bijection from graphics data to simplecies
+#Golog = ( sSet, {Graphics_Data}, Simplex_to_Graphics = Graphics_to_Simplex^(-1) )
 class golog():
     def __init__(self,base,*args, label = 'golog', **kwargs):
         self.base = base
@@ -53,7 +80,6 @@ class golog():
 
         #set up collision traverser
         self.cTrav = CollisionTraverser(self.label+'_traverser')
-
 
     def createObject(self, *args, **kwargs):
         #create a 0-simplex in the simplicial set
