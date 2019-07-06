@@ -24,18 +24,80 @@ Camera_Distance = 100
 # Lists of children and parents
 # A messenger to handle any calls to children and from parents
 class Graphics_Data():
-    def __init__(self, simplex, golog):
+    def __init__(self, simplex, golog, **kwargs):
         self.simplex = simplex
         self.golog = golog
         if simplex.level = 0:
             self.NP = golog.render.attachNewNode(NodePath(simplex.label))
             golog.sphere.instanceTo(self.NP)
-            self.messenger = DirectObject()
+            self.messenger = DirectObject() # might let Graphics_Data Inherit from Direct_Object
             self.collision = self.NP.attachNewNode(CollisionNode('sphereColNode'))
             self.collision.node().addSolid(CollisionSphere(0,0,0,1))
-            self.messengerNames = {'node':str(id(self.NP))}
+            self.messenger_names = {'node':str(id(self.NP))}
             golog.Simplex_to_Graphics[simplex] = self
             golog.Graphics_to_Simplex[self] = simplex
+
+            #detail parents
+            self.parents = () #need to give no parents for a unified update function
+            if 'pos' in kwargs.keys(): self.NP.setPos(kwargs['pos'])
+            self.parent_pos_convolution = lambda *x: golog.render.getPos() # function of parent's [node] positions to detail offset (0-simlex it's just render location)
+            #listener for parental updates, pass arguemnts through extraKwargs to detail what kind of update to perform
+            for parent in self.parents: self.messenger.accept(self.parents.messenger_names['node'],self.update)
+
+        elif simplex.level = 1:
+            self.NP = golog.render.attachNewNode(NodePath(simplex.label))
+            golog.cone.instanceTo(self.NP)
+            self.messenger = DirectObject()
+            self.graphics = Rope()
+
+            golog.Simplex_to_Graphics[simplex] = self
+            golog.Graphics_to_Simplex[self] = simplex
+
+
+            #set up parents
+            self.parents = tuple(golog.Simplex_to_Graphics[face] for face in self.simplex.faces)
+            self.parent_pos_convolution = lambda x:average(x)
+
+
+
+
+            self.sSet.simplex_to_graphics[simplex] = dict()
+
+            # offset for middlenode
+
+
+
+
+            middlenode.setPos((domNode.getPos()+codomNode.getPos())/2)
+
+            middlenode.setTag('_messengerName', str(id(simplex)))
+
+            #create a middlenode listener for face movements
+            ######
+            for f in simplex.faces:
+                fNode = self.sSet.simplex_to_graphics[f]['node']
+                listener.accept(fNode.getTag('_messengerName') + ' moved',self.updateSimp, extraArgs = [middlenode])
+            #####
+
+            #create a listener for other events
+            #####
+            listener.accept('Update' + middlenode.getTag('_messengerName'), self.updateSimp, extraArgs = [middlenode])
+            #####
+
+            #set start and endpoint to be the domain and codomain graphics
+            rope.setup(3,[(domNode,(0,0,0)),
+                        (middlenode,(0,0,0)),
+                        (codomNode,(0,0,0))])
+            rope.reparentTo(self.render)
+            self.sSet.simplex_to_graphics[simplex]['model'] = 'rope' #simplex to Graphics
+
+
+    #listener calls update with some data
+    def update(kwargs):
+            if 'pos' in kwargs:
+                newpos = self.parent_pos_convolution(tuple(parent.NP.getPos())) + kwargs['pos'] #set a new offset base on parent positions
+                self.NP.setPos(newpos)
+                self.messenger.send(self.messenger_names['node'], extraArgs = [{pos:self.NP.getPos()}])
 
     #supress attribute errors
     def __getattr__(self, attr):
