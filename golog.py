@@ -39,10 +39,11 @@ class Graphics_Data():
 
             #detail parents
             self.parents = () #need to give no parents for a unified update function
-            if 'pos' in kwargs.keys(): self.NP.setPos(kwargs['pos'])
+
             self.parent_pos_convolution = lambda *x: golog.render.getPos() # function of parent's [node] positions to detail offset (0-simlex it's just render location)
             #listener for parental updates, pass arguemnts through extraKwargs to detail what kind of update to perform
             for parent in self.parents: self.messenger.accept(self.parents.messenger_names['node'],self.update)
+            if 'pos' in kwargs.keys(): self.udpate({'pos':kwargs['pos']})
 
         elif simplex.level = 1:
             self.NP = golog.render.attachNewNode(NodePath(simplex.label))
@@ -57,39 +58,11 @@ class Graphics_Data():
             #set up parents
             self.parents = tuple(golog.Simplex_to_Graphics[face] for face in self.simplex.faces)
             self.parent_pos_convolution = lambda x:average(x)
+            for parent in self.parents: self.messenger.accept(self.parents.messenger_names['node'],self.update)
+            if 'pos' in kwargs.keys(): self.udpate({'pos':kwargs['pos']})
 
-
-
-
-            self.sSet.simplex_to_graphics[simplex] = dict()
-
-            # offset for middlenode
-
-
-
-
-            middlenode.setPos((domNode.getPos()+codomNode.getPos())/2)
-
-            middlenode.setTag('_messengerName', str(id(simplex)))
-
-            #create a middlenode listener for face movements
-            ######
-            for f in simplex.faces:
-                fNode = self.sSet.simplex_to_graphics[f]['node']
-                listener.accept(fNode.getTag('_messengerName') + ' moved',self.updateSimp, extraArgs = [middlenode])
-            #####
-
-            #create a listener for other events
-            #####
-            listener.accept('Update' + middlenode.getTag('_messengerName'), self.updateSimp, extraArgs = [middlenode])
-            #####
-
-            #set start and endpoint to be the domain and codomain graphics
-            rope.setup(3,[(domNode,(0,0,0)),
-                        (middlenode,(0,0,0)),
-                        (codomNode,(0,0,0))])
-            rope.reparentTo(self.render)
-            self.sSet.simplex_to_graphics[simplex]['model'] = 'rope' #simplex to Graphics
+            #set up rope graphics
+            rope.setup(3,[(self.parent[1].NP,(0,0,0)), (self.NP,(0,0,0)), (self.parent[0].NP,(0,0,0))])
 
 
     #listener calls update with some data
