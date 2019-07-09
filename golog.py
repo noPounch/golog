@@ -29,6 +29,7 @@ class Graphics_Data():
         self.golog = golog
         self.messenger = self.golog.base.messenger
         self.listener = DirectObject() # might let Graphics_Data Inherit from Direct_Object
+        self.graphics_kwargs = dict() # keeping track of information needed to re-create graphics_data
 
         if simplex.level == 0:
             self.NP = golog.render.attachNewNode(simplex.label)
@@ -49,7 +50,7 @@ class Graphics_Data():
             #listener for parental updates, pass arguemnts through extraKwargs to detail what kind of update to perform
             for parent in self.parents: self.listener.accept(self.parents.messenger_names['node'],self.update)
             if 'pos' in kwargs.keys():
-                print(kwargs)
+                # print(kwargs)
                 self.update({'pos':kwargs['pos']})
 
         elif simplex.level == 1:
@@ -69,7 +70,7 @@ class Graphics_Data():
             def tuple_avg(tuples):
                 b = LPoint3f(0,0,0)
                 for a in tuples:
-                    print(a)
+                    # print(a)
                     b = b+a
                 return b/len(tuples)
             self.parent_pos_convolution = tuple_avg
@@ -81,22 +82,23 @@ class Graphics_Data():
             #set up rope graphics
             self.graphics.setup(3,[(self.parents[1].NP,(0,0,0)), (self.NP,(0,0,0)), (self.parents[0].NP,(0,0,0))])
             self.graphics.reparentTo(golog.render)
-            print([self.parents[1].NP.getPos(), self.NP.getPos(), self.parents[0].NP.getPos()])
+            # print([self.parents[1].NP.getPos(), self.NP.getPos(), self.parents[0].NP.getPos()])
 
 
     #listener calls update with some data
     def update(self,kwargs):
             if 'pos' in kwargs:
+                self.graphics_kwargs['pos'] = kwargs['pos']
                 poslist = tuple(parent.NP.getPos() for parent in self.parents)
-                print(poslist)
+                # print(poslist)
                 newpos = self.parent_pos_convolution(poslist) + kwargs['pos'] #set a new offset base on parent positions
-                print(newpos)
+                # print(newpos)
                 self.NP.setPos(newpos)
                 self.messenger.send(self.messenger_names['node'], [{'pos':self.NP.getPos()}])
 
     #supress attribute errors
     def __getattr__(self, attr):
-        print('graphics_data for '+str(self.simplex.level)+'-simplex has no panda3d object ' + attr)
+        # print('graphics_data for '+str(self.simplex.level)+'-simplex has no panda3d object ' + attr)
         return None
 
 
@@ -170,5 +172,5 @@ if __name__ == "__main__":
             a = G.add(0,label = '1')
             b = G.add(0,label = '2',pos = (0,0,10))
             G.add((b,a), label = '(1,2)')
-            print([s.label for s in G.sSet.rawSimps])
+            # print([s.label for s in G.sSet.rawSimps])
     runner().run()

@@ -282,8 +282,9 @@ class mode_head():
             return task.cont
 
         def save(mw):
-            print(os.path.abspath(os.path.dirname(__file__))+'/'+self.save_location)
+            # print(os.path.abspath(os.path.dirname(__file__))+'/'+self.save_location)
             save_location = tk_funcs.ask_file_location(initial_dir = os.path.abspath(os.path.dirname(__file__))+'/'+self.save_location)
+            print('saving to:\n'+save_location)
             gexport(self.golog, save_location)
 
 
