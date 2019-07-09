@@ -32,15 +32,12 @@ class Graphics_Data():
 
         if simplex.level == 0:
             self.NP = golog.render.attachNewNode(simplex.label)
-            self.NP.setTag('level','0') # to tell mode_heads what type of simplex this is
             golog.sphere.instanceTo(self.NP)
             self.collision = self.NP.attachNewNode(CollisionNode('sphereColNode'))
             self.collision.node().addSolid(CollisionSphere(0,0,0,1))
             self.messenger_names = {'node':str(id(self.NP))}
             golog.Simplex_to_Graphics[simplex] = self
             golog.Graphics_to_Simplex[self] = simplex
-            golog.NP_to_Graphics[self.NP] = self
-
 
             #detail parents
             self.parents = () #need to give no parents for a unified update function
@@ -54,14 +51,12 @@ class Graphics_Data():
 
         elif simplex.level == 1:
             self.NP = golog.render.attachNewNode(simplex.label)
-            self.NP.setTag('level','1')
             golog.cone.instanceTo(self.NP)
             self.messenger_names = {'node':str(id(simplex))}
             self.graphics = Rope()
 
             golog.Simplex_to_Graphics[simplex] = self
             golog.Graphics_to_Simplex[self] = simplex
-            golog.NP_to_Graphics[self.NP] = self
 
 
             #set up parents
@@ -115,7 +110,6 @@ class golog():
 
         self.Simplex_to_Graphics = dict()
         self.Graphics_to_Simplex = dict()
-        self.NP_to_Graphics = dict()
         # Initialize simplicial set
         self.label = label
         self.sSet = hcat.simpSet(label = self.label, data = {'node':self.render})

@@ -94,7 +94,7 @@ def sSet_to_golog(base, import_sSet):
         if simplex.data['imported'] == True: return import_simplex_to_golog_simplex[simplex]
         if simplex.level == 0:
             # set up panda3d object
-            golog_simplex = golog.createObject(setPos = simplex.data['export_data']['pos'], label = simplex.label)
+            golog_simplex = golog.add(0, pos = simplex.data['export_data']['pos'], label = simplex.label)
             #store simplex in a mapping (to prevent double computing)
             import_simplex_to_golog_simplex[simplex] = golog_simplex
 
@@ -111,7 +111,7 @@ def sSet_to_golog(base, import_sSet):
         if simplex.level == 1:
             #return the already setup simplecies, or if they aren't yet set up, set them up
             faces = tuple(setupSimplex(face) for face in simplex.faces)
-            golog_simplex = golog.createMorphism(faces, label = simplex.label)
+            golog_simplex = golog.add(faces, label = simplex.label)
             import_simplex_to_golog_simplex[simplex] = golog_simplex
             simplex.data['imported'] = True
             return import_simplex_to_golog_simplex[simplex]

@@ -81,12 +81,14 @@ def update_math_data(simplex, math_data_type, **kwargs):
 
 class mode_head():
     def __init__(self,base,Golog, save_location = 'save/test.golog'):
+        # Set up basic attributes
         self.base = base
         self.golog = Golog
         self.buttons = dict()
         self.window_tasks = []
         self.listener = DirectObject()
         self.save_location = save_location
+        ######
 
         #create a 2d render
         self.render2d = NodePath('2d render')
@@ -97,8 +99,9 @@ class mode_head():
         lens.setFilmSize(2, 2)
         lens.setNearFar(-1000, 1000)
         self.camera2D.node().setLens(lens)
+        ######
 
-        #label modehead uniquely
+
         # make a dictionary of mode_heads in the underlying golog
         if hasattr(self.golog,'mode_heads'):
             m = 0
@@ -112,7 +115,10 @@ class mode_head():
             self.index = 0
             self.label = self.golog.label+"_mode_head_"+ str(self.index)
             self.golog.mode_heads[self.index] = self
+        ##########
 
+
+        # set up a reset function
         #if mode_head reset function, should be set at the end of every mode
         self.reset = self.basic_reset
 
@@ -129,164 +135,143 @@ class mode_head():
         del self.reset
 
 
+    def get_relevant_entries(self, mw):
+        # get list of entries by distance
+        if not mw.node().hasMouse(): return
+        mpos = mw.node().getMouse()
+        self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY()) #mouse ray goes from camera through the 'lens plane' at position of mouse
+        self.golog.cTrav.traverse(self.golog.render)
+        self.queue.sortEntries()
+
+        # get the first relevant node traversed by mouseRay
+        #### ignore everything with a mode_head tag that is not defined by this mode_head
+        for e in self.queue.getEntries():
+            if e.getIntoNodePath().getParent().hasTag("mode_head"):
+                if e.getIntoNodePath().getParent().getTag("mode_head") == self.label:
+                    return (e.getIntoNodePath().getParent(), e.getIntoNodePath().getParent().getTag("mode_node"),e.getSurfacePoint(e.getIntoNodePath()))
+                    break
+            else:
+                entry = e
+                break
+        #############
+
+        #return node selected in the golog
+        entryNP = entry.getIntoNodePath().getParent()
+        if entryNP.hasTag('level'): return (entryNP, entryNP.getTag('level'),entryNP.getPos())
+
+
 
 
     #basic mode for selecting and creating simplecies
-    #controls
-    #mouse_over: display label and mata_data_type
-    #left click: select simplex.
-    #selecting two 0-simplecies creates a 1-simplex
-    #right click: create simplex
-    #dialog box pops up prompting for default labels and math_data
-    #space with mouse over simplex: open math_data
-    #s saves golog to a .golog file (using hcat_funcs.gexport)
+    ################ CONTROLS #########################################
+    #   mouse_over: display label and mata_data_type                  #
+    #   left click: select simplex.                                   #
+    #   selecting two 0-simplecies creates a 1-simplex                #
+    #   right click: create simplex                                   #
+    #   dialog box pops up prompting for default labels and math_data #
+    #   space with mouse over simplex: open math_data                 #
+    #   s saves golog to a .golog file (using hcat_funcs.gexport)     #
+    ###################################################################
+
     def selection_and_creation(self):
 
         #Collision Handling
         #set up traverser and handler
         self.queue = CollisionHandlerQueue()
-        self.selected = []
+        self.selected = [[],[]] #tracking previously selected nodes of each level
+
+        # set up mouse picker
         self.pickerNode = CollisionNode('mouseRay')
-        self.pickerNP = self.golog.camera.attachNewNode(self.pickerNode)
+        self.pickerNP = self.golog.camera.attachNewNode(self.pickerNode) #attach collision node to camera
         self.pickerRay = CollisionRay()
         self.pickerNode.addSolid(self.pickerRay)
         self.pickerNode.set_into_collide_mask(0) #so that collision rays don't collide into each other if there are two mode_heads
-        self.golog.cTrav.addCollider(self.pickerNP,self.queue)
+        self.golog.cTrav.addCollider(self.pickerNP,self.queue) #send collisions to self.queue
+        # set up plane for picking
         self.planeNode = self.golog.render.attachNewNode("plane")
-        self.planeNode.setTag("mode_head",self.label)
+        self.planeNode.setTag("mode_head",self.label) # tag to say it belongs to this mode_head
+        self.planeNode.setTag("mode_node", 'plane')
+
         self.planeFromObject = self.planeNode.attachNewNode(CollisionNode("planeColNode"))
         self.planeFromObject.node().addSolid(CollisionPlane(Plane(Vec3(0,-1,0),Point3(0,0,0))))
 
-        #text node for displaying simplex math_data meta data
+        #2d Text
         self.textNP = self.render2d.attachNewNode(TextNode('text node'))
         self.textNP.setScale(.1)
         self.textNP.setPos(-1+.2,0,-1+.2)
 
-        # ###
-        # self.textNP.node().setText('hello')
-        # self.textNP.setPos(0,0,0)
-        #
-        # ###
 
 
-        ######
+
+
 
         def mouse1(mw):
-            mpos = mw.node().getMouse()
-            self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY())
-            self.golog.cTrav.traverse(self.golog.render)
-            self.queue.sortEntries()
-            # entry = self.queue.getEntry(0)
+            (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
 
-            # get the first relevant node traversed by mouseRay
-            # ignore everything with a mode_head tag that is not defined by this mode_head
-            for e in self.queue.getEntries():
-                if e.getIntoNodePath().getParent().hasTag("mode_head"):
-                    if e.getIntoNodePath().getParent().getTag("mode_head") == self.label:
-                        entry = e
-                        break
-                else:
-                    entry = e
-                    break
+            if node_type == 'plane':
+                for node in self.selected[0]: node.setColorScale(1,1,1,1) #turn white
+                self.selected = [[],[]]
+            elif node_type == '0':
+                if entryNP not in self.selected[0]:
+                    #?  don't just append, re-sort
+                    self.selected[0].append(entryNP)
+                entryNP.setColorScale(1,0,0,0) #turn red
 
+            if len(self.selected[0]) >= 2:
+                # NP -> graphics -> simplex
+                faces = tuple([self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[faceNP]] for faceNP in self.selected[0][-1:-3:-1]])
+                (label, math_data_type) =  tk_funcs.ask_simplex_data()
+                #? update_math_data(simplex, math_data_type, base = self.base, label = label)
+                self.golog.add(faces, label = label) #reversed selected objects and creates a 1 - simplex from them
 
-
-            if entry.getIntoNodePath().getParent().getTag("mode_head") == self.label:
-                for node in self.selected: node.setColorScale(1,1,1,1) #turn white
-                self.selected = []
-            else:
-                if entry.getIntoNodePath().getParent() not in self.selected:
-                    self.selected.append(entry.getIntoNodePath().getParent())#.getTag('simplex'))
-                entry.getIntoNodePath().getParent().setColorScale(1,0,0,0) #turn red
-
-            if len(self.selected) >= 2:
-                faces = tuple([self.golog.NPtoSimplex[faceGr] for faceGr in self.selected[-1:-3:-1]])
-                self.golog.createMorphism(faces) #reversed selected objects and creates a 1 - simplex from them
-
+            #?  do something with selected 1 simplecies (i.e. selected[1])
         def space(mw):
-            if not mw.node().hasMouse(): return
-            mpos = mw.node().getMouse()
-            self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY())
-            self.golog.cTrav.traverse(self.golog.render)
-            self.queue.sortEntries()
+            (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
 
-            # get the first relevant node traversed by mouseRay
-            # ignore everything with a mode_head tag that is not defined by this mode_head
-            for e in self.queue.getEntries():
-                if e.getIntoNodePath().getParent().hasTag("mode_head"):
-                    if e.getIntoNodePath().getParent().getTag("mode_head") == self.label:
-                        entry = e
-                        break
-                else:
-                    entry = e
-                    break
-
-            if entry.getIntoNodePath().getParent() != self.planeNode: simplex = self.golog.NPtoSimplex[entry.getIntoNodePath().getParent()]
-            else: return
-
-            if isinstance(simplex,hcat.Simplex):
-                # if simplex has actual math_data
+            # if spaced on a 0 simplex, open it's math data, or create it
+            if node_type == '0':
+                simplex = self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
                 if not simplex.math_data():
                     print('simplex has no math data')
                     (label, math_data_type) = tk_funcs.ask_math_type()
                     update_math_data(simplex, math_data_type, base= self.base, label = label)
                     # open_math_data(simplex.math_data)
-                    #for future asynchronounisity
+                    #? for future asynchronounisity
                     #self.base.taskMgr.add(open_math_data,'asynch open task', extraArgs = [simplex.math_data])
 
                 else:
                     open_math_data(simplex.math_data)
-            # subgolog =
+
+
+
+            elif node_type == '1':
+                #? do stuff for 1 - simplecies (probably just exactly the same as 0 - simplex)
+                pass
+
 
         def mouse3(mw):
 
-            mpos = mw.node().getMouse()
-            self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY())
-            self.golog.cTrav.traverse(self.golog.render)
-            self.queue.sortEntries()
+            (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
 
-            # get the first relevant node traversed by mouseRay
-            # ignore everything with a mode_head tag that is not defined by this mode_head
-            for e in self.queue.getEntries():
-                if e.getIntoNodePath().getParent().hasTag("mode_head"):
-                    if e.getIntoNodePath().getParent().getTag("mode_head") == self.label:
-                        entry = e
-                        break
-                else:
-                    entry = e
-                    break
-
-            if entry.getIntoNodePath().getParent() == self.planeNode:
-                for node in self.selected: node.setColorScale(1,1,1,1) #turn white
-                self.selected = []
+            if node_type == 'plane':
+                for node in self.selected[0]: node.setColorScale(1,1,1,1) #turn white
+                self.selected = [[],[]]
                 (label, math_data_type) =  tk_funcs.ask_simplex_data() #ask for simplex data
-                simplex = self.golog.createObject(setPos = entry.getSurfacePoint(entry.getIntoNodePath()), label = label) #create a simplex
+                simplex = self.golog.add(0, pos = entry_pos, label = label) #create a simplex
                 update_math_data(simplex, math_data_type, base = self.base, label = label)
                 # open_math_data(simplex.math_data)
 
 
         def mouse_watch_test(mw,task):
+            if not mw.node().hasMouse():return task.cont
+            (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
 
-            if not mw.node().hasMouse(): return task.cont
-            mpos = mw.node().getMouse()
-            self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY())
-            self.golog.cTrav.traverse(self.golog.render)
-            if not self.queue.sortEntries: return task.cont # if collision traverser doesn't pick anything up, return
-            self.queue.sortEntries()
-
-            # get the first relevant node traversed by mouseRay
-            # ignore everything with a mode_head tag that is not defined by this mode_head
-            for e in self.queue.getEntries():
-                if e.getIntoNodePath().getParent().hasTag("mode_head"):
-                    if e.getIntoNodePath().getParent().getTag("mode_head") == self.label:
-                        entry = e
-                        break
-                else:
-                    entry = e
-                    break
-
-            if entry.getIntoNodePath().getParent() != self.planeNode:
-                simplex = self.golog.NPtoSimplex[entry.getIntoNodePath().getParent()]
+            if node_type == '0':
+                simplex =  self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
+            elif node_type == '1':
+                #? again consider what needs to be shown with 1-simplecies
+                self.textNP.hide()
+                return task.cont
             else:
                 self.textNP.hide()
                 return task.cont
@@ -321,164 +306,3 @@ class mode_head():
         self.reset = reset
         self.buttons = {'mouse1':mouse1,'mouse3':mouse3, 'space':space, 'escape':self.reset, 's':save}
         self.window_tasks = [mouse_watch_test]
-
-    def testing_mode(self):
-
-        #Collision Handling
-        #set up traverser and handler
-        self.queue = CollisionHandlerQueue()
-        self.selected = []
-        self.pickerNode = CollisionNode('mouseRay')
-        self.pickerNP = self.golog.camera.attachNewNode(self.pickerNode)
-        self.pickerRay = CollisionRay()
-        self.pickerNode.addSolid(self.pickerRay)
-        self.pickerNode.set_into_collide_mask(0) #so that collision rays don't collide into each other if there are two mode_heads
-        self.golog.cTrav.addCollider(self.pickerNP,self.queue)
-        self.planeNode = self.golog.render.attachNewNode("plane")
-        self.planeNode.setTag("mode_head",self.label)
-        self.planeFromObject = self.planeNode.attachNewNode(CollisionNode("planeColNode"))
-        self.planeFromObject.node().addSolid(CollisionPlane(Plane(Vec3(0,-1,0),Point3(0,0,0))))
-        ######
-
-        def mouse1(mw):
-            mpos = mw.node().getMouse()
-            self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY())
-            self.golog.cTrav.traverse(self.golog.render)
-            self.queue.sortEntries()
-            # entry = self.queue.getEntry(0)
-
-            # get the first relevant node traversed by mouseRay
-            # ignore everything with a mode_head tag that is not defined by this mode_head
-            for e in self.queue.getEntries():
-                if e.getIntoNodePath().getParent().hasTag("mode_head"):
-                    if e.getIntoNodePath().getParent().getTag("mode_head") == self.label:
-                        entry = e
-                        break
-                else:
-                    entry = e
-                    break
-
-
-
-            if entry.getIntoNodePath().getParent() == self.planeNode:
-                for node in self.selected: node.setColorScale(1,1,1,1) #turn white
-                self.selected = []
-            else:
-                if entry.getIntoNodePath().getParent() not in self.selected:
-                    self.selected.append(entry.getIntoNodePath().getParent())#.getTag('simplex'))
-                print(entry.getIntoNodePath().getParent())
-                entry.getIntoNodePath().getParent().setColorScale(1,0,0,0) #turn red
-                origpos = entry.getIntoNodePath().getParent().getPos()
-                node = entry.getIntoNodePath().getParent()
-                # base.taskMgr.add(test_moving,'move test',extraArgs = [node,origpos], appendTask=True)
-
-
-            if len(self.selected) >= 2:
-                faces = tuple([self.golog.NPtoSimplex[faceGr] for faceGr in self.selected[-1:-3:-1]])
-                self.golog.createMorphism(faces) #reversed selected objects and creates a 1 - simplex from them
-
-
-        def space(mw):
-            if not mw.node().hasMouse(): return
-            mpos = mw.node().getMouse()
-            self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY())
-            self.golog.cTrav.traverse(self.golog.render)
-            self.queue.sortEntries()
-
-            # get the first relevant node traversed by mouseRay
-            # ignore everything with a mode_head tag that is not defined by this mode_head
-            for e in self.queue.getEntries():
-                if e.getIntoNodePath().getParent().hasTag("mode_head"):
-                    if e.getIntoNodePath().getParent().getTag("mode_head") == self.label:
-                        entry = e
-                        break
-                else:
-                    entry = e
-                    break
-
-            if entry.getIntoNodePath().getParent() != self.planeNode: simplex = self.golog.NPtoSimplex[entry.getIntoNodePath().getParent()]
-            else: return
-
-            if isinstance(simplex,hcat.Simplex):
-                if simplex.math_data:
-                    print('Simplex has Math Data of type {}'.format(str(type(simplex.math_data))))
-                    if isinstance(simplex.math_data,golog.golog):
-                        print('Math Data is a golog!')
-                        #if it has a mode_head, just create a window to view golog (no controls), otherwise create a mode_head in selection_and_creation mode
-                        controllable_golog = mode_head(self.base, simplex.math_data)
-                        # if not hasattr(simplex.math_data,"mode_heads"):
-                        controllable_golog.selection_and_creation()
-
-                        window_manager.modeHeadToWindow(self.base, controllable_golog)
-
-                else:
-                    new_golog = golog.golog(self.base, label = self.golog.label+"_subgolog_at_simplex"+simplex.label)
-                    controllable_golog = mode_head(self.base, new_golog)
-                    controllable_golog.selection_and_creation()
-                    window_manager.modeHeadToWindow(self.base, controllable_golog)
-                    simplex.math_data = new_golog
-            # subgolog =
-
-        def mouse3(mw):
-
-            mpos = mw.node().getMouse()
-            self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY())
-            self.golog.cTrav.traverse(self.golog.render)
-            self.queue.sortEntries()
-
-            # get the first relevant node traversed by mouseRay
-            # ignore everything with a mode_head tag that is not defined by this mode_head
-            for e in self.queue.getEntries():
-                if e.getIntoNodePath().getParent().hasTag("mode_head"):
-                    if e.getIntoNodePath().getParent().getTag("mode_head") == self.label:
-                        entry = e
-                        break
-                else:
-                    entry = e
-                    break
-
-            if entry.getIntoNodePath().getParent() == self.planeNode:
-                for node in self.selected: node.setColorScale(1,1,1,1) #turn white
-                self.selected = []
-                self.golog.createObject(setPos = entry.getSurfacePoint(entry.getIntoNodePath()),
-                                label = str(len(self.golog.sSet.rawSimps)))
-
-
-        def save(mw):
-            filename = "test.golog"
-            file_location = 'save/'+filename
-            gexport(self.golog, file_location)
-
-
-        def test_moving(node, origpos, task):
-            t = task.time
-            pos = origpos + Point3(1/3*sin(t*10),0,1/3*cos(t*10))
-            self.golog.updateSimp(node, kwargs = {'pos':pos})
-            return task.cont
-
-        def display_info(mw):
-            #display high level info about a simplex (e.g. math_data type, label)
-            pass
-
-
-
-        def reset(*args):
-            self.golog.cTrav.removeCollider(self.pickerNP)
-            del self.queue
-            for node in self.selected: node.setColorScale(1,1,1,1)
-            del self.selected
-            del self.pickerNode
-            self.pickerNP.removeNode()
-            del self.pickerRay
-            self.planeNode.removeNode()
-            self.planeFromObject.removeNode()
-            self.buttons = dict()
-            self.listener.ignoreAll()
-            # print(self.label+ " reset")
-            self.reset = self.basic_reset
-
-        self.reset = reset
-        self.buttons = {'mouse1':mouse1,'mouse3':mouse3, 'space':space, 'escape':self.reset,'s':save}
-
-    def viewing_mode(self):
-        self.reset()
