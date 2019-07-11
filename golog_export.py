@@ -5,7 +5,9 @@ from hcat_funcs import *
 import golog as Golog
 sSet = None
 
-
+# meta data for exporting math and graphics data
+# math_data is transformed into seralizable format in __init__ and can be transformed back in transform
+# graphics initialization data can be stored in graphics_kwargs (to create a Graphics_data in golog)
 class export_data():
     def __init__(self,golog, old_simplex):
         #if math_data is a golog, transform it to an sSet for exporting

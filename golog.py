@@ -22,7 +22,8 @@ Camera_Distance = 100
 # Any Nodes the simplex might have
 # Any Extra graphics objects (for example ropes for 1-simplecies or planes for 2-simplecies)
 # Lists of children and parents
-# A messenger to handle any calls to children and from parents
+# A messenger to handle any calls to children and from parent
+# keeps a list of graphics_kwargs to recreate itself (used in gexport)
 class Graphics_Data():
     def __init__(self, golog, simplex, **kwargs):
         self.simplex = simplex
