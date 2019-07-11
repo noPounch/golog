@@ -8,13 +8,15 @@ sSet = None
 
 class export_data():
     def __init__(self,golog, old_simplex):
-        #if math_data is a golog, gexport it
+        #if math_data is a golog, transform it to an sSet for exporting
         if old_simplex.math_data.type == 'golog':
             self.exported_math_data = Math_Data(type = 'exported golog', math_data = golog_to_sSet(old_simplex.math_data()))
         else: self.exported_math_data = old_simplex.math_data
 
         self.graphics_kwargs = golog.Simplex_to_Graphics[old_simplex].graphics_kwargs
 
+    #on import, if export_data's math_data is an exported golog, transform it to a golog(base) and return it
+    #otherwise, return the original math_data
     def transform(self,base):
         if self.exported_math_data.type == 'exported golog':
             return Math_Data(type = 'golog', math_data = sSet_to_golog(base,self.exported_math_data()))
@@ -38,44 +40,25 @@ def gexport(golog,location_string):
 
 def sSet_to_golog(base, sSet):
     golog = Golog.golog(base, label = sSet.label)
+    old_to_new = dict()
 
     def setupSimplex(simplex):
+        #check if simplex has been processed, return it's transformed simplex
+        if simplex in old_to_new.keys(): return old_to_new[simplex]
         #check if faces are in golog
-        for face in simplex.faces:
-            if face not in golog.sSet.rawSimps:
-                setupSimplex(face)
-        simp = golog.add(simplex, label = simplex.label, math_data = simplex.math_data().transform(base),**simplex.math_data().graphics_kwargs)
+        newfaces = tuple([setupSimplex(face) for face in simplex.faces])
+        ## need to make sure I can add 0-simpleces by passing ob = ()
+        newsimp = golog.add(newfaces, label = simplex.label, math_data = simplex.math_data().transform(base),**simplex.math_data().graphics_kwargs)
+        #props:           #^faces     #^label               #^tranformed math data from export               #^graphics setup from export
+        return newsimp
+
     for simplex in sSet.rawSimps:
         setupSimplex(simplex)
     return golog
+
+
 
 def gimport(base, location_string):
     with open(location_string,'rb') as file:
         sSet = pickle.load(file)
     return sSet_to_golog(base,sSet)
-
-
-
-#
-# if __name__ == "__main__":
-#     from direct.showbase.ShowBase import ShowBase
-#     class runner(ShowBase):
-#         def __init__(self):
-#             ShowBase.__init__(self)
-#             self.disable_mouse()
-#
-#
-#             # need to migrate into gologToWindow
-#             base.accept("f5",sys.exit)
-#             base.accept("f6",sys.exit)
-#             G = Golog.golog(self)
-#             a = G.add(0,label = 'a',pos = (0,0,5))
-#             b = G.add(0,label = 'b')
-#             f = G.add((b,a),label = 'f')
-#
-#             gexport(G,'save/testnew.golog')
-#             G = gimport(self, 'save/testnew.golog')
-#             controllable_golog = mode_head(self,G,save_location = 'save/testnew.golog')
-#             modeHeadToWindow(self, controllable_golog)
-#
-#     runner().run()
