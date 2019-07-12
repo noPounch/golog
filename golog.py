@@ -58,6 +58,8 @@ class Graphics_Data():
             self.NP = golog.render.attachNewNode(simplex.label)
             self.NP.setTag('level','1')
             golog.cone.instanceTo(self.NP)
+            self.collision = self.NP.attachNewNode(CollisionNode('coneColNode'))
+            self.collision.node().addSolid(CollisionSphere(0,0,0,1))
             self.messenger_names = {'node':str(id(simplex))}
             self.graphics = Rope()
 

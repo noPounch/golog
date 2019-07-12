@@ -66,6 +66,8 @@ def update_math_data(simplex, math_data_type, **kwargs):
         if not file_location: return #if user cancels
         file_name, file_extension = os.path.splitext(file_location)
         simplex.math_data = hcat.Math_Data(math_data = file_location, type = 'file')
+        #? add handler for if user exits text editor
+        #? make asynchronous
 
     if math_data_type == 'latex':
         folder_location = tk_funcs.ask_folder_location()+'/'+simplex.label
@@ -217,19 +219,22 @@ class mode_head():
                     self.selected[0].append(entryNP)
                 entryNP.setColorScale(1,0,0,0) #turn red
 
-            if len(self.selected[0]) >= 2:
+            if len(self.selected[0]) == 2:
                 # NP -> graphics -> simplex
                 faces = tuple([self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[faceNP]] for faceNP in self.selected[0][-1:-3:-1]])
                 (label, math_data_type) =  tk_funcs.ask_simplex_data()
-                #? update_math_data(simplex, math_data_type, base = self.base, label = label)
-                self.golog.add(faces, label = label) #reversed selected objects and creates a 1 - simplex from them
+                simplex = self.golog.add(faces, label = label) #reversed selected objects and creates a 1 - simplex from them
+                update_math_data(simplex, math_data_type, base = self.base, label = label)
+                for node in self.selected[0]: node.setColorScale(1,1,1,1)
+                self.selected[0] = [] #reset selected
+
 
             #?  do something with selected 1 simplecies (i.e. selected[1])
         def space(mw):
             (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
 
             # if spaced on a 0 simplex, open it's math data, or create it
-            if node_type == '0':
+            if node_type in ['0','1']:
                 simplex = self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
                 if not simplex.math_data():
                     print('simplex has no math data')
@@ -241,12 +246,6 @@ class mode_head():
 
                 else:
                     open_math_data(simplex.math_data)
-
-
-
-            elif node_type == '1':
-                #? do stuff for 1 - simplecies (probably just exactly the same as 0 - simplex)
-                pass
 
 
         def mouse3(mw):
@@ -270,8 +269,7 @@ class mode_head():
                 simplex =  self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
             elif node_type == '1':
                 #? again consider what needs to be shown with 1-simplecies
-                self.textNP.hide()
-                return task.cont
+                simplex =  self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
             else:
                 self.textNP.hide()
                 return task.cont
