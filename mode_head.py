@@ -74,7 +74,7 @@ def update_math_data(simplex, math_data_type, **kwargs):
         # -- allow for creation of folder
         # - if there is a tex document or pdf under correct name, just inherit it
 
-        folder_location = tk_funcs.ask_folder_location(initial_dir = os.path.abspath('./save'))
+        folder_location = os.path.join(tk_funcs.ask_folder_location(initial_dir = os.path.abspath('./save')),simplex.label)
         #ensure folder exists
         if not os.path.exists(folder_location):
             os.mkdir(folder_location)
@@ -232,9 +232,11 @@ class mode_head():
             if len(self.selected[0]) == 2:
                 # NP -> graphics -> simplex
                 faces = tuple([self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[faceNP]] for faceNP in self.selected[0][-1:-3:-1]])
-                (label, math_data_type) =  tk_funcs.ask_simplex_data()
-                simplex = self.golog.add(faces, label = label) #reversed selected objects and creates a 1 - simplex from them
-                update_math_data(simplex, math_data_type, base = self.base, label = label)
+                asked_list = tk_funcs.ask_math_data('1-simplex')
+                if not asked_list: #[label, math_data_type,]
+                    return
+                simplex = self.golog.add(faces, label = asked_list[0]) #reversed selected objects and creates a 1 - simplex from them
+                update_math_data(simplex, asked_list[1], base = self.base, label = asked_list[0])
                 for node in self.selected[0]: node.setColorScale(1,1,1,1)
                 self.selected[0] = [] #reset selected
 
@@ -262,7 +264,7 @@ class mode_head():
             (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
             if node_type in ['0','1']:
                 simplex = self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
-                asked_list = tk_funcs.ask_math_data()
+                asked_list = tk_funcs.ask_math_data(simplex.label)
                 if not asked_list:
                     return
                 update_math_data(simplex, math_data_type = asked_list[1], base = self.base, label = asked_list[0])
@@ -274,7 +276,7 @@ class mode_head():
             if node_type == 'plane':
                 for node in self.selected[0]: node.setColorScale(1,1,1,1) #turn white
                 self.selected = [[],[]]
-                asked_list = tk_funcs.ask_math_data()
+                asked_list = tk_funcs.ask_math_data('0-Simplex')
                 if not asked_list:
                     return #if canceled, do not create a simplex
                 simplex = self.golog.add(0, pos = entry_pos, label = asked_list[0]) #create a simplex
