@@ -68,31 +68,39 @@ def ask_math_data(Default_Label = 'Simplex'):
 
 # print(ask_math_data('hello'))
 
-def save_load_new():
+def save_load_new(default_location = os.path.abspath('./save')):
     master = Tk()
-    master.title('new golog?')
-    Label(master, text='Save Location:').grid(row=0,column = 0)
-    newvar = BooleanVar(master)
-    savevar = StringVar(master)
-    savevar.set('save/test.golog')
-    saveentry = Entry(master, textvariable=savevar)
-    saveentry.grid(row = 0, column = 1)
-    #check if load location exists (and is a golog)
+    master.title('New / Load golog')
+    master.newvar = False
+    master.namevar = StringVar(master)
+    Label(text = 'Golog Name:').grid(row = 0, column = 0)
+    Entry(textvariable = master.namevar).grid(row = 0, column = 1)
+
+
+    master.loc = None
     def loadg():
-        newvar.set(False)
-        master.destroy()
+        master.loc = filedialog.askopenfilename(initialdir = default_location,title = "Select file", filetypes = (("gologs","*.golog"),("all files","*.*")))
+        if master.loc: #if location is provided, destroy and return. Else go back to save_load_new
+            master.destroy()
 
     def newg():
-        newvar.set(True)
+        master.newvar = True
+        proploc = os.path.join(filedialog.askdirectory(initialdir = default_location),master.namevar.get()+'.golog')
+        if os.path.exists(proploc): #if proposed location already exists change name
+            master.namevar.set(master.namevar.get()+"(new)")
+            return
+        master.loc = proploc
         master.destroy()
+
     #data options on click
     Button(master, text = 'Load', command = loadg).grid(row = 1,column = 0)
     Button(master, text = 'New',command =  newg).grid(row = 1,column = 1)
 
-    saveentry.focus()
     master.mainloop()
     #do after master tkbox is destroyed
-    return (newvar.get(), savevar.get())
+    return (master.newvar, master.loc)
+
+# print(save_load_new())
 
 def edit_txt(fname):
     root = Tk()

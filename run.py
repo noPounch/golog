@@ -26,7 +26,7 @@ class runner(ShowBase):
 
         if newv:
             golog = Golog(self, label = 'run')
-            gexport(golog,os.path.abspath(os.path.dirname(__file__))+'/'+save_location)
+            gexport(golog,save_location)
             controllable_golog = mode_head(self,golog, save_location = save_location)
             controllable_golog.selection_and_creation()
             modeHeadToWindow(self, controllable_golog)

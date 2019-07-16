@@ -181,6 +181,7 @@ class mode_head():
     #   right click: create simplex                                   #
     #   dialog box pops up prompting for default labels and math_data #
     #   space with mouse over simplex: open math_data                 #
+    #   u with mouse over simplex: update meta_data                   #
     #   s saves golog to a .golog file (using hcat_funcs.gexport)     #
     ###################################################################
 
