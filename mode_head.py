@@ -1,9 +1,3 @@
-#goal of this file is to create:
-#1) an export function that returns simplecies
-#2) an import function that checks face conditions on simplecies
-#--That The faces even exist (raise exception)
-#--That they satisfy the face conditions (return in conditions string)
-#--That they satisfy degeneracy conditions (return in conditions string)
 from sys import exit
 import os
 from math import sin,cos
@@ -18,6 +12,9 @@ from panda3d.core import TextNode, TextFont
 from panda3d.core import Camera, NodePath, OrthographicLens
 from panda3d.core import Vec3, Point3
 from panda3d.core import Plane, CollisionPlane, CollisionRay, CollisionNode, CollisionTraverser, CollisionHandlerQueue
+
+########### ??? Quest Log ??? ###########
+# - Fix latex folder creation issues (check under open_math_data)
 
 #functionality for updating a simplex's math_data
 
@@ -36,8 +33,10 @@ def open_math_data(math_data):
             #prompt user to select a program
             tk_funcs.run_program('',math_data())
     if math_data.type == 'latex':
-        #try to open .pdf
-        #get existing files
+        #??? Quest Log ???
+        #? allow creating of folder in selection panel
+        #? select actual folder
+        #? relabel simplex by selected folder name
 
         pdf_file = None; tex_file = None
         if os.path.exists(math_data()['folder']+'/'+math_data()['name']+'.pdf'): pdf_file = math_data()['folder']+'/'+math_data()['name']+'.pdf'
@@ -51,7 +50,7 @@ def update_math_data(simplex, math_data_type, **kwargs):
     if 'label' in kwargs: simplex.label = kwargs['label']
 
     if math_data_type == 'None':
-        simplex.math_data = hcat.Math_Data()
+        simplex.math_data = hcat.Math_Data(type = 'None')
 
     if math_data_type == 'golog':
         new_golog = golog.golog(kwargs['base'], label = kwargs['label']) #create a new golog
@@ -70,11 +69,21 @@ def update_math_data(simplex, math_data_type, **kwargs):
         #? make asynchronous
 
     if math_data_type == 'latex':
-        folder_location = tk_funcs.ask_folder_location()+'/'+simplex.label
+        #??? Quest Log ???
+        # - choose a folder
+        # -- allow for creation of folder
+        # - if there is a tex document or pdf under correct name, just inherit it
+
+        folder_location = tk_funcs.ask_folder_location(initial_dir = os.path.abspath('./save'))
+        #ensure folder exists
+        if not os.path.exists(folder_location):
+            os.mkdir(folder_location)
+        #ensure tex file exists
+        if not os.path.exists(os.path.join(folder_location,simplex.label+'.tex')):
+            open(os.path.join(folder_location,simplex.label+'.tex'),'w').close()
+
         file_dict = {'name':simplex.label, 'folder':folder_location}
-        os.mkdir(folder_location)
         simplex.math_data = hcat.Math_Data(math_data = file_dict, type = 'latex')
-        open(folder_location+'/'+simplex.label+'.tex','w').close() #create a .tex file
 
 
     return simplex.math_data
@@ -237,9 +246,10 @@ class mode_head():
             if node_type in ['0','1']:
                 simplex = self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
                 if not simplex.math_data():
-                    print('simplex has no math data')
-                    (label, math_data_type) = tk_funcs.ask_math_type()
-                    update_math_data(simplex, math_data_type, base= self.base, label = label)
+                    asked_list = tk_funcs.ask_math_data(simplex.label)
+                    if not asked_list:
+                        return
+                    update_math_data(simplex, math_data_type = asked_list[1], base = self.base, label = asked_list[0])
                     # open_math_data(simplex.math_data)
                     #? for future asynchronounisity
                     #self.base.taskMgr.add(open_math_data,'asynch open task', extraArgs = [simplex.math_data])
@@ -247,6 +257,14 @@ class mode_head():
                 else:
                     open_math_data(simplex.math_data)
 
+        def u(mw):
+            (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
+            if node_type in ['0','1']:
+                simplex = self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
+                asked_list = tk_funcs.ask_math_data()
+                if not asked_list:
+                    return
+                update_math_data(simplex, math_data_type = asked_list[1], base = self.base, label = asked_list[0])
 
         def mouse3(mw):
 
@@ -255,10 +273,14 @@ class mode_head():
             if node_type == 'plane':
                 for node in self.selected[0]: node.setColorScale(1,1,1,1) #turn white
                 self.selected = [[],[]]
-                (label, math_data_type) =  tk_funcs.ask_simplex_data() #ask for simplex data
-                simplex = self.golog.add(0, pos = entry_pos, label = label) #create a simplex
-                update_math_data(simplex, math_data_type, base = self.base, label = label)
+                asked_list = tk_funcs.ask_math_data()
+                if not asked_list:
+                    return #if canceled, do not create a simplex
+                simplex = self.golog.add(0, pos = entry_pos, label = asked_list[0]) #create a simplex
+                update_math_data(simplex, math_data_type = asked_list[1], base = self.base, label = asked_list[0])
                 # open_math_data(simplex.math_data)
+
+
 
 
         def mouse_watch_test(mw,task):
@@ -303,5 +325,5 @@ class mode_head():
             self.reset = self.basic_reset
 
         self.reset = reset
-        self.buttons = {'mouse1':mouse1,'mouse3':mouse3, 'space':space, 'escape':self.reset, 's':save}
+        self.buttons = {'mouse1':mouse1,'mouse3':mouse3, 'space':space, 'escape':self.reset, 's':save, 'u':u}
         self.window_tasks = [mouse_watch_test]

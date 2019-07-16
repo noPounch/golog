@@ -13,7 +13,7 @@ def ask_simplex_data():
 
     Label(master, text='Label').grid(row=0,column = 0)
     labelvar = StringVar(master)
-    labelvar.set('It\'s just like, a simplex, bro')
+    labelvar.set('Simplex')
     labelentry = Entry(master, textvariable=labelvar)
     labelentry.grid(row = 0, column = 1)
 
@@ -34,29 +34,39 @@ def ask_simplex_data():
     master.mainloop()
     return (labelvar.get(), MathDataVariable.get())
 
-def ask_math_type():
+def ask_math_data(Default_Label = 'Simplex'):
     master = Tk()
     master.title('simplex data')
     mathDataString = None
-    label = None
+    master.returner = None
 
     Label(master, text='Label').grid(row=0,column = 0)
     labelvar = StringVar(master)
+    labelvar.set(Default_Label)
     Entry(master, textvariable=labelvar).grid(row = 0, column = 1)
 
 
     #data options on click
     options = ['None','golog', 'file','latex']
-    Label( master, text = "Math Data Type: ").grid(row = 1,column = 0)
+    Label(master, text = "Math Data Type: ").grid(row = 1,column = 0)
     MathDataVariable = StringVar(master)
     MathDataVariable.set(options[0])
     mathDataMenu = OptionMenu(master, MathDataVariable, *options)
     mathDataMenu.grid(row = 1, column =1)
-    creation = Button(master, text = 'create', command = master.destroy)
-    creation.grid(row = 2)
+
+    def create():
+        master.returner = (labelvar.get(), MathDataVariable.get())
+        master.destroy()
+    Button(master, text = 'new', command = create).grid(row = 2,column = 0)
+
+    def cancel():
+        master.destroy()
+    Button(master, text = 'cancel', command = cancel).grid(row = 2, column = 1)
 
     master.mainloop()
-    return (labelvar.get(), MathDataVariable.get())
+    return master.returner #if create, returns type, if cancel, returns None
+
+# print(ask_math_data('hello'))
 
 def save_load_new():
     master = Tk()
