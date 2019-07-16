@@ -232,7 +232,7 @@ class mode_head():
             if len(self.selected[0]) == 2:
                 # NP -> graphics -> simplex
                 faces = tuple([self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[faceNP]] for faceNP in self.selected[0][-1:-3:-1]])
-                asked_list = tk_funcs.ask_math_data('1-simplex')
+                asked_list = tk_funcs.ask_math_data('1-Simplex')
                 if not asked_list: #[label, math_data_type,]
                     return
                 simplex = self.golog.add(faces, label = asked_list[0]) #reversed selected objects and creates a 1 - simplex from them
