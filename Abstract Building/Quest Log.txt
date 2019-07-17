@@ -1,0 +1,33 @@
+o not important or urgent
+-o not urgent, semi-important
+--o not urgent, important
+x urgent but not important
+-x urgent and semi important
+--x urgent and important
+
+
+
+
+__________QUESTS___________
+Graphics
+o understand & fix imported golog red issue
+--o 1-simplex graphics
+--o display textbox with name
+
+Simplicial Set:
+-o cross simplex selection prevention
+
+GUI:
+--o create a button for simplex creation
+--o drag window
+--o drag simplecies
+--o mini display for math_data
+
+
+Ontology Builders:
+---o latex ontology
+
+
+
+
+__________COMPLETED QUESTS_____________

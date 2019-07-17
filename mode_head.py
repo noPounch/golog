@@ -223,7 +223,7 @@ class mode_head():
             if node_type == 'plane':
                 for node in self.selected[0]: node.setColorScale(1,1,1,1) #turn white
                 self.selected = [[],[]]
-            elif node_type == '0':
+            elif node_type == '0':# and set(selected[1:]) = {[]}:
                 if entryNP not in self.selected[0]:
                     #?  don't just append, re-sort
                     self.selected[0].append(entryNP)

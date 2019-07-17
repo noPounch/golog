@@ -13,9 +13,8 @@ from tk_funcs import save_load_new
 
 class runner(ShowBase):
     def __init__(self):
-        ShowBase.__init__(self)
+        ShowBase.__init__(self,windowType = 'none')
         self.disable_mouse()
-        self.closeWindow(self.win)
 
 
         # need to migrate into gologToWindow
