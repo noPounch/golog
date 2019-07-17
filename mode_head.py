@@ -91,12 +91,14 @@ def update_math_data(simplex, math_data_type, **kwargs):
 
 
 class mode_head():
-    def __init__(self,base,Golog, save_location = 'save/test.golog'):
+    def __init__(self,base,Golog, save_location = os.path.abspath('./save')):
         # Set up basic attributes
         self.base = base
         self.golog = Golog
         self.buttons = dict()
-        self.window_tasks = []
+        self.window_tasks = dict()
+        self.bt = None
+        self.mw = None
         self.listener = DirectObject()
         self.save_location = save_location
         ######
@@ -133,6 +135,21 @@ class mode_head():
         #if mode_head reset function, should be set at the end of every mode
         self.reset = self.basic_reset
 
+
+    def setup_window_events(self,bt=None,mw=None):
+        if bt: self.bt = bt
+        if mw: self.mw = mw
+        if not self.bt: return
+        if not self.mw: return
+        self.listener.ignoreAll()
+        for button in self.buttons.keys():
+            self.listener.accept(bt.prefix+button, self.buttons[button], extraArgs = [self.mw])
+
+    def setup_window_tasks(self,mw = None):
+        if mw: self.mw = mw
+        if not self.mw: return
+        for window_task in self.window_tasks.keys():
+            base.taskMgr.add(self.window_tasks[window_task], window_task, extraArgs = [self.mw], appendTask = True)
     #basic reset functionality
     def basic_reset(self,*args):
         self.buttons = dict()
@@ -283,9 +300,6 @@ class mode_head():
                 update_math_data(simplex, math_data_type = asked_list[1], base = self.base, label = asked_list[0])
                 # open_math_data(simplex.math_data)
 
-
-
-
         def mouse_watch_test(mw,task):
             if not mw.node().hasMouse():return task.cont
             (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
@@ -324,9 +338,11 @@ class mode_head():
             self.buttons = dict()
             self.window_tasks = []
             self.listener.ignoreAll()
-            # print(self.label+ " reset")
             self.reset = self.basic_reset
 
         self.reset = reset
         self.buttons = {'mouse1':mouse1,'mouse3':mouse3, 'space':space, 'escape':self.reset, 's':save, 'u':u}
-        self.window_tasks = [mouse_watch_test]
+        self.setup_window_events()
+
+        self.window_tasks = {'mouse_watch_test':mouse_watch_test}
+        self.setup_window_tasks()

@@ -18,8 +18,8 @@ Simplicial Set:
 -o cross simplex selection prevention
 
 GUI:
---o create a button for simplex creation
---o drag window
+--o integrate creation button
+--o integrate preview button
 --o drag simplecies
 --o mini display for math_data
 
@@ -31,3 +31,4 @@ Ontology Builders:
 
 
 __________COMPLETED QUESTS_____________
+Created basic Gui with a preview window
