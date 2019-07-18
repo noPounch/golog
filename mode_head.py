@@ -37,12 +37,20 @@ def open_math_data(math_data):
         #? allow creating of folder in selection panel
         #? select actual folder
         #? relabel simplex by selected folder name
-
         pdf_file = None; tex_file = None
-        if os.path.exists(math_data()['folder']+'/'+math_data()['name']+'.pdf'): pdf_file = math_data()['folder']+'/'+math_data()['name']+'.pdf'
-        if os.path.exists(math_data()['folder']+'/'+math_data()['name']+'.tex'): tex_file = math_data()['folder']+'/'+math_data()['name']+'.tex'
-        #make a tk box with two buttons which are enabled iff file exists
+
+        #get proposed pdf and tex files, check if they exist
+        prop_pdf = os.path.join(os.path.abspath(math_data()['folder']),math_data()['name']+'.pdf')
+        prop_tex = os.path.join(os.path.abspath(math_data()['folder']),math_data()['name']+'.tex')
+        if os.path.exists(prop_pdf): pdf_file = prop_pdf
+        if os.path.exists(prop_tex): tex_file = prop_tex
+        #
+        # if os.path.exists(math_data()['folder']+'/'+math_data()['name']+'.pdf'): pdf_file = math_data()['folder']+'/'+math_data()['name']+'.pdf'
+        # if os.path.exists(math_data()['folder']+'/'+math_data()['name']+'.tex'): tex_file = math_data()['folder']+'/'+math_data()['name']+'.tex'
+
+        #make a tk box with two buttons which are enabled iff file exist
         tk_funcs.pdf_or_tex(pdf_file,tex_file)
+
 
 
 
@@ -75,6 +83,7 @@ def update_math_data(simplex, math_data_type, **kwargs):
         # - if there is a tex document or pdf under correct name, just inherit it
 
         folder_location = os.path.join(tk_funcs.ask_folder_location(initial_dir = os.path.abspath('./save')),simplex.label)
+        print(folder_location)
         #ensure folder exists
         if not os.path.exists(folder_location):
             os.mkdir(folder_location)

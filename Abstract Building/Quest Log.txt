@@ -9,6 +9,9 @@ x urgent but not important
 
 
 __________QUESTS___________
+System
+--x Compatible Pathing
+
 Graphics
 o understand & fix imported golog red issue
 --o 1-simplex graphics
@@ -26,9 +29,3 @@ GUI:
 
 Ontology Builders:
 ---o latex ontology
-
-
-
-
-__________COMPLETED QUESTS_____________
-Created basic Gui with a preview window

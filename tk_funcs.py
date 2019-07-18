@@ -1,8 +1,7 @@
-import os
+import os, subprocess, platform
 import sys
 from tkinter import *
 from tkinter import filedialog
-import subprocess
 
 def ask_simplex_data():
 
@@ -143,7 +142,7 @@ def ask_file_location(initial_dir = os.path.abspath(os.path.dirname(__file__))):
 
 def ask_folder_location(initial_dir = os.path.abspath(os.path.dirname(__file__))):
     root = Tk()
-    folder_path = filedialog.askdirectory(initialdir = initial_dir, title = "Select Folder")
+    folder_path = os.path.abspath(filedialog.askdirectory(initialdir = initial_dir, title = "Select Folder"))
     root.destroy()
     return folder_path
 
@@ -173,7 +172,14 @@ def run_program(default_program = '', file=''):
     def docommand():
         #do command
         root.destroy()
-        if not programvar.get(): subprocess.run(['xdg-open',filevar.get()], check = True)
+        if not programvar.get():
+            if platform.system() == 'Darwin':       # macOS
+                subprocess.call(('open', filevar.get()))
+            elif platform.system() == 'Windows':    # Windows
+                os.startfile(filevar.get())
+            else:                                   # linux
+                subprocess.call(('xdg-open', filevar.get()))
+            # subprocess.run(['xdg-open',filevar.get()], check = True)
         else: subprocess.run([programvar.get(),filevar.get()])
 
     Button(root, text = 'run command', command = docommand).grid(row=1,column=2)
@@ -185,11 +191,11 @@ def pdf_or_tex(pdf_file,tex_file):
         root.destroy()
         run_program('',file=pdf_file)
     if pdf_file: Button(root, text ='open'+os.path.basename(pdf_file),command = openpdf).grid(row = 0 , column = 0)
-    else: Label(root, text ='tex not yet compiled').grid(row = 0 , column = 0)
+    else: Label(root, text ='No PDF File').grid(row = 0 , column = 0)
 
     def opentex():
         root.destroy()
         run_program('',file=tex_file)
     if tex_file: Button(root, text ='open'+os.path.basename(tex_file),command = opentex).grid(row = 0 , column = 1)
-    else: Label(root, text ='tex not yet compiled').grid(row = 0 , column = 1)
+    else: Label(root, text ='No Tex File').grid(row = 0 , column = 1)
     root.mainloop()

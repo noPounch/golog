@@ -152,7 +152,6 @@ def createButton(base, frame, verticlePos, Text, event):
     btn.setPos(0, 0, verticlePos)
 
     btn.reparentTo(frame)
-    print(btn.getBounds())
 
 def windowEvent(win):
     windict = win_to_windict[win]

@@ -140,8 +140,8 @@ class golog():
 
 
         # Load Models
-        self.sphere = base.loader.loadModel("models/misc/sphere")
-        self.cone = base.loader.loadModel(os.path.abspath(os.path.dirname(__file__))+'/models/Cone.egg')
+        self.sphere = base.loader.loadModel("./models/sphere.egg.pz")
+        self.cone = base.loader.loadModel('./models/Cone.egg')
         self.cone.setScale(.6)
 
         #set up collision traverser
