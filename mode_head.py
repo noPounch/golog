@@ -42,6 +42,7 @@ def open_math_data(math_data):
         #get proposed pdf and tex files, check if they exist
         prop_pdf = os.path.join(os.path.abspath(math_data()['folder']),math_data()['name']+'.pdf')
         prop_tex = os.path.join(os.path.abspath(math_data()['folder']),math_data()['name']+'.tex')
+        print(prop_pdf,os.path.exists(prop_tex))
         if os.path.exists(prop_pdf): pdf_file = prop_pdf
         if os.path.exists(prop_tex): tex_file = prop_tex
         #

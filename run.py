@@ -8,7 +8,7 @@ from mode_head import *
 from tk_funcs import save_load_new
 
 
-
+version = '1.0.0'
 
 
 class runner(ShowBase):

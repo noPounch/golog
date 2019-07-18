@@ -9,8 +9,8 @@ x urgent but not important
 
 
 __________QUESTS___________
-System
---x Compatible Pathing
+SYSTEM:
+----------x change all of it to relative pathing
 
 Graphics
 o understand & fix imported golog red issue
@@ -29,3 +29,9 @@ GUI:
 
 Ontology Builders:
 ---o latex ontology
+
+_____________COMPLETED QUESTS_________
+System
+--x Compatible Pathing
+
+---x ontology version updator
