@@ -99,7 +99,27 @@ def save_load_new(default_location = os.path.abspath('./save')):
     #do after master tkbox is destroyed
     return (master.newvar, master.loc)
 
-# print(save_load_new())
+def load_tex(abs_path):
+    master = Tk()
+    master.title('Load / New .tex File')
+    master.loc = []
+    def loadg():
+        master.loc = filedialog.askopenfilename(initialdir = abs_path,title = "Select file", filetypes = (("Latex Files","*.tex"),("all files","*.*")))
+        if master.loc:
+            master.destroy()
+
+    def newg():
+        master.loc = True
+        master.destroy()
+
+    Button(master, text = 'Load', command = loadg).grid(row = 1,column = 0)
+    Button(master, text = 'New',command =  newg).grid(row = 1,column = 1)
+
+
+    master.mainloop()
+    return master.loc
+
+print(load_tex(os.path.abspath('.')))
 
 def edit_txt(fname):
     root = Tk()

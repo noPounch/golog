@@ -23,9 +23,9 @@ class export_data():
 
     #on import, if export_data's math_data is an exported golog, transform it to a golog(base) and return it
     #otherwise, return the original math_data
-    def transform(self,base):
+    def transform(self,base,**kwargs):
         if self.exported_math_data.type == 'exported golog':
-            return Math_Data(type = 'golog', math_data = sSet_to_golog(base,self.exported_math_data()))
+            return Math_Data(type = 'golog', math_data = sSet_to_golog(base,self.exported_math_data()),kwargs['abs_path'])
         else: return self.exported_math_data
 
     def __getattr__(self,attr):
@@ -56,8 +56,8 @@ def gexport(golog,location_string):
         pickle.dump(export_sSet,file)
     return location_string
 
-def sSet_to_golog(base, sSet, rel_path = None):
-    golog = Golog.golog(base, label = sSet.label,rel_path = rel_path)
+def sSet_to_golog(base, sSet, abs_path = None):
+    golog = Golog.golog(base, label = sSet.label,abs_path = abs_path)
     old_to_new = dict()
 
     def setupSimplex(simplex):
@@ -66,7 +66,7 @@ def sSet_to_golog(base, sSet, rel_path = None):
         #check if faces are in golog
         newfaces = tuple([setupSimplex(face) for face in simplex.faces])
         ## need to make sure I can add 0-simpleces by passing ob = ()
-        newsimp = golog.add(newfaces, label = simplex.label, math_data = simplex.math_data().transform(base),**simplex.math_data().graphics_kwargs)
+        newsimp = golog.add(newfaces, label = simplex.label, math_data = simplex.math_data().transform(base,abs_path),**simplex.math_data().graphics_kwargs)
         #props:           #^faces     #^label               #^tranformed math data from export               #^graphics setup from export
         return newsimp
 
@@ -81,4 +81,4 @@ def gimport(base, path):
     if export_meta.export_version < export_version:
         gupdate(export_meta)
     sSet = export_meta.exported_math_data()
-    return sSet_to_golog(base,sSet,rel_path = path)
+    return sSet_to_golog(base,sSet,abs_path = os.path.split(path)[0]) #creates a golog with
