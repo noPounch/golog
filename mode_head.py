@@ -18,85 +18,6 @@ from panda3d.core import Plane, CollisionPlane, CollisionRay, CollisionNode, Col
 
 #functionality for updating a simplex's math_data
 
-def open_math_data(math_data):
-    if math_data.type == 'golog':
-        base = math_data().base
-        controllable_golog = mode_head(base, math_data())
-        controllable_golog.selection_and_creation()
-        window_manager.modeHeadToWindow(base, controllable_golog)
-    if math_data.type == 'file':
-        file_name, file_extension = os.path.splitext(math_data())
-        print(file_name, file_extension)
-        if file_extension == '.txt':
-            tk_funcs.edit_txt(math_data())
-        else:
-            #prompt user to select a program
-            tk_funcs.run_program('',math_data())
-    if math_data.type == 'latex':
-        #??? Quest Log ???
-        #? allow creating of folder in selection panel
-        #? select actual folder
-        #? relabel simplex by selected folder name
-        pdf_file = None; tex_file = None
-
-        #get proposed pdf and tex files, check if they exist
-        prop_pdf = os.path.join(os.path.abspath(math_data()['folder']),math_data()['name']+'.pdf')
-        prop_tex = os.path.join(os.path.abspath(math_data()['folder']),math_data()['name']+'.tex')
-        print(prop_pdf,os.path.exists(prop_tex))
-        if os.path.exists(prop_pdf): pdf_file = prop_pdf
-        if os.path.exists(prop_tex): tex_file = prop_tex
-        #
-        # if os.path.exists(math_data()['folder']+'/'+math_data()['name']+'.pdf'): pdf_file = math_data()['folder']+'/'+math_data()['name']+'.pdf'
-        # if os.path.exists(math_data()['folder']+'/'+math_data()['name']+'.tex'): tex_file = math_data()['folder']+'/'+math_data()['name']+'.tex'
-
-        #make a tk box with two buttons which are enabled iff file exist
-        tk_funcs.pdf_or_tex(pdf_file,tex_file)
-
-
-
-
-def update_math_data(simplex, math_data_type, **kwargs):
-    if 'label' in kwargs: simplex.label = kwargs['label']
-
-    if math_data_type == 'None':
-        simplex.math_data = hcat.Math_Data(type = 'None')
-
-    if math_data_type == 'golog':
-        new_golog = golog.golog(kwargs['base'], label = kwargs['label']) #create a new golog
-        def newopen(): #create an open function for the golog math data
-            controllable_golog = mode_head(kwargs['base'], simplex.math_data())
-            controllable_golog.selection_and_creation()
-            window_manager.modeHeadToWindow(kwargs['base'], controllable_golog)
-        simplex.math_data = hcat.Math_Data(math_data = new_golog, type = 'golog')
-
-    if math_data_type == 'file':
-        file_location = tk_funcs.ask_file_location()
-        if not file_location: return #if user cancels
-        file_name, file_extension = os.path.splitext(file_location)
-        simplex.math_data = hcat.Math_Data(math_data = file_location, type = 'file')
-        #? add handler for if user exits text editor
-        #? make asynchronous
-
-    if math_data_type == 'latex':
-        #??? Quest Log ???
-        # - choose a folder
-        # -- allow for creation of folder
-        # - if there is a tex document or pdf under correct name, just inherit it
-
-        folder_location = os.path.join(tk_funcs.ask_folder_location(initial_dir = os.path.abspath('./save')),simplex.label)
-        print(folder_location)
-        #ensure folder exists
-        if not os.path.exists(folder_location):
-            os.mkdir(folder_location)
-        #ensure tex file exists
-        if not os.path.exists(os.path.join(folder_location,simplex.label+'.tex')):
-            open(os.path.join(folder_location,simplex.label+'.tex'),'w').close()
-
-        file_dict = {'name':simplex.label, 'folder':folder_location}
-        simplex.math_data = hcat.Math_Data(math_data = file_dict, type = 'latex')
-
-
-    return simplex.math_data
 
 
 
@@ -145,6 +66,79 @@ class mode_head():
         #if mode_head reset function, should be set at the end of every mode
         self.reset = self.basic_reset
 
+    def open_math_data(self,math_data):
+        if math_data.type == 'golog':
+            base = math_data().base
+            controllable_golog = mode_head(base, math_data())
+            controllable_golog.selection_and_creation()
+            window_manager.modeHeadToWindow(base, controllable_golog)
+        if math_data.type == 'file':
+            file_name, file_extension = os.path.splitext(math_data())
+            print(file_name, file_extension)
+            if file_extension == '.txt':
+                tk_funcs.edit_txt(math_data())
+            else:
+                #prompt user to select a program
+                tk_funcs.run_program('',math_data())
+        if math_data.type == 'latex':
+            #??? Quest Log ???
+            #? allow creating of folder in selection panel
+            #? select actual folder
+            #? relabel simplex by selected folder name
+            pdf_file = None; tex_file = None
+
+            #get proposed pdf and tex files, check if they exist
+            prop_pdf = os.path.join(os.path.abspath(math_data()['folder']),math_data()['name']+'.pdf')
+            prop_tex = os.path.join(os.path.abspath(math_data()['folder']),math_data()['name']+'.tex')
+            print(prop_pdf,os.path.exists(prop_tex))
+            if os.path.exists(prop_pdf): pdf_file = prop_pdf
+            if os.path.exists(prop_tex): tex_file = prop_tex
+
+            #make a tk box with two buttons which are enabled iff file exist
+            tk_funcs.pdf_or_tex(pdf_file,tex_file)
+
+
+
+
+    def update_math_data(self,simplex, math_data_type, **kwargs):
+        if 'label' in kwargs: simplex.label = kwargs['label']
+
+        if math_data_type == 'None':
+            simplex.math_data = hcat.Math_Data(type = 'None')
+
+        if math_data_type == 'golog':
+            new_golog = golog.golog(self.base, label = kwargs['label'], rel_path = self.golog.rel_path) #create a new golog
+            def newopen(): #create an open function for the golog math data
+                controllable_golog = mode_head(kwargs['base'], simplex.math_data())
+                controllable_golog.selection_and_creation()
+                window_manager.modeHeadToWindow(kwargs['base'], controllable_golog)
+            simplex.math_data = hcat.Math_Data(math_data = new_golog, type = 'golog')
+
+        if math_data_type == 'file':
+            file_location = tk_funcs.ask_file_location()
+            if not file_location: return #if user cancels
+            file_name, file_extension = os.path.splitext(file_location)
+            simplex.math_data = hcat.Math_Data(math_data = file_location, type = 'file')
+            #? add handler for if user exits text editor
+            #? make asynchronous
+
+        if math_data_type == 'latex':
+
+
+            folder_location = os.path.join(tk_funcs.ask_folder_location(initial_dir = os.path.abspath('./save')),simplex.label)
+            print(folder_location)
+            #ensure folder exists
+            if not os.path.exists(folder_location):
+                os.mkdir(folder_location)
+            #ensure tex file exists
+            if not os.path.exists(os.path.join(folder_location,simplex.label+'.tex')):
+                open(os.path.join(folder_location,simplex.label+'.tex'),'w').close()
+
+            file_dict = {'name':simplex.label, 'folder':folder_location}
+            simplex.math_data = hcat.Math_Data(math_data = file_dict, type = 'latex')
+
+
+        return simplex.math_data
 
     def setup_window_events(self,bt=None,mw=None):
         if bt: self.bt = bt
@@ -263,7 +257,7 @@ class mode_head():
                 if not asked_list: #[label, math_data_type,]
                     return
                 simplex = self.golog.add(faces, label = asked_list[0]) #reversed selected objects and creates a 1 - simplex from them
-                update_math_data(simplex, asked_list[1], base = self.base, label = asked_list[0])
+                self.update_math_data(simplex, asked_list[1], label = asked_list[0])
                 for node in self.selected[0]: node.setColorScale(1,1,1,1)
                 self.selected[0] = [] #reset selected
 
@@ -279,13 +273,12 @@ class mode_head():
                     asked_list = tk_funcs.ask_math_data(simplex.label)
                     if not asked_list:
                         return
-                    update_math_data(simplex, math_data_type = asked_list[1], base = self.base, label = asked_list[0])
-                    # open_math_data(simplex.math_data)
-                    #? for future asynchronounisity
-                    #self.base.taskMgr.add(open_math_data,'asynch open task', extraArgs = [simplex.math_data])
+                    self.update_math_data(simplex, math_data_type = asked_list[1], label = asked_list[0])
+                    #? make asynchronous
+
 
                 else:
-                    open_math_data(simplex.math_data)
+                    self.open_math_data(simplex.math_data)
 
         def u(mw):
             (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
@@ -294,7 +287,7 @@ class mode_head():
                 asked_list = tk_funcs.ask_math_data(simplex.label)
                 if not asked_list:
                     return
-                update_math_data(simplex, math_data_type = asked_list[1], base = self.base, label = asked_list[0])
+                self.update_math_data(simplex, math_data_type = asked_list[1], label = asked_list[0])
 
         def mouse3(mw):
 
@@ -307,8 +300,8 @@ class mode_head():
                 if not asked_list:
                     return #if canceled, do not create a simplex
                 simplex = self.golog.add(0, pos = entry_pos, label = asked_list[0]) #create a simplex
-                update_math_data(simplex, math_data_type = asked_list[1], base = self.base, label = asked_list[0])
-                # open_math_data(simplex.math_data)
+                self.update_math_data(simplex, math_data_type = asked_list[1], label = asked_list[0])
+
 
         def mouse_watch_test(mw,task):
             if not mw.node().hasMouse():return task.cont

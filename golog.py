@@ -113,10 +113,11 @@ class golog():
         self.base = base
 
         #initialize with an empty nodepath and no window
-        defaults = {'render':NodePath(label+"_render")}
+        #initialize a golog with no relative path (shouldn't be able to open files without one though)
+        defaults = {'render':'NodePath(label+\"_render\")','rel_path':'None'}
         for key in defaults:
             if key in kwargs: setattr(self,key,kwargs[key])
-            else: setattr(self,key,defaults[key])
+            else: setattr(self,key,eval(defaults[key]))
 
         self.Simplex_to_Graphics = dict()
         self.Graphics_to_Simplex = dict()

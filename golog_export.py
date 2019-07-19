@@ -56,8 +56,8 @@ def gexport(golog,location_string):
         pickle.dump(export_sSet,file)
     return location_string
 
-def sSet_to_golog(base, sSet):
-    golog = Golog.golog(base, label = sSet.label)
+def sSet_to_golog(base, sSet, rel_path = None):
+    golog = Golog.golog(base, label = sSet.label,rel_path = rel_path)
     old_to_new = dict()
 
     def setupSimplex(simplex):
@@ -75,10 +75,10 @@ def sSet_to_golog(base, sSet):
     return golog
 
 
-def gimport(base, location_string):
-    with open(location_string,'rb') as file:
+def gimport(base, path):
+    with open(path,'rb') as file:
         export_meta = pickle.load(file)
     if export_meta.export_version < export_version:
         gupdate(export_meta)
     sSet = export_meta.exported_math_data()
-    return sSet_to_golog(base,sSet)
+    return sSet_to_golog(base,sSet,rel_path = path)
