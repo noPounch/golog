@@ -5,10 +5,12 @@
 import os, pickle
 from hcat import Simplex, Math_Data
 import golog_export
+from puretest import update_latex
 
-export_version = '1.0.0'
+
 
 def gupdateNONEtoV1_0_0(export_sSet):
+    export_version = '1.0.0'
     #added in updates to 1.0.0:
     # added versioning to exports
     # made latex pathing independent of platform
@@ -17,7 +19,10 @@ def gupdateNONEtoV1_0_0(export_sSet):
     for simp in export_sSet.rawSimps:
         #check if export_math_data is of filetype 'latex'
         if simp.math_data().exported_math_data.type == 'latex':
-            simp.math_data().exported_math_data()['folder'] = os.path.abspath(simp.math_data().exported_math_data()['folder'])
+            new_file_dict = update_latex('sm(C)',simp.math_data().exported_math_data())
+            simp.math_data().exported_math_data = Math_Data(type = 'latex', math_data = new_file_dict)
+
+
         #      #^export_data #^orig math_data
 
 
@@ -26,12 +31,18 @@ def gupdateNONEtoV1_0_0(export_sSet):
 
     return export_meta
 
+def gupdate(export_object):
+    #will eventually be a list of update procedures
+    pass
 
+#
 file_path = os.path.abspath('./save/sm(C)/sm.golog')
-print(os.path.exists(file_path),file_path)
+# print(os.path.exists(file_path),file_path)
 with open(file_path, 'rb') as file:
     export_sSet = pickle.load(file)
 e = gupdateNONEtoV1_0_0(export_sSet)
+
+
 new_file_path = file_path.split('.')[0]+'(1_0_0).golog'
 with open(new_file_path, 'wb') as file:
      pickle.dump(e,file)

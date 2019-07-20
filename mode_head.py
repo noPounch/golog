@@ -2,7 +2,7 @@ from sys import exit
 import os
 from math import sin,cos
 from golog_export import gexport
-from shututil import copyfile
+from shutil import copyfile
 import time, hcat, golog, window_manager, tk_funcs
 #panda imports
 from direct.showbase.DirectObject import DirectObject
@@ -83,17 +83,17 @@ class mode_head():
             #? allow creating of folder in selection panel
             #? select actual folder
             #? relabel simplex by selected folder name
-            pdf_file = None; tex_file = None
+            file_dict = math_data()
+            tex_file = os.path.join(os.path.abspath(self.golog.abs_path), os.path.relpath(file_dict['tex']))
+            if os.path.exists(os.path.join(os.path.abspath(self.golog.abs_path), tex_file.split('.tex')[0]+'.pdf')):
 
-            #get proposed pdf and tex files, check if they exist
-            prop_pdf = os.path.join(os.path.abspath(math_data()['folder']),math_data()['name']+'.pdf')
-            prop_tex = os.path.join(os.path.abspath(math_data()['folder']),math_data()['name']+'.tex')
-            print(prop_pdf,os.path.exists(prop_tex))
-            if os.path.exists(prop_pdf): pdf_file = prop_pdf
-            if os.path.exists(prop_tex): tex_file = prop_tex
+                file_dict['pdf'] = file_dict['tex'].split('.tex')[0]+'.pdf'
+                print(os.path.abspath(self.golog.abs_path),file_dict['pdf'])
+            if 'pdf' in file_dict.keys(): pdf_file = os.path.join(os.path.join(os.path.abspath(self.golog.abs_path), os.path.relpath(file_dict['pdf'])))
+            else: pdf_file = None
 
-            #make a tk box with two buttons which are enabled iff file exist
-            tk_funcs.pdf_or_tex(pdf_file,tex_file)
+            tk_funcs.pdf_or_tex(pdf_file, tex_file)
+
 
 
 
@@ -126,16 +126,18 @@ class mode_head():
 
 
 
+            #ensure latex folder exists
+            if not os.path.exists(os.path.join((self.golog.abs_path,'/latex'))): os.mkdir(os.path.join((self.golog.abs_path,'/latex')))
 
             # create a uniquely named folder in abs_path/latex/ based on simplex.label
-            if not os.path.exists(os.path.join(self.golog.abs_path,'latex')): os.mkdir(os.path.join(self.golog.abs_path,'latex'))
-            num = 0
-            while os.path.exists(os.path.join(self.golog.abs_path,'latex',simplex.label+str(num)+'.tex')): num+=1
-            if num == 0: tex_folder = os.path.join('latex',simplex.label)
-            else: tex_folder = os.path.join('latex',simplex.label)
-            abs_tex_folder = os.path.join(self.golog.abs_path, tex_folder)
-            os.mkdir(abs_tex_folder)
-            tex_file = os.path.join(abs_tex_folder,simplex.label+'.tex')
+            tex_folder = os.path.join('latex',simplex.label)
+            tex_folder = tk_funcs.unique_path(tex_folder)
+
+            #create a tex file in tex folder
+            # ask if want new or to load one
+            location = tk_funcs.load_tex(self.golog.abs_path)
+
+            tex_file = os.path.join(tex_folder,simplex.label+'.tex')
 
             # ask if want new or to load one
             location = tk_funcs.load_tex(self.golog.abs_path)
@@ -144,10 +146,10 @@ class mode_head():
             # if load, copy file into said folder (make sure it's a latex file)
             if location == True: open(tex_file, 'r').close()
             if isinstance(location,String):
-                copyfile(location,tes_file)
+                copyfile(location,tex_file)
 
             # make a file dictionary with just tex file in it
-            file_dict = {'name':simplex.label, 'folder':folder_location}
+            file_dict = {'tex':tex_file, 'folder':tex_folder}
             simplex.math_data = hcat.Math_Data(math_data = file_dict, type = 'latex')
 
 

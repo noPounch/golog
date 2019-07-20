@@ -84,12 +84,12 @@ def save_load_new(default_location = os.path.abspath('./save')):
 
     def newg():
         master.newvar = True
-        proploc = os.path.join(filedialog.askdirectory(initialdir = default_location),master.namevar.get()+'.golog')
+        proploc = os.path.join(os.path.abspath(filedialog.askdirectory(initialdir = default_location)),os.path.relpath(master.namevar.get()+'.golog'))
         if os.path.exists(proploc): #if proposed location already exists change name
             master.namevar.set(master.namevar.get()+"(new)")
-            return
-        master.loc = proploc
-        master.destroy()
+        else:
+            master.loc = proploc
+            master.destroy()
 
     #data options on click
     Button(master, text = 'Load', command = loadg).grid(row = 1,column = 0)
@@ -98,6 +98,25 @@ def save_load_new(default_location = os.path.abspath('./save')):
     master.mainloop()
     #do after master tkbox is destroyed
     return (master.newvar, master.loc)
+
+# makes a unique path from a root in save with given name
+def unique_path(root = os.path.abspath('.'), path = '.'):
+    import os
+    abs_path = os.path.join(root, path)
+    if not os.path.exists(abs_path):
+        os.mkdir(abs_path)
+        return path
+
+    def cpesmd(num):
+        abs_path = os.path.join(root,path) + str(num)
+        if not os.path.exists(abs_path):
+            os.mkdir(abs_path)
+            return path + str(num)
+        else:
+            print('oof'+str(num))
+            return cpesmd(num+1)
+
+    return cpesmd(0)
 
 def load_tex(abs_path):
     master = Tk()
@@ -118,8 +137,6 @@ def load_tex(abs_path):
 
     master.mainloop()
     return master.loc
-
-print(load_tex(os.path.abspath('.')))
 
 def edit_txt(fname):
     root = Tk()

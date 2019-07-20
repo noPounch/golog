@@ -22,6 +22,7 @@ class runner(ShowBase):
         base.accept("f6",sys.exit)
 
         (newv, save_location) = save_load_new()
+        print(save_location)
 
         if newv:
             golog = Golog(self, label = 'run')

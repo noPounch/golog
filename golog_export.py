@@ -1,6 +1,6 @@
 import pickle
 import os, sys
-from hcat import simpSet, Math_Data
+from hcat import simpSet, Math_Data, Simplex
 from hcat_funcs import *
 import golog as Golog
 sSet = None
@@ -23,9 +23,9 @@ class export_data():
 
     #on import, if export_data's math_data is an exported golog, transform it to a golog(base) and return it
     #otherwise, return the original math_data
-    def transform(self,base,**kwargs):
+    def transform(self, base,**kwargs):
         if self.exported_math_data.type == 'exported golog':
-            return Math_Data(type = 'golog', math_data = sSet_to_golog(base,self.exported_math_data()),kwargs['abs_path'])
+            return Math_Data(type = 'golog', math_data = sSet_to_golog(base,self.exported_math_data()),**kwargs['abs_path'])
         else: return self.exported_math_data
 
     def __getattr__(self,attr):
@@ -48,12 +48,12 @@ def golog_to_sSet(golog):
 #export math data and graphics_kwargs
 def gexport(golog,location_string):
     export_sSet = golog_to_sSet(golog) # create pickle-able sSet
-    export_simplex = hcat.Simplex(0,math_data = export_sSet) #create a simplex from the export_sSet
+    export_simplex = Simplex(0,math_data = Math_Data(type = 'exported golog', math_data = export_sSet)) #create a simplex from the export_sSet
     export_meta = export_data(export_simplex, export_version = export_version) # create meta_data in the form of export_data
 
     #pickle it to location
     with open(location_string,'wb') as file:
-        pickle.dump(export_sSet,file)
+        pickle.dump(export_meta,file)
     return location_string
 
 def sSet_to_golog(base, sSet, abs_path = None):
@@ -66,7 +66,7 @@ def sSet_to_golog(base, sSet, abs_path = None):
         #check if faces are in golog
         newfaces = tuple([setupSimplex(face) for face in simplex.faces])
         ## need to make sure I can add 0-simpleces by passing ob = ()
-        newsimp = golog.add(newfaces, label = simplex.label, math_data = simplex.math_data().transform(base,abs_path),**simplex.math_data().graphics_kwargs)
+        newsimp = golog.add(newfaces, label = simplex.label, math_data = simplex.math_data().transform(base,abs_path = abs_path),**simplex.math_data().graphics_kwargs)
         #props:           #^faces     #^label               #^tranformed math data from export               #^graphics setup from export
         return newsimp
 
