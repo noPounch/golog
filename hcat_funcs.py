@@ -32,15 +32,3 @@ def stripsSet(sSet):
 def open_math_data(simplex):
     # open actual math data and provide callback
     return simplex.math_data.open(simplex.Math_Data())
-
-############## TESTING ################
-# sSet = simpSet(label = 'test')
-# a=sSet.add(0,label = 'a')
-# b=sSet.add(0,label = 'b')
-# c=sSet.add(0,label = 'c')
-# f= sSet.add((b,a),label = 'f')
-# g= sSet.add((c,b),label = 'g')
-# h= sSet.add((c,a),label = 'h')
-# s= sSet.add((g,h,f),label = 'gof = h')
-# F = simpCopy(sSet)
-# print([s.label for s in F.dom.rawSimps])

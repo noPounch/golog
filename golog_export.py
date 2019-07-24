@@ -25,7 +25,7 @@ class export_data():
     #otherwise, return the original math_data
     def transform(self, base,**kwargs):
         if self.exported_math_data.type == 'exported golog':
-            return Math_Data(type = 'golog', math_data = sSet_to_golog(base,self.exported_math_data()),**kwargs['abs_path'])
+            return Math_Data(type = 'golog', math_data = sSet_to_golog(base,self.exported_math_data()))
         else: return self.exported_math_data
 
     def __getattr__(self,attr):
@@ -41,7 +41,8 @@ class export_data():
 def golog_to_sSet(golog):
     old_to_new = stripsSet(golog.sSet)
     for simp in old_to_new.dom.rawSimps:
-        exported_data = export_data(golog, simp, graphics_kwargs = golog.Simplex_to_Graphics[simp].graphics_kwargs) #create some pickleable export_data
+        # exported_data = export_data(golog, simp, graphics_kwargs = golog.Simplex_to_Graphics[simp].graphics_kwargs) #create some pickleable export_data
+        exported_data = export_data( simp, graphics_kwargs = golog.Simplex_to_Graphics[simp].graphics_kwargs) #create some pickleable export_data
         old_to_new(simp).math_data = Math_Data(type = 'export_data',math_data = exported_data) #set math_data of new simplex to export_data
     return old_to_new.codom
 #strip golog's graphics and math_data
@@ -56,8 +57,8 @@ def gexport(golog,location_string):
         pickle.dump(export_meta,file)
     return location_string
 
-def sSet_to_golog(base, sSet, abs_path = None):
-    golog = Golog.golog(base, label = sSet.label,abs_path = abs_path)
+def sSet_to_golog(base, sSet):
+    golog = Golog.golog(base, label = sSet.label)
     old_to_new = dict()
 
     def setupSimplex(simplex):
@@ -66,7 +67,7 @@ def sSet_to_golog(base, sSet, abs_path = None):
         #check if faces are in golog
         newfaces = tuple([setupSimplex(face) for face in simplex.faces])
         ## need to make sure I can add 0-simpleces by passing ob = ()
-        newsimp = golog.add(newfaces, label = simplex.label, math_data = simplex.math_data().transform(base,abs_path = abs_path),**simplex.math_data().graphics_kwargs)
+        newsimp = golog.add(newfaces, label = simplex.label, math_data = simplex.math_data().transform(base),**simplex.math_data().graphics_kwargs)
         #props:           #^faces     #^label               #^tranformed math data from export               #^graphics setup from export
         return newsimp
 
@@ -81,4 +82,4 @@ def gimport(base, path):
     if export_meta.export_version < export_version:
         gupdate(export_meta)
     sSet = export_meta.exported_math_data()
-    return sSet_to_golog(base,sSet,abs_path = os.path.split(path)[0]) #creates a golog with
+    return sSet_to_golog(base,sSet)

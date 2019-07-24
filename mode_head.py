@@ -20,7 +20,7 @@ from panda3d.core import Plane, CollisionPlane, CollisionRay, CollisionNode, Col
 
 
 class mode_head():
-    def __init__(self,base,Golog, save_location = os.path.abspath('./save')):
+    def __init__(self,base,Golog, folder_path):
         # Set up basic attributes
         self.base = base
         self.golog = Golog
@@ -29,7 +29,7 @@ class mode_head():
         self.bt = None
         self.mw = None
         self.listener = DirectObject()
-        self.save_location = save_location
+        self.folder_path = folder_path
         ######
 
         #create a 2d render
@@ -66,31 +66,39 @@ class mode_head():
 
     def open_math_data(self,math_data):
         if math_data.type == 'golog':
-            base = math_data().base
-            controllable_golog = mode_head(base, math_data())
+
+            subgolog_folder_path = os.path.join(self.folder_path,'subgologs')
+            if not os.path.exists(subgolog_folder_path): os.mkdir(subgolog_folder_path)
+            controllable_golog = mode_head(self.base, simplex.math_data(), subgolog_folder_path)
             controllable_golog.selection_and_creation()
-            window_manager.modeHeadToWindow(base, controllable_golog)
+            window_manager.modeHeadToWindow(self.base, controllable_golog)
+
         if math_data.type == 'file':
-            file_name, file_extension = os.path.splitext(math_data())
+            file_name, file_extension = os.path.splitext(math_data()[-1])
             print(file_name, file_extension)
             if file_extension == '.txt':
-                tk_funcs.edit_txt(math_data())
+                tk_funcs.edit_txt(os.path.join(self.folder_path,*math_data()))
             else:
                 #prompt user to select a program
-                tk_funcs.run_program('',math_data())
+                print(math_data())
+                print(os.path.join(self.folder_path,*math_data()))
+                tk_funcs.run_program('',os.path.join(self.folder_path,*math_data()))
         if math_data.type == 'latex':
-            #??? Quest Log ???
-            #? allow creating of folder in selection panel
-            #? select actual folder
-            #? relabel simplex by selected folder name
             file_dict = math_data()
-            tex_file = os.path.join(os.path.abspath(self.golog.abs_path), os.path.relpath(file_dict['tex']))
-            if os.path.exists(os.path.join(os.path.abspath(self.golog.abs_path), tex_file.split('.tex')[0]+'.pdf')):
+            tex_folder = os.path.join(os.path.abspath(self.folder_path),*file_dict['folder'])
+            tex_file = os.path.join(os.path.abspath(self.folder_path),*file_dict['tex'])
 
-                file_dict['pdf'] = file_dict['tex'].split('.tex')[0]+'.pdf'
-                print(os.path.abspath(self.golog.abs_path),file_dict['pdf'])
-            if 'pdf' in file_dict.keys(): pdf_file = os.path.join(os.path.join(os.path.abspath(self.golog.abs_path), os.path.relpath(file_dict['pdf'])))
+
+
+
+            if 'pdf' in file_dict.keys():
+                pdf_file = os.path.join(self.folder_path, *file_dict['pdf'])
+            elif os.path.exists(tex_file.split('.tex')[0]+'.pdf'): #if there is a pdf in the folder with the same name
+                file_dict['pdf'] = file_dict['tex']
+                file_dict['pdf'][-1] = file_dict['pdf'][-1].split('.tex')[0]+'.pdf' #change extension to .pdf
+                pdf_file = os.path.join(self.folder_path, *file_dict['pdf'])
             else: pdf_file = None
+
 
             tk_funcs.pdf_or_tex(pdf_file, tex_file)
 
@@ -105,68 +113,43 @@ class mode_head():
             simplex.math_data = hcat.Math_Data(type = 'None')
 
         if math_data_type == 'golog':
-            new_golog = golog.golog(self.base, label = kwargs['label'], abs_path = self.golog.abs_path) #create a new golog
-            def newopen(): #create an open function for the golog math data
-                controllable_golog = mode_head(kwargs['base'], simplex.math_data())
-                controllable_golog.selection_and_creation()
-                window_manager.modeHeadToWindow(kwargs['base'], controllable_golog)
+            new_golog = golog.golog(self.base, label = kwargs['label']) #create a new golog
             simplex.math_data = hcat.Math_Data(math_data = new_golog, type = 'golog')
 
         if math_data_type == 'file':
+            if not os.path.exists(os.path.join(self.folder_path,'files')): os.mkdir(os.path.join(self.folder_path,'files'))
+            file_folder_path = ['files']
+
             file_location = tk_funcs.ask_file_location()
             if not file_location: return #if user cancels
-            file_name, file_extension = os.path.splitext(file_location)
-            simplex.math_data = hcat.Math_Data(math_data = file_location, type = 'file')
+            file_name = os.path.split(file_location)[1] #file name with extension
+            file_path = tk_funcs.unique_path(os.path.join(self.folder_path),[*file_folder_path, file_name]) #get a unique file path starting from the file_folder
+            copyfile(file_location, os.path.join(self.folder_path,*file_path))
+            simplex.math_data = hcat.Math_Data(math_data = file_path, type = 'file')
             #? add handler for if user exits text editor
             #? make asynchronous
 
         if math_data_type == 'latex':
-
-
-
-
-
             #ensure latex folder exists
-            if not os.path.exists(os.path.join((self.golog.abs_path,'/latex'))): os.mkdir(os.path.join((self.golog.abs_path,'/latex')))
+            if not os.path.exists(os.path.join(self.folder_path,'latex')): os.mkdir(os.path.join(self.folder_path,'latex'))
 
-            # create a uniquely named folder in abs_path/latex/ based on simplex.label
-            tex_folder = os.path.join('latex',simplex.label)
-            tex_folder = tk_funcs.unique_path(tex_folder)
-
+            # create a uniquely named folder in self.folder_path/latex/ based on simplex.label
+            tex_folder_path = tk_funcs.unique_path(root = self.folder_path, path = ['latex',simplex.label])
+            print(tex_folder_path)
+            os.mkdir(os.path.join(self.folder_path, *tex_folder_path))
             #create a tex file in tex folder
+            tex_file_path = [*tex_folder_path, simplex.label+'.tex']
             # ask if want new or to load one
-            location = tk_funcs.load_tex(self.golog.abs_path)
-
-            tex_file = os.path.join(tex_folder,simplex.label+'.tex')
-
-            # ask if want new or to load one
-            location = tk_funcs.load_tex(self.golog.abs_path)
-
-            # if new, create a latex file in said folder
-            # if load, copy file into said folder (make sure it's a latex file)
-            if location == True: open(tex_file, 'r').close()
-            if isinstance(location,String):
-                copyfile(location,tex_file)
+            location = tk_funcs.load_tex(self.folder_path)
+            # if new, returns True and makes a new tex file below
+            # if load, returns a path and copies the path into tex_file_path
+            true_path = os.path.join(self.folder_path,*tex_file_path)
+            if location == True: open(   true_path  , 'w').close()
+            if isinstance(location, str): copyfile(location, true_path)
 
             # make a file dictionary with just tex file in it
-            file_dict = {'tex':tex_file, 'folder':tex_folder}
+            file_dict = {'tex':tex_file_path, 'folder':tex_folder_path}
             simplex.math_data = hcat.Math_Data(math_data = file_dict, type = 'latex')
-
-
-
-            # ##############
-            #
-            # folder_location = os.path.join(tk_funcs.ask_folder_location(initial_dir = os.path.abspath('./save')),simplex.label)
-            # print(folder_location)
-            # #ensure folder exists
-            # if not os.path.exists(folder_location):
-            #     os.mkdir(folder_location)
-            # #ensure tex file exists
-            # if not os.path.exists(os.path.join(folder_location,simplex.label+'.tex')):
-            #     open(os.path.join(folder_location,simplex.label+'.tex'),'w').close()
-            #
-            # file_dict = {'name':simplex.label, 'folder':folder_location}
-            # simplex.math_data = hcat.Math_Data(math_data = file_dict, type = 'latex')
 
 
         return simplex.math_data
@@ -353,8 +336,7 @@ class mode_head():
             return task.cont
 
         def save(mw):
-            # print(os.path.abspath(os.path.dirname(__file__))+'/'+self.save_location)
-            save_location = tk_funcs.ask_file_location(initial_dir = os.path.abspath(os.path.dirname(__file__))+'/'+self.save_location)
+            save_location = tk_funcs.ask_file_location(initial_dir = self.folder_path)
             print('saving to:\n'+save_location)
             gexport(self.golog, save_location)
 

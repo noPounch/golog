@@ -97,31 +97,40 @@ def save_load_new(default_location = os.path.abspath('./save')):
 
     master.mainloop()
     #do after master tkbox is destroyed
+    #return whether it is a new golog or loading a golog, and it's folder on this system
     return (master.newvar, master.loc)
 
 # makes a unique path from a root in save with given name
-def unique_path(root = os.path.abspath('.'), path = '.'):
+def unique_path(root, path = []):
+    if not path: return path
+
     import os
-    abs_path = os.path.join(root, path)
+    abs_path = os.path.join(root, *path)
+    #if original path doesn't exist, just return path
     if not os.path.exists(abs_path):
-        os.mkdir(abs_path)
         return path
 
+
     def cpesmd(num):
-        abs_path = os.path.join(root,path) + str(num)
+        abs_path = os.path.join(root,*path) + str(num) + ext
         if not os.path.exists(abs_path):
-            os.mkdir(abs_path)
-            return path + str(num)
+            #if path doesn't exist, return number
+            return num
         else:
             print('oof'+str(num))
             return cpesmd(num+1)
+    #get rid of extention for now, recover it on return
+    path[-1], ext = os.path.splitext(path[-1])
+    return path[:-1] + [path[-1] + str(cpesmd(0))+ext]
 
-    return cpesmd(0)
+
+# print(unique_path(os.path.abspath('.'),['save','Testing','latex','0-simplex']))
 
 def load_tex(abs_path):
     master = Tk()
     master.title('Load / New .tex File')
     master.loc = []
+    Label(master, text = 'New Latex File, or Load').grid(row = 0, column = 1)
     def loadg():
         master.loc = filedialog.askopenfilename(initialdir = abs_path,title = "Select file", filetypes = (("Latex Files","*.tex"),("all files","*.*")))
         if master.loc:
@@ -173,7 +182,7 @@ def edit_txt(fname):
 
 def ask_file_location(initial_dir = os.path.abspath(os.path.dirname(__file__))):
     root = Tk()
-    filename =  filedialog.askopenfilename(initialdir = initial_dir,title = "Select file")#,filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
+    filename =  filedialog.askopenfilename(initialdir = initial_dir,title = "Select file")
     root.destroy()
     return filename
 
