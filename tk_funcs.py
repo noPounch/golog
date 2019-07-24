@@ -103,6 +103,7 @@ def save_load_new(default_location = os.path.abspath('./save')):
 # makes a unique path from a root in save with given name
 def unique_path(root, path = []):
     if not path: return path
+    if isinstance(path,str): path = [path] #should pass a list, but just in case
 
     import os
     abs_path = os.path.join(root, *path)

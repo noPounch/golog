@@ -3,7 +3,7 @@ import tkinter as tk
 from golog_export import *
 from direct.showbase.ShowBase import ShowBase
 from golog import golog as Golog
-from window_manager_new import *
+from window_manager import *
 from mode_head import *
 from tk_funcs import save_load_new
 

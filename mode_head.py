@@ -66,10 +66,16 @@ class mode_head():
 
     def open_math_data(self,math_data):
         if math_data.type == 'golog':
+            golog_dict = math_data()
+            subgolog = golog_dict['golog']
+            subfolder_path = golog_dict['folder_path']
 
+            #### just to be safe, but probably not needed
             subgolog_folder_path = os.path.join(self.folder_path,'subgologs')
             if not os.path.exists(subgolog_folder_path): os.mkdir(subgolog_folder_path)
-            controllable_golog = mode_head(self.base, simplex.math_data(), subgolog_folder_path)
+            ####
+
+            controllable_golog = mode_head(self.base, subgolog, folder_path = subgolog_folder_path)
             controllable_golog.selection_and_creation()
             window_manager.modeHeadToWindow(self.base, controllable_golog)
 
@@ -113,8 +119,26 @@ class mode_head():
             simplex.math_data = hcat.Math_Data(type = 'None')
 
         if math_data_type == 'golog':
+
+            #create a path for all subgologs, if it doesn't already exist
+            subgolog_folder_path = os.path.join(self.folder_path,'subgologs')
+            if not os.path.exists(subgolog_folder_path): os.mkdir(subgolog_folder_path)
+
             new_golog = golog.golog(self.base, label = kwargs['label']) #create a new golog
-            simplex.math_data = hcat.Math_Data(math_data = new_golog, type = 'golog')
+
+            #create a unique folder path list in subgolog_folder_path
+            unique_path = tk_funcs.unique_path(subgolog_folder_path,[kwargs['label']])
+            new_folder_path = ['subgologs', *unique_path]
+            print(new_folder_path)
+            os.mkdir(os.path.join(self.folder_path , *new_folder_path)) #make the directory as above
+            #create a new golog save at new_folder_path/label.golog
+            new_save_location = os.path.join(self.folder_path, *new_folder_path, kwargs['label']+'.golog')
+            print(new_save_location)
+            gexport(new_golog, new_save_location)
+
+            #math data is a dictionary of the physical golog and it's relative save path list
+            golog_dict = {'golog':new_golog, 'folder_path':new_folder_path}
+            simplex.math_data = hcat.Math_Data(math_data = golog_dict, type = 'golog')
 
         if math_data_type == 'file':
             if not os.path.exists(os.path.join(self.folder_path,'files')): os.mkdir(os.path.join(self.folder_path,'files'))
@@ -337,6 +361,7 @@ class mode_head():
 
         def save(mw):
             save_location = tk_funcs.ask_file_location(initial_dir = self.folder_path)
+            if not save_location: return #if user cancels
             print('saving to:\n'+save_location)
             gexport(self.golog, save_location)
 
@@ -344,7 +369,7 @@ class mode_head():
         def reset(*args):
             self.golog.cTrav.removeCollider(self.pickerNP)
             del self.queue
-            for node in self.selected: node.setColorScale(1,1,1,1)
+            for node in self.selected[0]: node.setColorScale(1,1,1,1)
             del self.selected
             del self.pickerNode
             self.pickerNP.removeNode()

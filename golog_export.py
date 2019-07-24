@@ -15,7 +15,9 @@ class export_data():
     def __init__(self, old_simplex, **kwargs):
         #if math_data is a golog, transform it to an sSet for exporting
         if old_simplex.math_data.type == 'golog':
-            self.exported_math_data = Math_Data(type = 'exported golog', math_data = golog_to_sSet(old_simplex.math_data()))
+            export_golog = golog_to_sSet(old_simplex.math_data()['golog'])
+            golog_dict = {'golog':export_golog, 'folder_path' : old_simplex.math_data()['folder_path']}
+            self.exported_math_data = Math_Data(type = 'exported golog', math_data = golog_dict)
         else: self.exported_math_data = old_simplex.math_data
 
         #
@@ -25,7 +27,8 @@ class export_data():
     #otherwise, return the original math_data
     def transform(self, base,**kwargs):
         if self.exported_math_data.type == 'exported golog':
-            return Math_Data(type = 'golog', math_data = sSet_to_golog(base,self.exported_math_data()))
+            golog_dict ={'golog':sSet_to_golog(base,self.exported_math_data()['golog']),'folder_path':self.exported_math_data()['folder_path']}
+            return Math_Data(type = 'golog', math_data = golog_dict)
         else: return self.exported_math_data
 
     def __getattr__(self,attr):
