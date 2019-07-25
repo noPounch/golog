@@ -30,7 +30,7 @@ Once at the main golog window refer to the following controls:
 * s: save
 
 ## OS / Path-independence
-* golog is made to work on arbitrary operating systems starting from an arbitrary path
+* golog is made to work on arbitrary operating systems starting from an arbitrary path (tested on Windows and Debian 9)
 * The only thing that matters is the file integrity of the folder the main golog is saved in
 * To preserve this, selected files are copied into this directory while golog is running
 * *thus files which depend on other files are NOT currently handled (this will change with file ontologies)
