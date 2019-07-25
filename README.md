@@ -1,5 +1,5 @@
 # golog (graphical ontological log)
-WIP graphical manipulator for ontological logs 
+WIP graphical manipulator for ontological logs
 
 golog is a graphics program using panda3d as the graphics engine, this is certainly subject to change.
 
@@ -16,7 +16,7 @@ Each simplex has associated to it an (arbitrary) piece of math_data, the role of
 *files which depend on other files are NOT currently handled (this will change with file ontologies)
 
 ## breif tutorial
-* install pre-requisites from requirements.txt (using pip)
+* install pre-requisites from requirements.txt (using pip)(this is just a list idk setuptools)
 * python run.py
 * choose to load a .golog file, or name your golog and choose a folder location for all the save files golog will create (I recommend using an empty folder)
 Once at the main golog window refer to the following controls:
@@ -27,7 +27,7 @@ Once at the main golog window refer to the following controls:
 * mouse over: Preview simplex's math_data
 * space: open math_data (or ontologically expand if math_data is a golog)
 * u: change a simplex's meta data (its label, and math_data)
-* s: save 
+* s: save
 
 ## OS / Path-independence
 * golog is made to work on arbitrary operating systems starting from an arbitrary path
@@ -40,7 +40,6 @@ Once at the main golog window refer to the following controls:
 
 ## Disclaimer
 # !--- USE AT YOUR OWN RISK ---!
-This Is a very loosely tested program that executes files on your computer. 
+This Is a very loosely tested program that executes files on your computer.
 
 If you wish to know more contact me through github or at nopounch@gmail.com
-
