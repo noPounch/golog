@@ -29,13 +29,11 @@ class runner(ShowBase):
             golog = Golog(self, label = golog_file.split('.golog')[0])
             gexport(golog, save_location)
             self.controllable_golog = mode_head(self,golog, folder_path = folder_path)
-            self.controllable_golog.selection_and_creation()
             modeHeadToWindow(self, self.controllable_golog)
 
         elif not newv:
             golog = gimport(self,save_location)
             self.controllable_golog = mode_head(self,golog, folder_path = folder_path)
-            self.controllable_golog.selection_and_creation()
             modeHeadToWindow(self, self.controllable_golog)
 
 

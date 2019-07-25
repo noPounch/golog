@@ -26,16 +26,16 @@ def modeHeadToWindow(base, mode_head, windict = None):
 
     win = windict['win']; mw = windict['mw']; bt = windict['bt']; mk = windict['mk']
 
-    win.getDisplayRegion(1).setCamera(mode_head.golog.camera) #set window to view golog's 3d camera
+    windict['render_dr'].setCamera(mode_head.golog.camera) #set window to view golog's 3d camera
     windict['mode_head'] = mode_head
 
     #set up window_events in mode_head (if this is the first time, this will change mode_head.bt/.mw)
-    mode_head.setup_window_events(bt=bt,mw=mw)
-    mode_head.setup_window_tasks(mw=mw)
+    mode_head.selection_and_creation(windict)
 
+    mode_dict = {'Create':(lambda *x:print('Create')), 'Move':(lambda *x:print('Move'))}
     #do something with guibuttons
     for button in windict['guibuttons'].keys():
-        base.accept(windict['guibuttons'][button], print, extraArgs = [windict['guibuttons'][button]])
+        base.accept(windict['guibuttons'][button],mode_dict[button])
 
     return windict
 
@@ -45,7 +45,7 @@ def gologToDr(base, mode_head, drdict = None):
 
 def windowMaker(base,label):
     # find an open slot, if none, return false
-
+    windict = dict()
     grid = None
     for i in range(grid_size[0]):
         for j in range(grid_size[1]):
@@ -56,12 +56,14 @@ def windowMaker(base,label):
         else: continue
         break
     if not grid: return False
+    windict['grid'] = grid
     position = grid_to_screen_pos(*grid)
 
     #open window
     newwin = base.openWindow(name = label)
     newwin.setWindowEvent(label+"-event")
     listener.accept(newwin.getWindowEvent(),windowEvent)
+    windict['win'] = newwin
 
     #format window
     wp = WindowProperties()
@@ -74,10 +76,13 @@ def windowMaker(base,label):
     displayRegion.setDimensions(.3,1,0,1)
     mkNode = MouseAndKeyboard(newwin,0,label+"_keyboard_mouse")
     mk = base.dataRoot.attachNewNode(mkNode)
+    windict['mk'] = mk
     mwNode = MouseWatcher(label)
     mwNode.setDisplayRegion(displayRegion)
     mw = mk.attachNewNode(mwNode)
+    windict['mw'] = mw
     bt = ButtonThrower(label+"_button_thrower")
+    windict['bt'] = bt
     bt.setPrefix(label+"_")
     mw.attachNewNode(bt)
     #listen for default button events
@@ -86,6 +91,7 @@ def windowMaker(base,label):
 
     #format render display region
     render_dr = newwin.getDisplayRegion(1)
+    windict['render_dr'] = render_dr
     render_dr.setDimensions(.3,1,0,1)
 
     #create a display region for Gui Elements
@@ -122,26 +128,24 @@ def windowMaker(base,label):
     #create Gui elements
     guibuttons = dict()
     guibuttons['Create'] = label+"_mode_create"
-    guibuttons['Preview'] = label+"_mode_preview"
+    guibuttons['Move'] = label+"_mode_move"
     createButton(base, frame, .7, "Create", label+"_mode_create")
     createButton(base, frame, .4, "Preview", label+"_mode_preview")
+    windict['guibuttons'] = guibuttons
 
 
     #create a display region for math data preview
     preview_dr = newwin.makeDisplayRegion(0,.3,0,.3)
-    preview_label = label+"_preview"
-    preview_mwNode = MouseWatcher(preview_label)
-    preview_mwNode.setDisplayRegion(preview_dr)
-    preview_mw = mk.attachNewNode(preview_mwNode)
-    preview_bt = ButtonThrower(preview_label+"_button_thrower")
-    preview_bt.setPrefix(preview_label+"_")
-    preview_mw.attachNewNode(preview_bt)
+    windict['preview_dr'] = preview_dr
+    # preview_label = label+"_preview"
+    # preview_mwNode = MouseWatcher(preview_label)
+    # preview_mwNode.setDisplayRegion(preview_dr)
+    # preview_mw = mk.attachNewNode(preview_mwNode)
+    # preview_bt = ButtonThrower(preview_label+"_button_thrower")
+    # preview_bt.setPrefix(preview_label+"_")
+    # preview_mw.attachNewNode(preview_bt)
     # preview_dr.setSort(30)
 
-
-    windict =  {'win':newwin, 'mw':mw, 'bt':bt,'mk':mk,'label':label,
-                'grid':grid,'preview_bt':preview_bt,'preview_mw':preview_mw,
-                'preview_dr':preview_dr, 'guibuttons':guibuttons}
     win_to_windict[newwin] = windict
 
     return windict

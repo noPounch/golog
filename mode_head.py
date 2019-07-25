@@ -30,9 +30,10 @@ class mode_head():
         self.mw = None
         self.listener = DirectObject()
         self.folder_path = folder_path
-        ######
+        self.has_window = False
 
-        #create a 2d render
+
+        #create a 2d rende
         self.render2d = NodePath('2d render')
         self.camera2D = self.render2d.attachNewNode(Camera('2d Camera'))
         self.camera2D.setDepthTest(False)
@@ -41,6 +42,7 @@ class mode_head():
         lens.setFilmSize(2, 2)
         lens.setNearFar(-1000, 1000)
         self.camera2D.node().setLens(lens)
+
         ######
 
 
@@ -76,18 +78,14 @@ class mode_head():
             ####
 
             controllable_golog = mode_head(self.base, subgolog, folder_path = subgolog_folder_path)
-            controllable_golog.selection_and_creation()
             window_manager.modeHeadToWindow(self.base, controllable_golog)
 
         if math_data.type == 'file':
             file_name, file_extension = os.path.splitext(math_data()[-1])
-            print(file_name, file_extension)
             if file_extension == '.txt':
                 tk_funcs.edit_txt(os.path.join(self.folder_path,*math_data()))
             else:
                 #prompt user to select a program
-                print(math_data())
-                print(os.path.join(self.folder_path,*math_data()))
                 tk_funcs.run_program('',os.path.join(self.folder_path,*math_data()))
         if math_data.type == 'latex':
             file_dict = math_data()
@@ -129,11 +127,9 @@ class mode_head():
             #create a unique folder path list in subgolog_folder_path
             unique_path = tk_funcs.unique_path(subgolog_folder_path,[kwargs['label']])
             new_folder_path = ['subgologs', *unique_path]
-            print(new_folder_path)
             os.mkdir(os.path.join(self.folder_path , *new_folder_path)) #make the directory as above
             #create a new golog save at new_folder_path/label.golog
             new_save_location = os.path.join(self.folder_path, *new_folder_path, kwargs['label']+'.golog')
-            print(new_save_location)
             gexport(new_golog, new_save_location)
 
             #math data is a dictionary of the physical golog and it's relative save path list
@@ -159,7 +155,6 @@ class mode_head():
 
             # create a uniquely named folder in self.folder_path/latex/ based on simplex.label
             tex_folder_path = tk_funcs.unique_path(root = self.folder_path, path = ['latex',simplex.label])
-            print(tex_folder_path)
             os.mkdir(os.path.join(self.folder_path, *tex_folder_path))
             #create a tex file in tex folder
             tex_file_path = [*tex_folder_path, simplex.label+'.tex']
@@ -178,20 +173,15 @@ class mode_head():
 
         return simplex.math_data
 
-    def setup_window_events(self,bt=None,mw=None):
-        if bt: self.bt = bt
-        if mw: self.mw = mw
-        if not self.bt: return
-        if not self.mw: return
-        self.listener.ignoreAll()
+    def setup_window(self, windict):
+        for winob in windict.keys(): setattr(self, winob, windict[winob])
         for button in self.buttons.keys():
-            self.listener.accept(bt.prefix+button, self.buttons[button], extraArgs = [self.mw])
-
-    def setup_window_tasks(self,mw = None):
-        if mw: self.mw = mw
-        if not self.mw: return
+            self.listener.accept(self.bt.prefix+button, self.buttons[button], extraArgs = [self.mw])
         for window_task in self.window_tasks.keys():
             base.taskMgr.add(self.window_tasks[window_task], window_task, extraArgs = [self.mw], appendTask = True)
+        self.has_window = True
+
+
     #basic reset functionality
     def basic_reset(self,*args):
         self.buttons = dict()
@@ -244,8 +234,9 @@ class mode_head():
     #   s saves golog to a .golog file (using hcat_funcs.gexport)     #
     ###################################################################
 
-    def selection_and_creation(self):
-
+    def selection_and_creation(self,windict):
+        #? update reset
+        #? tie into the gui buttons
         #Collision Handling
         #set up traverser and handler
         self.queue = CollisionHandlerQueue()
@@ -268,8 +259,9 @@ class mode_head():
 
         #2d Text
         self.textNP = self.render2d.attachNewNode(TextNode('text node'))
-        self.textNP.setScale(.1)
-        self.textNP.setPos(-1+.2,0,-1+.2)
+        self.textNP.setScale(.2)
+        self.textNP.setPos(-1,0,0)
+        self.textNP.show()
 
 
 
@@ -350,13 +342,14 @@ class mode_head():
             elif node_type == '1':
                 #? again consider what needs to be shown with 1-simplecies
                 simplex =  self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
-            else:
-                self.textNP.hide()
-                return task.cont
+            else: return task.cont
 
-            self.textNP.show()
-            self.textNP.node().setText("label: " +simplex.label+"\n math data type: " + simplex.math_data.type)
-            # self.textNP.setPos(mpos.getX(),0,mpos.getY())
+            if self.has_window:
+                if simplex.math_data.type == 'golog':
+                    self.preview_dr.setCamera(simplex.math_data()['golog'].camera)
+                else:
+                    self.preview_dr.setCamera(self.camera2D)
+                    self.textNP.node().setText("label:\n" +simplex.label+"\n\n math data type:\n" + simplex.math_data.type)
             return task.cont
 
         def save(mw):
@@ -383,7 +376,5 @@ class mode_head():
 
         self.reset = reset
         self.buttons = {'mouse1':mouse1,'mouse3':mouse3, 'space':space, 'escape':self.reset, 's':save, 'u':u}
-        self.setup_window_events()
-
         self.window_tasks = {'mouse_watch_test':mouse_watch_test}
-        self.setup_window_tasks()
+        self.setup_window(windict)
