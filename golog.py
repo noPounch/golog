@@ -6,7 +6,7 @@ import tkinter
 from direct.showutil.Rope import Rope
 from direct.task import Task
 from direct.showbase.DirectObject import DirectObject
-from panda3d.core import NodePath, Camera
+from panda3d.core import NodePath, Camera, TextNode
 from panda3d.core import Vec3, Point3, LPoint3f, Plane
 from panda3d.core import CollisionPlane, CollisionRay, CollisionSphere
 from panda3d.core import CollisionNode, CollisionTraverser, CollisionHandlerQueue
@@ -87,6 +87,22 @@ class Graphics_Data():
             self.graphics.reparentTo(golog.render)
             # print([self.parents[1].NP.getPos(), self.NP.getPos(), self.parents[0].NP.getPos()])
 
+        #create an invisible textNode that can be shown if called
+        text = TextNode(self.simplex.label+'_text_node')
+        #? make this wrap if too long
+        text.setText(self.simplex.label)
+        text.setCardDecal(True)
+        text.setCardColor(.5, 1, .5, 1)
+        text.setCardAsMargin(0, 0, 0, 0)
+        text.setTextColor(0,0,0,1)
+        self.textNP = self.NP.attachNewNode(text)
+        #? make this update to always be in front of camera
+        # - Either get it into 2d plane, or make a z axis that always faces the camera and attach to that
+        self.textNP.setPos(0,-3,0)
+        self.textNP.hide()
+
+
+
 
     #listener calls update with some data
     def update(self,kwargs):
@@ -142,7 +158,7 @@ class golog():
 
         # Load Models
         self.sphere = base.loader.loadModel("./models/sphere.egg.pz")
-        self.cone = base.loader.loadModel('./models/Cone.egg')
+        self.cone = base.loader.loadModel("./models/sphere.egg.pz")
         self.cone.setScale(.6)
 
         #set up collision traverser

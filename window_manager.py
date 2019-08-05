@@ -32,7 +32,21 @@ def modeHeadToWindow(base, mode_head, windict = None):
     #set up window_events in mode_head (if this is the first time, this will change mode_head.bt/.mw)
     mode_head.selection_and_creation(windict)
 
-    mode_dict = {'Create':(lambda *x:print('Create')), 'Move':(lambda *x:print('Move'))}
+    def text_preview():
+        if mode_head.bools['textboxes'] == False:
+            mode_head.bools['textboxes'] = True
+            for simplex in mode_head.golog.sSet.rawSimps:
+                if simplex in mode_head.golog.Simplex_to_Graphics.keys():
+                    mode_head.golog.Simplex_to_Graphics[simplex].textNP.show()
+
+        else:
+            mode_head.bools['textboxes'] = False
+            for simplex in mode_head.golog.sSet.rawSimps:
+                if simplex in mode_head.golog.Simplex_to_Graphics.keys():
+                    mode_head.golog.Simplex_to_Graphics[simplex].textNP.hide()
+
+
+    mode_dict = {'Create':(lambda *x:print('Create')), 'Preview':text_preview}
     #do something with guibuttons
     for button in windict['guibuttons'].keys():
         base.accept(windict['guibuttons'][button],mode_dict[button])
@@ -128,7 +142,7 @@ def windowMaker(base,label):
     #create Gui elements
     guibuttons = dict()
     guibuttons['Create'] = label+"_mode_create"
-    guibuttons['Move'] = label+"_mode_move"
+    guibuttons['Preview'] = label+"_mode_preview"
     createButton(base, frame, .7, "Create", label+"_mode_create")
     createButton(base, frame, .4, "Preview", label+"_mode_preview")
     windict['guibuttons'] = guibuttons

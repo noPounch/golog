@@ -24,6 +24,7 @@ class mode_head():
         # Set up basic attributes
         self.base = base
         self.golog = Golog
+        self.bools = {'textboxes':False}
         self.buttons = dict()
         self.window_tasks = dict()
         self.bt = None
