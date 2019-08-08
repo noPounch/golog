@@ -95,7 +95,6 @@ class Graphics_Data():
             def control_updator(*x):
                 for i in [0,1]:
                     self.control_nodes[i].setPos(self.graphics_kwargs['pos']+self.parents[i].NP.getPos())
-                    print(str(i)+': ',self.control_nodes[i].getPos())
             control_updator()
             control_listener.accept(self.messenger_names['node'], control_updator)
 

@@ -269,22 +269,28 @@ class mode_head():
 
 
         #stores currently grabbed node
-        self.grabbed_graphics = None
+        self.grabbed_dict = None
         def mouse1(mw):
             if not mw.node().hasMouse(): return
             (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
-            if node_type in ['0','1']: self.grabbed_graphics = self.golog.NP_to_Graphics[entryNP]
+            if node_type in ['0','1']: self.grabbed_dict = {'graphics': self.golog.NP_to_Graphics[entryNP],'dragged':False,
+                                                            'orig_pos': entryNP.getPos()}
 
 
 
 
         def mouse1_up(mw):
-            self.grabbed_graphics = None
-            print(self.grabbed_graphics)
+            #if there is a grabbed_dict, and it says the object has been dragged dont do selection stuff
+            if self.grabbed_dict:
+                if self.grabbed_dict['dragged'] == True:
+                    self.grabbed_dict = None
+                    return
+                self.grabbed_dict = None
+
             if not mw.node().hasMouse(): return
 
+            ### selection ###
             (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
-
             if node_type == 'plane':
                 for node in self.selected[0]: node.setColorScale(1,1,1,1) #turn white
                 self.selected = [[],[]]
@@ -350,22 +356,26 @@ class mode_head():
             if not mw.node().hasMouse(): return task.cont
 
             #draggng functionality
-            if self.grabbed_graphics:
+            if self.grabbed_dict:
                 mpos = mw.node().getMouse()
                 self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY()) #mouse ray goes from camera through the 'lens plane' at position of mouse
                 self.golog.cTrav.traverse(self.golog.render)
                 self.queue.sortEntries()
-                mouseloc = self.grabbed_graphics.graphics_kwargs['pos']
+                mouseloc = self.grabbed_dict['graphics'].graphics_kwargs['pos']
                 for e in self.queue.getEntries():
                     if e.getIntoNodePath().getParent().getTag("mode_node") == 'plane':
                         mouseloc = e.getSurfacePoint(e.getIntoNodePath())
-                #         break
-                # if self.grabbed_graphics.NP.getTag('level') == '0':
-                #     self.grabbed_graphics.update({'pos':mouseloc})
-                # if self.grabbed_graphics.NP.getTag('level') == '1':
-                #     #offset is vector from node's parental basis
-                offset = mouseloc - self.grabbed_graphics.parent_pos_convolution()
-                self.grabbed_graphics.update({'pos':offset})
+                        break
+
+
+
+                offset = mouseloc - self.grabbed_dict['graphics'].parent_pos_convolution()
+                delta = offset - self.grabbed_dict['orig_pos']
+                norm = delta.getX()**2 +delta.getY()**2 +delta.getZ()**2
+                if self.grabbed_dict['dragged'] == True or norm > 1:
+                    self.grabbed_dict['dragged'] = True
+                #if offset magnitude is greater than 1 or dragged == true, actually drag it
+                if self.grabbed_dict['dragged'] == True: self.grabbed_dict['graphics'].update({'pos':offset})
 
 
 
