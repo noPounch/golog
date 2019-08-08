@@ -281,6 +281,8 @@ class mode_head():
         def mouse1_up(mw):
             self.grabbed_graphics = None
             print(self.grabbed_graphics)
+            if not mw.node().hasMouse(): return
+
             (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
 
             if node_type == 'plane':

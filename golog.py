@@ -39,9 +39,9 @@ class Graphics_Data():
             self.collision = self.NP.attachNewNode(CollisionNode('sphereColNode'))
             self.collision.node().addSolid(CollisionSphere(0,0,0,1))
             self.messenger_names = {'node':str(id(self.NP))}
-            golog.Simplex_to_Graphics[simplex] = self
-            golog.Graphics_to_Simplex[self] = simplex
-            golog.NP_to_Graphics[self.NP] = self
+            self.golog.Simplex_to_Graphics[simplex] = self
+            self.golog.Graphics_to_Simplex[self] = simplex
+            self.golog.NP_to_Graphics[self.NP] = self
 
 
             #detail parents
@@ -51,21 +51,22 @@ class Graphics_Data():
             #listener for parental updates, pass arguemnts through extraKwargs to detail what kind of update to perform
             for parent in self.parents: self.listener.accept(self.parents.messenger_names['node'],self.update)
             if 'pos' in kwargs.keys():
-                # print(kwargs)
                 self.update({'pos':kwargs['pos']})
 
         elif simplex.level == 1:
             self.NP = golog.render.attachNewNode(simplex.label)
             self.NP.setTag('level','1')
-            golog.cone.instanceTo(self.NP)
+            self.golog.cone.instanceTo(self.NP)
             self.collision = self.NP.attachNewNode(CollisionNode('coneColNode'))
             self.collision.node().addSolid(CollisionSphere(0,0,0,1))
             self.messenger_names = {'node':str(id(simplex))}
-            self.graphics = Rope()
+            self.graphics = (Rope(),Rope()) #two ropes :)
 
-            golog.Simplex_to_Graphics[simplex] = self
-            golog.Graphics_to_Simplex[self] = simplex
-            golog.NP_to_Graphics[self.NP] = self
+            self.golog.Simplex_to_Graphics[simplex] = self
+            self.golog.Graphics_to_Simplex[self] = simplex
+            self.golog.NP_to_Graphics[self.NP] = self
+
+
 
 
             #set up parents
@@ -73,19 +74,45 @@ class Graphics_Data():
             def tuple_avg(tuples):
                 b = LPoint3f(0,0,0)
                 for a in tuples:
-                    # print(a)
                     b = b+a
                 return b/len(tuples)
             self.parent_pos_convolution = lambda *x: tuple_avg(tuple(parent.NP.getPos() for parent in self.parents))
             for parent in self.parents: self.listener.accept(parent.messenger_names['node'],self.update)
-            if 'pos' in kwargs.keys(): pos = kwargs['pos']
-            else: pos = (0,0,0)
-            self.update({'pos':pos})
+
+
+            if 'pos' in kwargs.keys():
+                if isinstance(kwargs['pos'],tuple): pos = LPoint3f(*kwargs['pos'])
+                else: pos = kwargs['pos']
+            else: pos = LPoint3f(0,0,0)
+            self.graphics_kwargs['pos'] = pos
+
+
+
+
+            #create shitty control nodes for rope module (I know, this is not pretty)
+            self.control_nodes = (self.golog.render.attachNewNode(simplex.label+'_control_node0'),self.golog.render.attachNewNode(simplex.label+'_control_node1'))
+            control_listener = DirectObject()
+            def control_updator(*x):
+                for i in [0,1]:
+                    self.control_nodes[i].setPos(self.graphics_kwargs['pos']+self.parents[i].NP.getPos())
+                    print(str(i)+': ',self.control_nodes[i].getPos())
+            control_updator()
+            control_listener.accept(self.messenger_names['node'], control_updator)
+
+
+
+
+
+
+
+
+            self.update({'pos':None})
 
             #set up rope graphics
-            self.graphics.setup(3,[(self.parents[1].NP,(0,0,0)), (self.NP,(0,0,0)), (self.parents[0].NP,(0,0,0))])
-            self.graphics.reparentTo(golog.render)
-            # print([self.parents[1].NP.getPos(), self.NP.getPos(), self.parents[0].NP.getPos()])
+            self.graphics[0].setup(3,[ (self.NP,(0,0,0)),(self.control_nodes[0],(0,0,0)), (self.parents[0].NP,(0,0,0)) ])
+            self.graphics[1].setup(3,[ (self.parents[1].NP,(0,0,0)),(self.control_nodes[1],(0,0,0)), (self.NP,(0,0,0)) ])
+            for rope in self.graphics: rope.reparentTo(golog.render)
+
 
         #create an invisible textNode that can be shown if called
         text = TextNode(self.simplex.label+'_text_node')
@@ -116,7 +143,6 @@ class Graphics_Data():
 
     #supress attribute errors
     def __getattr__(self, attr):
-        # print('graphics_data for '+str(self.simplex.level)+'-simplex has no panda3d object ' + attr)
         return None
 
 
@@ -190,7 +216,6 @@ if __name__ == "__main__":
             G = golog(base, label = 'run')
             self.win.getDisplayRegion(1).setCamera(G.camera)
             a = G.add(0,label = '1')
-            b = G.add(0,label = '2',pos = (0,0,10))
-            G.add((b,a), label = '(1,2)')
-            # print([s.label for s in G.sSet.rawSimps])
+            b = G.add(0,label = '2',pos = LPoint3f(0,0,10))
+            f = G.add((b,a), label = '(1,2)', pos = LPoint3f(3,0,0))
     runner().run()
