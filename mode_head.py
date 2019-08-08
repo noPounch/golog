@@ -273,9 +273,8 @@ class mode_head():
         def mouse1(mw):
             if not mw.node().hasMouse(): return
             (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
-            if node_type == '0':
-                self.grabbed_graphics = self.golog.NP_to_Graphics[entryNP]
-                print(self.grabbed_graphics)
+            if node_type in ['0','1']: self.grabbed_graphics = self.golog.NP_to_Graphics[entryNP]
+
 
 
 
@@ -358,9 +357,13 @@ class mode_head():
                 for e in self.queue.getEntries():
                     if e.getIntoNodePath().getParent().getTag("mode_node") == 'plane':
                         mouseloc = e.getSurfacePoint(e.getIntoNodePath())
-                        break
-
-                self.grabbed_graphics.update({'pos':mouseloc})
+                #         break
+                # if self.grabbed_graphics.NP.getTag('level') == '0':
+                #     self.grabbed_graphics.update({'pos':mouseloc})
+                # if self.grabbed_graphics.NP.getTag('level') == '1':
+                #     #offset is vector from node's parental basis
+                offset = mouseloc - self.grabbed_graphics.parent_pos_convolution()
+                self.grabbed_graphics.update({'pos':offset})
 
 
 

@@ -76,7 +76,7 @@ class Graphics_Data():
                     # print(a)
                     b = b+a
                 return b/len(tuples)
-            self.parent_pos_convolution = tuple_avg
+            self.parent_pos_convolution = lambda *x: tuple_avg(tuple(parent.NP.getPos() for parent in self.parents))
             for parent in self.parents: self.listener.accept(parent.messenger_names['node'],self.update)
             if 'pos' in kwargs.keys(): pos = kwargs['pos']
             else: pos = (0,0,0)
@@ -109,14 +109,8 @@ class Graphics_Data():
             if 'pos' in kwargs:
                 #if an offset is provided, change the graphics_kwargs, if not, leave them
                 if kwargs['pos']: self.graphics_kwargs['pos'] = kwargs['pos']
-                print(self.simplex.label+'offset = ', self.graphics_kwargs['pos'])
-                poslist = tuple(parent.NP.getPos() for parent in self.parents)
-                # print(poslist)
-                newpos = self.parent_pos_convolution(poslist) + self.graphics_kwargs['pos'] #set a new offset base on parent positions
-                # print(newpos)
+                newpos = self.parent_pos_convolution() + self.graphics_kwargs['pos'] #set a new offset base on parent positions
                 self.NP.setPos(newpos)
-                #? need to add functionality for when a position is to be updated, but not specified (i.e. send None [or arg] and just get from graphic's kwargs)
-                # self.messenger.send(self.messenger_names['node'], [{'pos':self.NP.getPos()}])
                 self.messenger.send(self.messenger_names['node'], [{'pos':None}])
 
 
