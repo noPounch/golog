@@ -107,14 +107,18 @@ class Graphics_Data():
     #listener calls update with some data
     def update(self,kwargs):
             if 'pos' in kwargs:
-                self.graphics_kwargs['pos'] = kwargs['pos']
-                print(self.label+'offset = ', graphics_kwargs['pos'])
+                #if an offset is provided, change the graphics_kwargs, if not, leave them
+                if kwargs['pos']: self.graphics_kwargs['pos'] = kwargs['pos']
+                print(self.simplex.label+'offset = ', self.graphics_kwargs['pos'])
                 poslist = tuple(parent.NP.getPos() for parent in self.parents)
                 # print(poslist)
-                newpos = self.parent_pos_convolution(poslist) + kwargs['pos'] #set a new offset base on parent positions
+                newpos = self.parent_pos_convolution(poslist) + self.graphics_kwargs['pos'] #set a new offset base on parent positions
                 # print(newpos)
                 self.NP.setPos(newpos)
-                self.messenger.send(self.messenger_names['node'], [{'pos':self.NP.getPos()}])
+                #? need to add functionality for when a position is to be updated, but not specified (i.e. send None [or arg] and just get from graphic's kwargs)
+                # self.messenger.send(self.messenger_names['node'], [{'pos':self.NP.getPos()}])
+                self.messenger.send(self.messenger_names['node'], [{'pos':None}])
+
 
     #supress attribute errors
     def __getattr__(self, attr):
