@@ -72,6 +72,7 @@ def sSet_to_golog(base, sSet):
         ## need to make sure I can add 0-simpleces by passing ob = ()
         newsimp = golog.add(newfaces, label = simplex.label, math_data = simplex.math_data().transform(base),**simplex.math_data().graphics_kwargs)
         #props:           #^faces     #^label               #^tranformed math data from export               #^graphics setup from export
+        old_to_new[simplex] = newsimp
         return newsimp
 
     for simplex in sSet.rawSimps:
@@ -86,3 +87,11 @@ def gimport(base, path):
         gupdate(export_meta)
     sSet = export_meta.exported_math_data()
     return sSet_to_golog(base,sSet)
+
+
+
+if __name__ == '__main__':
+    from direct.showbase.ShowBase import ShowBase
+    r = ShowBase()
+    g = gimport(r, '/home/pounch/code/python/miniconda3/envs/golog/root/save/Table Ontology/Table Ontoloy.golog')
+    print([simp.label for simp in g.sSet.rawSimps])

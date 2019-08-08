@@ -108,6 +108,7 @@ class Graphics_Data():
     def update(self,kwargs):
             if 'pos' in kwargs:
                 self.graphics_kwargs['pos'] = kwargs['pos']
+                print(self.label+'offset = ', graphics_kwargs['pos'])
                 poslist = tuple(parent.NP.getPos() for parent in self.parents)
                 # print(poslist)
                 newpos = self.parent_pos_convolution(poslist) + kwargs['pos'] #set a new offset base on parent positions
@@ -162,6 +163,7 @@ class golog():
         self.cone.setScale(.6)
 
         #set up collision traverser
+        #? move to mode_head?
         self.cTrav = CollisionTraverser(self.label+'_traverser')
 
     def add(self, ob ,*args, **kwargs):

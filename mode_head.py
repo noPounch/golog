@@ -6,16 +6,14 @@ from shutil import copyfile
 import time, hcat, golog, window_manager, tk_funcs
 #panda imports
 from direct.showbase.DirectObject import DirectObject
+# from direct.showbase.InputStateGlobal import inputState
 from panda3d.core import TextNode, TextFont
 from panda3d.core import Camera, NodePath, OrthographicLens
 from panda3d.core import Vec3, Point3
 from panda3d.core import Plane, CollisionPlane, CollisionRay, CollisionNode, CollisionTraverser, CollisionHandlerQueue
 
-########### ??? Quest Log ??? ###########
-# - Fix latex folder creation issues (check under open_math_data)
-
-#functionality for updating a simplex's math_data
-
+#### Quests ####
+#?  add a None option for folder_path
 
 
 
@@ -63,13 +61,13 @@ class mode_head():
         ##########
 
 
-        # set up a reset function
+        #set up a reset function
         #if mode_head reset function, should be set at the end of every mode
         self.reset = self.basic_reset
 
     def open_math_data(self,math_data):
         if math_data.type == 'golog':
-            golog_dict = math_data()
+            golog_dict = math_data() #calls the mathdata (which is a golog_dict)
             subgolog = golog_dict['golog']
             subfolder_path = golog_dict['folder_path']
 
@@ -189,7 +187,7 @@ class mode_head():
         self.window_tasks = dict()
         self.listener.ignoreAll()
 
-    #cleans mode_head to preparte for garbage collecting.
+    #cleans mode_head to prepare for garbage collecting.
     def clean(self):
         self.reset()
         del self.golog.mode_heads[self.index]
@@ -264,12 +262,26 @@ class mode_head():
         self.textNP.setPos(-1,0,0)
         self.textNP.show()
 
+        #set up mouse1 watching
 
 
 
 
 
+        #stores currently grabbed node
+        self.grabbed_graphics = None
         def mouse1(mw):
+            if not mw.node().hasMouse(): return
+            (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
+            if node_type == '0':
+                self.grabbed_graphics = self.golog.NP_to_Graphics[entryNP]
+                print(self.grabbed_graphics)
+
+
+
+        def mouse1_up(mw):
+            self.grabbed_graphics = None
+            print(self.grabbed_graphics)
             (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
 
             if node_type == 'plane':
@@ -291,7 +303,6 @@ class mode_head():
                 self.update_math_data(simplex, asked_list[1], label = asked_list[0])
                 for node in self.selected[0]: node.setColorScale(1,1,1,1)
                 self.selected[0] = [] #reset selected
-
 
             #?  do something with selected 1 simplecies (i.e. selected[1])
         def space(mw):
@@ -334,8 +345,25 @@ class mode_head():
                 self.update_math_data(simplex, math_data_type = asked_list[1], label = asked_list[0])
 
 
-        def mouse_watch_test(mw,task):
-            if not mw.node().hasMouse():return task.cont
+        def mouse_watch_task(mw,task):
+            if not mw.node().hasMouse(): return task.cont
+
+            #draggng functionality
+            if self.grabbed_graphics:
+                mpos = mw.node().getMouse()
+                self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY()) #mouse ray goes from camera through the 'lens plane' at position of mouse
+                self.golog.cTrav.traverse(self.golog.render)
+                self.queue.sortEntries()
+                mouseloc = self.grabbed_graphics.graphics_kwargs['pos']
+                for e in self.queue.getEntries():
+                    if e.getIntoNodePath().getParent().getTag("mode_node") == 'plane':
+                        mouseloc = e.getSurfacePoint(e.getIntoNodePath())
+                        break
+
+                self.grabbed_graphics.update({'pos':mouseloc})
+
+
+
             (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
 
             if node_type == '0':
@@ -345,6 +373,7 @@ class mode_head():
                 simplex =  self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
             else: return task.cont
 
+            # set preview up
             if self.has_window:
                 if simplex.math_data.type == 'golog':
                     self.preview_dr.setCamera(simplex.math_data()['golog'].camera)
@@ -352,6 +381,13 @@ class mode_head():
                     self.preview_dr.setCamera(self.camera2D)
                     self.textNP.node().setText("label:\n" +simplex.label+"\n\n math data type:\n" + simplex.math_data.type)
             return task.cont
+
+            #watch for dragging
+            # have a bool tag on the pandanode that denotes it is being dragged
+            # on mouse1 click, if mouse is over a relevant node,
+
+
+            # check if mouse is still held, if so
 
         def save(mw):
             save_location = tk_funcs.ask_file_location(initial_dir = self.folder_path)
@@ -376,6 +412,6 @@ class mode_head():
             self.reset = self.basic_reset
 
         self.reset = reset
-        self.buttons = {'mouse1':mouse1,'mouse3':mouse3, 'space':space, 'escape':self.reset, 's':save, 'u':u}
-        self.window_tasks = {'mouse_watch_test':mouse_watch_test}
+        self.buttons = {'mouse1':mouse1, 'mouse1-up':mouse1_up, 'mouse3':mouse3, 'space':space, 'escape':self.reset, 's':save, 'u':u}
+        self.window_tasks = {'mouse_watch_task':mouse_watch_task}
         self.setup_window(windict)

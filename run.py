@@ -38,5 +38,4 @@ class runner(ShowBase):
 
 
 r = runner()
-debug = r.controllable_golog
 r.run()
