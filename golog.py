@@ -127,6 +127,9 @@ class Graphics_Data():
         self.textNP.setPos(0,-3,0)
         self.textNP.hide()
 
+        #helper function for displaying the text_nodes
+
+
 
 
 
@@ -180,6 +183,8 @@ class golog():
 
 
 
+
+
         # Load Models
         self.sphere = base.loader.loadModel("./models/sphere.egg.pz")
         self.cone = base.loader.loadModel("./models/sphere.egg.pz")
@@ -188,6 +193,18 @@ class golog():
         #set up collision traverser
         #? move to mode_head?
         self.cTrav = CollisionTraverser(self.label+'_traverser')
+
+    def text_preview_set(self, bool):
+        print(bool)
+        if bool == True:
+            for simplex in self.sSet.rawSimps:
+                if simplex in self.Simplex_to_Graphics.keys():
+                    self.Simplex_to_Graphics[simplex].textNP.show()
+
+        elif bool == False :
+            for simplex in self.sSet.rawSimps:
+                if simplex in self.Simplex_to_Graphics.keys():
+                    self.Simplex_to_Graphics[simplex].textNP.hide()
 
     def add(self, ob ,*args, **kwargs):
         #add a simplex to the underlying simplicial set

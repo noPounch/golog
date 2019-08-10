@@ -113,7 +113,11 @@ class mode_head():
 
     def update_math_data(self,simplex, math_data_type, **kwargs):
         if autosave == True: self.save()
+
         if 'label' in kwargs: simplex.label = kwargs['label']
+        print('hi :)')
+        self.golog.Simplex_to_Graphics[simplex].textNP.node().setText(simplex.label)
+        self.golog.text_preview_set(self.bools['textboxes'])
 
         if math_data_type == 'None':
             simplex.math_data = hcat.Math_Data(type = 'None')
@@ -251,6 +255,8 @@ class mode_head():
     #   u with mouse over simplex: update meta_data                   #
     #   s saves golog to a .golog file (using hcat_funcs.gexport)     #
     ###################################################################
+
+
 
     def selection_and_creation(self,windict):
         #? update reset

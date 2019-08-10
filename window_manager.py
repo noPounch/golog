@@ -31,19 +31,10 @@ def modeHeadToWindow(base, mode_head, windict = None):
 
     #set up window_events in mode_head (if this is the first time, this will change mode_head.bt/.mw)
     mode_head.selection_and_creation(windict)
-
     def text_preview():
-        if mode_head.bools['textboxes'] == False:
-            mode_head.bools['textboxes'] = True
-            for simplex in mode_head.golog.sSet.rawSimps:
-                if simplex in mode_head.golog.Simplex_to_Graphics.keys():
-                    mode_head.golog.Simplex_to_Graphics[simplex].textNP.show()
+        mode_head.bools['textboxes'] = not mode_head.bools['textboxes']
+        mode_head.golog.text_preview_set(mode_head.bools['textboxes'])
 
-        else:
-            mode_head.bools['textboxes'] = False
-            for simplex in mode_head.golog.sSet.rawSimps:
-                if simplex in mode_head.golog.Simplex_to_Graphics.keys():
-                    mode_head.golog.Simplex_to_Graphics[simplex].textNP.hide()
 
 
     mode_dict = {'Create':(lambda *x:print('Create')), 'Preview':text_preview}
