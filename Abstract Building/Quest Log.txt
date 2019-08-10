@@ -1,37 +1,54 @@
-o not important or urgent
--o not urgent, semi-important
---o not urgent, important
-x urgent but not important
--x urgent and semi important
---x urgent and important
-
+o = importance level
+x = urgency level
+- = organizational heirarchy
 
 
 
 __________QUESTS___________
+
+
+Modes:
+-ooo todo ontology
+
+
 SYSTEM:
-----------x change all of it to relative pathing
+-------o autosave
+
+Ontologies to Build:
+daily todo ontology
+
+
+Files
+-o create a 'save' ontology
+-- whenever save ontology updates, save
 
 Graphics
-o understand & fix imported golog red issue
---o 1-simplex graphics
---o display textbox with name
+- 1-simplex graphics orientation
+
 
 Simplicial Set:
--o cross simplex selection prevention
+
+
+
 
 GUI:
---o integrate creation button
---o integrate preview button
---o drag simplecies
---o mini display for math_data
-
+--
 
 Ontology Builders:
 ---o latex ontology
 
 _____________COMPLETED QUESTS_________
 System
+
+
+
+----------x change all of it to relative pathing
+o understand & fix imported golog red issue
 --x Compatible Pathing
 
 ---x ontology version updator
+--o integrate preview button
+--o drag simplecies
+--o mini display for math_data
+-o cross simplex selection prevention
+--o display textbox with name

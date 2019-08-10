@@ -14,7 +14,7 @@ from panda3d.core import Plane, CollisionPlane, CollisionRay, CollisionNode, Col
 
 #### Quests ####
 #?  add a None option for folder_path
-
+autosave = True
 
 
 class mode_head():
@@ -29,6 +29,8 @@ class mode_head():
         self.mw = None
         self.listener = DirectObject()
         self.folder_path = folder_path
+        print(folder_path)
+        self.file_path = os.path.abspath(self.folder_path + '/' + self.golog.label+ '.golog')
         self.has_window = False
 
 
@@ -110,6 +112,7 @@ class mode_head():
 
 
     def update_math_data(self,simplex, math_data_type, **kwargs):
+        if autosave == True: self.save()
         if 'label' in kwargs: simplex.label = kwargs['label']
 
         if math_data_type == 'None':
@@ -164,7 +167,7 @@ class mode_head():
             true_path = os.path.join(self.folder_path,*tex_file_path)
             if location == True: copyfile(os.path.abspath('./misc_data/config_files/template.tex'), true_path)
 
-                # 
+                #
                 # open(   true_path  , 'w').close()
             if isinstance(location, str): copyfile(location, true_path)
 
@@ -172,7 +175,8 @@ class mode_head():
             file_dict = {'tex':tex_file_path, 'folder':tex_folder_path}
             simplex.math_data = hcat.Math_Data(math_data = file_dict, type = 'latex')
 
-
+        #save golog
+        if autosave == True: self.save()
         return simplex.math_data
 
     def setup_window(self, windict):
@@ -182,6 +186,18 @@ class mode_head():
         for window_task in self.window_tasks.keys():
             base.taskMgr.add(self.window_tasks[window_task], window_task, extraArgs = [self.mw], appendTask = True)
         self.has_window = True
+
+    def save(self, *ask):
+        #if we pass something to ask it will ask (this includes mousewatchers)
+        if ask:
+            save_location = tk_funcs.ask_file_location(initial_dir = self.folder_path)
+            if not save_location: return #if user cancels
+            print('saving to:\n'+save_location)
+            gexport(self.golog, self.folder_path )
+        else:
+            gexport(self.golog, self.file_path)
+
+
 
 
     #basic reset functionality
@@ -407,7 +423,7 @@ class mode_head():
 
             # check if mouse is still held, if so
 
-        def save(mw):
+        def save(*mw):
             save_location = tk_funcs.ask_file_location(initial_dir = self.folder_path)
             if not save_location: return #if user cancels
             print('saving to:\n'+save_location)
@@ -430,6 +446,6 @@ class mode_head():
             self.reset = self.basic_reset
 
         self.reset = reset
-        self.buttons = {'mouse1':mouse1, 'mouse1-up':mouse1_up, 'mouse3':mouse3, 'space':space, 'escape':self.reset, 's':save, 'u':u}
+        self.buttons = {'mouse1':mouse1, 'mouse1-up':mouse1_up, 'mouse3':mouse3, 'space':space, 'escape':self.reset, 's':self.save, 'u':u}
         self.window_tasks = {'mouse_watch_task':mouse_watch_task}
         self.setup_window(windict)
