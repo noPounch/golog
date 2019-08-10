@@ -162,7 +162,10 @@ class mode_head():
             # if new, returns True and makes a new tex file below
             # if load, returns a path and copies the path into tex_file_path
             true_path = os.path.join(self.folder_path,*tex_file_path)
-            if location == True: open(   true_path  , 'w').close()
+            if location == True: copyfile(os.path.abspath('./misc_data/config_files/template.tex'), true_path)
+
+                # 
+                # open(   true_path  , 'w').close()
             if isinstance(location, str): copyfile(location, true_path)
 
             # make a file dictionary with just tex file in it
