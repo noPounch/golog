@@ -124,7 +124,7 @@ class Graphics_Data():
         self.textNP = self.NP.attachNewNode(text)
         #? make this update to always be in front of camera
         # - Either get it into 2d plane, or make a z axis that always faces the camera and attach to that
-        self.textNP.setPos(0,-3,0)
+        self.textNP.setPos(0,-1,0)
         self.textNP.hide()
 
         #helper function for displaying the text_nodes

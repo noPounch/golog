@@ -45,6 +45,8 @@ class mode_head():
         lens.setNearFar(-1000, 1000)
         self.camera2D.node().setLens(lens)
 
+        ######
+
 
         # make a dictionary of mode_heads in the underlying golog
         if hasattr(self.golog,'mode_heads'):
@@ -61,35 +63,10 @@ class mode_head():
             self.golog.mode_heads[self.index] = self
         ##########
 
-        ### set up collision handling ###
-        self.queue = CollisionHandlerQueue()
-        self.selected = [[],[]] #tracking previously selected nodes of each level
 
-        # set up mouse picker
-        self.pickerNode = CollisionNode('mouseRay')
-        self.pickerNP = self.golog.camera.attachNewNode(self.pickerNode) #attach collision node to camera
-        self.pickerRay = CollisionRay()
-        self.pickerNode.addSolid(self.pickerRay)
-        self.pickerNode.set_into_collide_mask(0) #so that collision rays don't collide into each other if there are two mode_heads
-        self.golog.cTrav.addCollider(self.pickerNP,self.queue) #send collisions to self.queue
-        # set up plane for picking
-        self.planeNode = self.golog.render.attachNewNode("plane")
-        self.planeNode.setTag("mode_head",self.label) # tag to say it belongs to this mode_head
-        self.planeNode.setTag("mode_node", 'plane')
-        self.planeFromObject = self.planeNode.attachNewNode(CollisionNode("planeColNode"))
-        self.planeFromObject.node().addSolid(CollisionPlane(Plane(Vec3(0,-1,0),Point3(0,0,0))))
-        ###
-        # set up preview text
-        self.textNP = self.render2d.attachNewNode(TextNode('text node'))
-        self.textNP.setScale(.2)
-        self.textNP.setPos(-1,0,0)
-        self.textNP.show()
-        #set up dragging info
-        self.grabbed_dict = None
-
-
-
-
+        #set up a reset function
+        #if mode_head reset function, should be set at the end of every mode
+        self.reset = self.basic_reset
 
     def open_math_data(self,math_data):
         if math_data.type == 'golog':
@@ -130,6 +107,10 @@ class mode_head():
 
 
             tk_funcs.pdf_or_tex(pdf_file, tex_file)
+
+
+
+
 
     def update_math_data(self,simplex, math_data_type, **kwargs):
         if autosave == True: self.save()
@@ -229,15 +210,21 @@ class mode_head():
 
         else: self.parent.save()# if parent has no mode_head, save itself
 
+
+
+
+    #basic reset functionality
     def basic_reset(self,*args):
         self.buttons = dict()
         self.window_tasks = dict()
         self.listener.ignoreAll()
 
+    #cleans mode_head to prepare for garbage collecting.
     def clean(self):
         self.reset()
         del self.golog.mode_heads[self.index]
         del self.reset
+
 
     def get_relevant_entries(self, mw):
         # get list of entries by distance
@@ -257,155 +244,194 @@ class mode_head():
             else:
                 entry = e
                 break
+        #############
 
         #return node selected in the golog
         entryNP = entry.getIntoNodePath().getParent()
         if entryNP.hasTag('level'): return (entryNP, entryNP.getTag('level'),entryNP.getPos())
 
-    def pickup(self, mw):
-        if not mw.node().hasMouse(): return
-        (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
-        if node_type in ['0','1']: self.grabbed_dict = {'graphics': self.golog.NP_to_Graphics[entryNP],'dragged':False,
-                                                        'orig_pos': entryNP.getPos()}
 
-    def putdown(self, mw):
-        if self.grabbed_dict:
-            if self.grabbed_dict['dragged'] == True:
+
+
+    #basic mode for selecting and creating simplecies
+    ################ CONTROLS #########################################
+    #   mouse_over: display label and mata_data_type                  #
+    #   left click: select simplex.                                   #
+    #   selecting two 0-simplecies creates a 1-simplex                #
+    #   right click: create simplex                                   #
+    #   dialog box pops up prompting for default labels and math_data #
+    #   space with mouse over simplex: open math_data                 #
+    #   u with mouse over simplex: update meta_data                   #
+    #   s saves golog to a .golog file (using hcat_funcs.gexport)     #
+    ###################################################################
+
+
+
+    def selection_and_creation(self,windict):
+        #? update reset
+        #? tie into the gui buttons
+        #Collision Handling
+        #set up traverser and handler
+        self.queue = CollisionHandlerQueue()
+        self.selected = [[],[]] #tracking previously selected nodes of each level
+
+        # set up mouse picker
+        self.pickerNode = CollisionNode('mouseRay')
+        self.pickerNP = self.golog.camera.attachNewNode(self.pickerNode) #attach collision node to camera
+        self.pickerRay = CollisionRay()
+        self.pickerNode.addSolid(self.pickerRay)
+        self.pickerNode.set_into_collide_mask(0) #so that collision rays don't collide into each other if there are two mode_heads
+        self.golog.cTrav.addCollider(self.pickerNP,self.queue) #send collisions to self.queue
+        # set up plane for picking
+        self.planeNode = self.golog.render.attachNewNode("plane")
+        self.planeNode.setTag("mode_head",self.label) # tag to say it belongs to this mode_head
+        self.planeNode.setTag("mode_node", 'plane')
+
+        self.planeFromObject = self.planeNode.attachNewNode(CollisionNode("planeColNode"))
+        self.planeFromObject.node().addSolid(CollisionPlane(Plane(Vec3(0,-1,0),Point3(0,0,0))))
+
+        #2d Text
+        self.textNP = self.render2d.attachNewNode(TextNode('text node'))
+        self.textNP.setScale(.2)
+        self.textNP.setPos(-1,0,0)
+        self.textNP.show()
+
+        #set up mouse1 watching
+
+
+
+
+
+        #stores currently grabbed node
+        self.grabbed_dict = None
+        def mouse1(mw):
+            if not mw.node().hasMouse(): return
+            (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
+            if node_type in ['0','1']: self.grabbed_dict = {'graphics': self.golog.NP_to_Graphics[entryNP],'dragged':False,
+                                                            'orig_pos': entryNP.getPos()}
+
+
+
+
+        def mouse1_up(mw):
+            #if there is a grabbed_dict, and it says the object has been dragged dont do selection stuff
+            if self.grabbed_dict:
+                if self.grabbed_dict['dragged'] == True:
+                    self.grabbed_dict = None
+                    return
                 self.grabbed_dict = None
-                return True
-            self.grabbed_dict = None
 
-    def select(self, mw):
-        if not mw.node().hasMouse(): return
+            if not mw.node().hasMouse(): return
 
-        ### selection ###
-        (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
-        if node_type == 'plane':
-            for node in self.selected[0]: node.setColorScale(1,1,1,1) #turn white
-            self.selected = [[],[]]
-        elif node_type == '0':# and set(selected[1:]) = {[]}:
-            if entryNP not in self.selected[0]:
-                #?  don't just append, re-sort
-                self.selected[0].append(entryNP)
-            entryNP.setColorScale(1,0,0,0) #turn red
+            ### selection ###
+            (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
+            if node_type == 'plane':
+                for node in self.selected[0]: node.setColorScale(1,1,1,1) #turn white
+                self.selected = [[],[]]
+            elif node_type == '0':# and set(selected[1:]) = {[]}:
+                if entryNP not in self.selected[0]:
+                    #?  don't just append, re-sort
+                    self.selected[0].append(entryNP)
+                entryNP.setColorScale(1,0,0,0) #turn red
 
-        if len(self.selected[0]) == 2:
-            # NP -> graphics -> simplex
-            faces = tuple([self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[faceNP]] for faceNP in self.selected[0][-1:-3:-1]])
-            asked_list = tk_funcs.ask_math_data('1-Simplex')
-            if not asked_list: #[label, math_data_type,]
-                return
-            simplex = self.golog.add(faces, label = asked_list[0]) #reversed selected objects and creates a 1 - simplex from them
-            self.update_math_data(simplex, asked_list[1], label = asked_list[0])
-            for node in self.selected[0]: node.setColorScale(1,1,1,1)
-            self.selected[0] = [] #reset selected
+            if len(self.selected[0]) == 2:
+                # NP -> graphics -> simplex
+                faces = tuple([self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[faceNP]] for faceNP in self.selected[0][-1:-3:-1]])
+                asked_list = tk_funcs.ask_math_data('1-Simplex')
+                if not asked_list: #[label, math_data_type,]
+                    return
+                simplex = self.golog.add(faces, label = asked_list[0]) #reversed selected objects and creates a 1 - simplex from them
+                self.update_math_data(simplex, asked_list[1], label = asked_list[0])
+                for node in self.selected[0]: node.setColorScale(1,1,1,1)
+                self.selected[0] = [] #reset selected
 
-    #open math_data of simplex under mouse
-    def mouse_open(self, mw):
-        (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
+            #?  do something with selected 1 simplecies (i.e. selected[1])
+        def space(mw):
+            (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
 
-        # if spaced on a 0 simplex, open it's math data, or create it
-        if node_type in ['0','1']:
-            simplex = self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
-            if not simplex.math_data():
+            # if spaced on a 0 simplex, open it's math data, or create it
+            if node_type in ['0','1']:
+                simplex = self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
+                if not simplex.math_data():
+                    asked_list = tk_funcs.ask_math_data(simplex.label)
+                    if not asked_list:
+                        return
+                    self.update_math_data(simplex, math_data_type = asked_list[1], label = asked_list[0])
+                    #? make asynchronous
+
+
+                else:
+                    self.open_math_data(simplex.math_data)
+
+        def u(mw):
+            (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
+            if node_type in ['0','1']:
+                simplex = self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
                 asked_list = tk_funcs.ask_math_data(simplex.label)
                 if not asked_list:
                     return
                 self.update_math_data(simplex, math_data_type = asked_list[1], label = asked_list[0])
-                #? make asynchronous
-
-
-            else:
-                self.open_math_data(simplex.math_data)
-
-    def mouse_update(self, mw):
-        (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
-        if node_type in ['0','1']:
-            simplex = self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
-            asked_list = tk_funcs.ask_math_data(simplex.label)
-            if not asked_list:
-                return
-            self.update_math_data(simplex, math_data_type = asked_list[1], label = asked_list[0])
-
-    def create(self, mw):
-        (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
-
-        if node_type == 'plane':
-            for node in self.selected[0]: node.setColorScale(1,1,1,1) #turn white
-            self.selected = [[],[]]
-            asked_list = tk_funcs.ask_math_data('0-Simplex')
-            if not asked_list:
-                return #if canceled, do not create a simplex
-            simplex = self.golog.add(0, pos = entry_pos, label = asked_list[0]) #create a simplex
-            self.update_math_data(simplex, math_data_type = asked_list[1], label = asked_list[0])
-
-    def drag(self, mw):
-        if self.grabbed_dict:
-            mpos = mw.node().getMouse()
-            self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY()) #mouse ray goes from camera through the 'lens plane' at position of mouse
-            self.golog.cTrav.traverse(self.golog.render)
-            self.queue.sortEntries()
-            mouseloc = self.grabbed_dict['graphics'].graphics_kwargs['pos']
-            for e in self.queue.getEntries():
-                if e.getIntoNodePath().getParent().getTag("mode_node") == 'plane':
-                    mouseloc = e.getSurfacePoint(e.getIntoNodePath())
-                    break
-
-
-
-            offset = mouseloc - self.grabbed_dict['graphics'].parent_pos_convolution()
-            delta = offset - self.grabbed_dict['orig_pos']
-            norm = delta.getX()**2 +delta.getY()**2 +delta.getZ()**2
-            if self.grabbed_dict['dragged'] == True or norm > 1:
-                self.grabbed_dict['dragged'] = True
-            #if offset magnitude is greater than 1 or dragged == true, actually drag it
-            if self.grabbed_dict['dragged'] == True: self.grabbed_dict['graphics'].update({'pos':offset})
-
-
-    def preview(self, mw):
-        (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
-
-        if node_type == '0':
-            simplex =  self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
-        elif node_type == '1':
-            #? again consider what needs to be shown with 1-simplecies
-            simplex =  self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
-        else: return
-
-        # set preview up
-        if self.has_window:
-            if simplex.math_data.type == 'golog':
-                self.preview_dr.setCamera(simplex.math_data()['golog'].camera)
-            else:
-                self.preview_dr.setCamera(self.camera2D)
-                self.textNP.node().setText("label:\n" +simplex.label+"\n\n math data type:\n" + simplex.math_data.type)
-        return
-
-
-
-    def selection_and_creation(self, windict):
-        def mouse1(mw):
-            print('hi')
-            self.pickup(mw)
-
-        def mouse1_up(mw):
-            if self.putdown(mw): return #if it's been dragged, don't select
-            self.select(mw)
-
-        def space(mw):
-            self.mouse_open(mw)
-
-        def u(mw):
-            self.mouse_update(me)
 
         def mouse3(mw):
-            self.create(mw)
+
+            (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
+
+            if node_type == 'plane':
+                for node in self.selected[0]: node.setColorScale(1,1,1,1) #turn white
+                self.selected = [[],[]]
+                asked_list = tk_funcs.ask_math_data('0-Simplex')
+                if not asked_list:
+                    return #if canceled, do not create a simplex
+                simplex = self.golog.add(0, pos = entry_pos, label = asked_list[0]) #create a simplex
+                self.update_math_data(simplex, math_data_type = asked_list[1], label = asked_list[0])
+
 
         def mouse_watch_task(mw,task):
             if not mw.node().hasMouse(): return task.cont
-            self.drag(mw)
-            self.preview(mw)
+
+            #draggng functionality
+            if self.grabbed_dict:
+                mpos = mw.node().getMouse()
+                self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY()) #mouse ray goes from camera through the 'lens plane' at position of mouse
+                self.golog.cTrav.traverse(self.golog.render)
+                self.queue.sortEntries()
+                mouseloc = self.grabbed_dict['graphics'].graphics_kwargs['pos']
+                for e in self.queue.getEntries():
+                    if e.getIntoNodePath().getParent().getTag("mode_node") == 'plane':
+                        mouseloc = e.getSurfacePoint(e.getIntoNodePath())
+                        break
+
+
+
+                offset = mouseloc - self.grabbed_dict['graphics'].parent_pos_convolution()
+                delta = offset - self.grabbed_dict['orig_pos']
+                norm = delta.getX()**2 +delta.getY()**2 +delta.getZ()**2
+                if self.grabbed_dict['dragged'] == True or norm > 1:
+                    self.grabbed_dict['dragged'] = True
+                #if offset magnitude is greater than 1 or dragged == true, actually drag it
+                if self.grabbed_dict['dragged'] == True: self.grabbed_dict['graphics'].update({'pos':offset})
+
+
+
+            (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
+
+            if node_type == '0':
+                simplex =  self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
+            elif node_type == '1':
+                #? again consider what needs to be shown with 1-simplecies
+                simplex =  self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
+            else: return task.cont
+
+            # set preview up
+            if self.has_window:
+                if simplex.math_data.type == 'golog':
+                    self.preview_dr.setCamera(simplex.math_data()['golog'].camera)
+                else:
+                    self.preview_dr.setCamera(self.camera2D)
+                    self.textNP.node().setText("label:\n" +simplex.label+"\n\n math data type:\n" + simplex.math_data.type)
             return task.cont
+
+
 
         def reset(*args):
             self.golog.cTrav.removeCollider(self.pickerNP)
@@ -421,8 +447,8 @@ class mode_head():
             self.window_tasks = []
             self.listener.ignoreAll()
             self.reset = self.basic_reset
-        self.reset = reset
 
+        self.reset = reset
         self.buttons = {'mouse1':mouse1, 'mouse1-up':mouse1_up, 'mouse3':mouse3, 'space':space, 'escape':self.reset, 's':self.save, 'u':u}
         self.window_tasks = {'mouse_watch_task':mouse_watch_task}
         self.setup_window(windict)
