@@ -18,7 +18,7 @@ autosave = True
 
 
 class mode_head():
-    def __init__(self,base,Golog, folder_path):
+    def __init__(self,base,Golog, folder_path, parent = None):
         # Set up basic attributes
         self.base = base
         self.golog = Golog
@@ -32,6 +32,7 @@ class mode_head():
         print('golog: '+self.golog.label+'\nfolder path: ', folder_path)
         self.file_path = os.path.abspath(self.folder_path + '/' + self.golog.label+ '.golog')
         self.has_window = False
+        self.parent = parent #for autosaving up to original golog
 
 
         #create a 2d rende
@@ -78,7 +79,7 @@ class mode_head():
             if not os.path.exists(subgolog_folder_path): os.mkdir(subgolog_folder_path)
             ####
             folder_path = os.path.join(self.folder_path, *golog_dict['folder_path'])
-            controllable_golog = mode_head(self.base, subgolog, folder_path = folder_path)
+            controllable_golog = mode_head(self.base, subgolog, folder_path = folder_path, parent = self)
             window_manager.modeHeadToWindow(self.base, controllable_golog)
 
         if math_data.type == 'file':
@@ -196,14 +197,18 @@ class mode_head():
         self.has_window = True
 
     def save(self, *ask):
+        #if has a parent, save the parent. If not, save itself
+        if not self.parent: #if doesn't have a parent mode_head, save parent
         #if we pass something to ask it will ask (this includes mousewatchers)
-        if ask:
-            save_location = tk_funcs.ask_file_location(initial_dir = self.folder_path)
-            if not save_location: return #if user cancels
-            print('saving to:\n'+save_location)
-            gexport(self.golog,  self.folder_path)
-        else:
-            gexport(self.golog,  self.file_path)
+            if ask:
+                save_location = tk_funcs.ask_file_location(initial_dir = self.folder_path)
+                if not save_location: return #if user cancels
+                print('saving to:\n'+save_location)
+                gexport(self.golog,  self.folder_path)
+            else:
+                gexport(self.golog,  self.file_path)
+
+        else: self.parent.save()# if parent has no mode_head, save itself
 
 
 
