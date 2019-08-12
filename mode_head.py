@@ -29,7 +29,7 @@ class mode_head():
         self.mw = None
         self.listener = DirectObject()
         self.folder_path = folder_path
-        print(folder_path)
+        print('golog: '+self.golog.label+'\nfolder path: ', folder_path)
         self.file_path = os.path.abspath(self.folder_path + '/' + self.golog.label+ '.golog')
         self.has_window = False
 
@@ -77,8 +77,8 @@ class mode_head():
             subgolog_folder_path = os.path.join(self.folder_path,'subgologs')
             if not os.path.exists(subgolog_folder_path): os.mkdir(subgolog_folder_path)
             ####
-
-            controllable_golog = mode_head(self.base, subgolog, folder_path = subgolog_folder_path)
+            folder_path = os.path.join(self.folder_path, *golog_dict['folder_path'])
+            controllable_golog = mode_head(self.base, subgolog, folder_path = folder_path)
             window_manager.modeHeadToWindow(self.base, controllable_golog)
 
         if math_data.type == 'file':
@@ -115,7 +115,6 @@ class mode_head():
         if autosave == True: self.save()
 
         if 'label' in kwargs: simplex.label = kwargs['label']
-        print('hi :)')
         self.golog.Simplex_to_Graphics[simplex].textNP.node().setText(simplex.label)
         self.golog.text_preview_set(self.bools['textboxes'])
 
@@ -128,6 +127,9 @@ class mode_head():
             subgolog_folder_path = os.path.join(self.folder_path,'subgologs')
             if not os.path.exists(subgolog_folder_path): os.mkdir(subgolog_folder_path)
 
+
+
+
             new_golog = golog.golog(self.base, label = kwargs['label']) #create a new golog
 
             #create a unique folder path list in subgolog_folder_path
@@ -136,6 +138,8 @@ class mode_head():
             os.mkdir(os.path.join(self.folder_path , *new_folder_path)) #make the directory as above
             #create a new golog save at new_folder_path/label.golog
             new_save_location = os.path.join(self.folder_path, *new_folder_path, kwargs['label']+'.golog')
+
+            #new_save_location should be a subfolder of subgologs
             gexport(new_golog, new_save_location)
 
             #math data is a dictionary of the physical golog and it's relative save path list
@@ -197,9 +201,9 @@ class mode_head():
             save_location = tk_funcs.ask_file_location(initial_dir = self.folder_path)
             if not save_location: return #if user cancels
             print('saving to:\n'+save_location)
-            gexport(self.golog, self.folder_path )
+            gexport(self.golog,  self.folder_path)
         else:
-            gexport(self.golog, self.file_path)
+            gexport(self.golog,  self.file_path)
 
 
 
@@ -429,11 +433,10 @@ class mode_head():
 
             # check if mouse is still held, if so
 
-        def save(*mw):
-            save_location = tk_funcs.ask_file_location(initial_dir = self.folder_path)
-            if not save_location: return #if user cancels
-            print('saving to:\n'+save_location)
-            gexport(self.golog, save_location)
+        # def save(*mw):
+        #     save_location = tk_funcs.ask_file_location(initial_dir = self.folder_path)
+        #     if not save_location: return #if user cancels
+        #     gexport(self.golog, save_location)
 
 
         def reset(*args):

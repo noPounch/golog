@@ -10,6 +10,25 @@ from tk_funcs import save_load_new
 
 version = '1.0.0'
 
+def new_golog(base, folder_path,golog_file):
+    golog = Golog(base, label = golog_file.split('.golog')[0])
+    golog_folder = os.path.join(folder_path,golog.label)
+    if not os.path.exists(golog_folder): os.mkdir(golog_folder)
+    save_location = os.path.join(golog_folder,golog.label+'.golog')
+
+
+    gexport(golog, save_location)
+    controllable_golog = mode_head(base,golog, folder_path = golog_folder)
+    modeHeadToWindow(base, controllable_golog)
+    return controllable_golog
+
+def load_golog(base, folder_path, save_location):
+    golog = gimport(base,save_location)
+    controllable_golog = mode_head(base,golog, folder_path = folder_path)
+    modeHeadToWindow(base, controllable_golog)
+    return controllable_golog
+
+
 
 class runner(ShowBase):
     def __init__(self):
@@ -23,18 +42,11 @@ class runner(ShowBase):
 
         (newv, save_location) = save_load_new()
         (folder_path, golog_file) = os.path.split(save_location)
-        print(save_location)
 
-        if newv:
-            golog = Golog(self, label = golog_file.split('.golog')[0])
-            gexport(golog, save_location)
-            self.controllable_golog = mode_head(self,golog, folder_path = folder_path)
-            modeHeadToWindow(self, self.controllable_golog)
 
-        elif not newv:
-            golog = gimport(self,save_location)
-            self.controllable_golog = mode_head(self,golog, folder_path = folder_path)
-            modeHeadToWindow(self, self.controllable_golog)
+        if newv: new_golog(self,folder_path, golog_file)
+
+        elif not newv: load_golog(self, folder_path,save_location)
 
 
 r = runner()

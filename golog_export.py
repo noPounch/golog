@@ -51,6 +51,10 @@ def golog_to_sSet(golog):
 #strip golog's graphics and math_data
 #export math data and graphics_kwargs
 def gexport(golog,location_string):
+    ''' takes a golog and a absolute path, and exports it to that path '''
+    #check if location exists
+    golog_folder = os.path.join(location_string, golog.label)
+    if os.path.exists(golog_folder): print('MAY OVER RIDE GOLOG OF SAME NAME')
     export_sSet = golog_to_sSet(golog) # create pickle-able sSet
     export_simplex = Simplex(0,math_data = Math_Data(type = 'exported golog', math_data = export_sSet)) #create a simplex from the export_sSet
     export_meta = export_data(export_simplex, export_version = export_version) # create meta_data in the form of export_data
@@ -93,5 +97,3 @@ def gimport(base, path):
 if __name__ == '__main__':
     from direct.showbase.ShowBase import ShowBase
     r = ShowBase()
-    g = gimport(r, '/home/pounch/code/python/miniconda3/envs/golog/root/save/Table Ontology/Table Ontoloy.golog')
-    print([simp.label for simp in g.sSet.rawSimps])

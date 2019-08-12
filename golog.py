@@ -195,7 +195,6 @@ class golog():
         self.cTrav = CollisionTraverser(self.label+'_traverser')
 
     def text_preview_set(self, bool):
-        print(bool)
         if bool == True:
             for simplex in self.sSet.rawSimps:
                 if simplex in self.Simplex_to_Graphics.keys():

@@ -7,8 +7,6 @@ def ask_simplex_data():
 
     master = Tk()
     master.title('simplex data')
-    mathDataString = None
-    label = None
 
     Label(master, text='Label').grid(row=0,column = 0)
     labelvar = StringVar(master)
@@ -33,17 +31,19 @@ def ask_simplex_data():
     master.mainloop()
     return (labelvar.get(), MathDataVariable.get())
 
+# ask_simplex_data()
+
 def ask_math_data(Default_Label = 'Simplex'):
     master = Tk()
     master.title('simplex data')
-    mathDataString = None
     master.returner = None
+
 
     Label(master, text='Label').grid(row=0,column = 0)
     labelvar = StringVar(master)
     labelvar.set(Default_Label)
-    Entry(master, textvariable=labelvar).grid(row = 0, column = 1)
-
+    labelentry = Entry(master, textvariable=labelvar)
+    labelentry.grid(row = 0, column = 1)
 
     #data options on click
     options = ['None','golog', 'file','latex']
@@ -62,10 +62,14 @@ def ask_math_data(Default_Label = 'Simplex'):
         master.destroy()
     Button(master, text = 'cancel', command = cancel).grid(row = 2, column = 1)
 
+    master.bind("<FocusIn>", lambda entry: labelentry.selection_range(0, END))
+    master.bind("<Return>", lambda entry: create())
+    master.after(1,master.focus_force())
+    master.after(1,labelentry.focus())
     master.mainloop()
     return master.returner #if create, returns type, if cancel, returns None
 
-# print(ask_math_data('hello'))
+# ask_math_data('hello')
 
 def save_load_new(default_location = os.path.abspath('./save')):
     master = Tk()
@@ -125,7 +129,6 @@ def unique_path(root, path = []):
     return path[:-1] + [path[-1] + str(cpesmd(0))+ext]
 
 
-# print(unique_path(os.path.abspath('.'),['save','Testing','latex','0-simplex']))
 
 def load_tex(abs_path):
     master = Tk()
@@ -231,6 +234,8 @@ def run_program(default_program = '', file=''):
 
     Button(root, text = 'run command', command = docommand).grid(row=1,column=2)
     root.mainloop()
+
+# run_program()
 
 def pdf_or_tex(pdf_file,tex_file):
     root = Tk()

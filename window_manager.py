@@ -42,6 +42,9 @@ def modeHeadToWindow(base, mode_head, windict = None):
     for button in windict['guibuttons'].keys():
         base.accept(windict['guibuttons'][button],mode_dict[button])
 
+    #? make accept f5/f6
+    # for button in buttons.keys():
+    #     base.accept(button, )
     return windict
 
 #used for previews
