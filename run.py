@@ -61,6 +61,7 @@ class runner(ShowBase):
     def __init__(self):
         ShowBase.__init__(self, windowType = 'none')
         self.disable_mouse()
+        self.debugob = None
 
         #get or create config dictionary
         config_dict = bootstrap_config()

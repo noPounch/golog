@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, platform
 import gc
 from math import cos, sin
 from direct.task import Task
@@ -6,6 +6,8 @@ from panda3d.core import WindowProperties, PGTop
 from panda3d.core import NodePath, MouseWatcher, ButtonThrower, MouseAndKeyboard, Camera, OrthographicLens
 from direct.showbase.DirectObject import DirectObject
 from direct.gui.DirectGui import DirectFrame,DirectLabel,DirectButton
+
+
 
 rs = 1920-6 #side minus some padding
 bs = 1080-30 #bottom minus toolbar
@@ -18,11 +20,16 @@ buttons = {'f5':sys.exit,'f6':sys.exit}
 listener = DirectObject()
 win_to_windict = dict()
 
-def modeHeadToWindow(base, mode_head, windict = None):
+def modeHeadToWindow(base, mode_head):
 
+    #? if modeHead is open in another window, just focus that window
     i = len(base.winList)
-    if not windict:
-        windict = windowMaker(base, "win{}".format(i))
+    if mode_head.has_window == True:
+        wp = WindowProperties()
+        wp.setForeground(True)
+        mode_head.windict['win'].requestProperties(wp)
+        return #focus window
+    windict = windowMaker(base, "win{}".format(i))
 
     win = windict['win']; mw = windict['mw']; bt = windict['bt']; mk = windict['mk']
 
@@ -35,9 +42,13 @@ def modeHeadToWindow(base, mode_head, windict = None):
         mode_head.bools['textboxes'] = not mode_head.bools['textboxes']
         mode_head.golog.text_preview_set(mode_head.bools['textboxes'])
 
+    #if mode_head has a parent, create a button to open it
+    if mode_head.parent:
+        createButton(base, windict['gui_frame'], .4, "Parent"+mode_head.parent.golog.label, bt.prefix+"parent")
+        windict['guibuttons']['Parent'] = bt.prefix+"parent"
 
 
-    mode_dict = {'Create':(lambda *x:print('Create')), 'Preview':text_preview}
+    mode_dict = {'Preview':text_preview,"Parent": lambda *x: modeHeadToWindow(base, mode_head.parent)}
     #do something with guibuttons
     for button in windict['guibuttons'].keys():
         base.accept(windict['guibuttons'][button],mode_dict[button])
@@ -132,13 +143,14 @@ def windowMaker(base,label):
     frame = DirectFrame(frameSize = (-1,1,-1,1), frameColor = (.5,.5,.5,1), relief = 'ridge')
     frame.reparentTo(aspectgui)
     frame.setTransparency(0)
+    windict['gui_frame'] = frame
 
     #create Gui elements
     guibuttons = dict()
-    guibuttons['Create'] = label+"_mode_create"
-    guibuttons['Preview'] = label+"_mode_preview"
-    createButton(base, frame, .7, "Create", label+"_mode_create")
-    createButton(base, frame, .4, "Preview", label+"_mode_preview")
+    # guibuttons['Create'] = label+"_mode_create"
+    guibuttons['Preview'] = label+"_preview"
+    # createButton(base, frame, .7, "Create", label+"_mode_create")
+    createButton(base, frame, .7, "Preview", label+"_preview")
     windict['guibuttons'] = guibuttons
 
 

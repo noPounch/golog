@@ -33,6 +33,7 @@ class mode_head():
         self.file_path = os.path.abspath(self.folder_path + '/' + self.golog.label+ '.golog')
         self.has_window = False
         self.parent = parent #for autosaving up to original golog
+        self.reset = self.basic_reset
 
 
         #create a 2d rende
@@ -208,11 +209,11 @@ class mode_head():
         return simplex.math_data
 
     def setup_window(self, windict):
-        for winob in windict.keys(): setattr(self, winob, windict[winob])
+        self.windict = windict
         for button in self.buttons.keys():
-            self.listener.accept(self.bt.prefix+button, self.buttons[button], extraArgs = [self.mw])
+            self.listener.accept(self.windict['bt'].prefix+button, self.buttons[button], extraArgs = [self.windict['mw']])
         for window_task in self.window_tasks.keys():
-            base.taskMgr.add(self.window_tasks[window_task], window_task, extraArgs = [self.mw], appendTask = True)
+            base.taskMgr.add(self.window_tasks[window_task], window_task, extraArgs = [self.windict['mw']], appendTask = True)
         self.has_window = True
 
     def save(self, *ask):
@@ -236,8 +237,10 @@ class mode_head():
 
     def clean(self):
         self.reset()
+        self.has_window = False
         del self.golog.mode_heads[self.index]
         del self.reset
+        print('cleaned '+self.golog.label+' mode_head')
 
     def get_relevant_entries(self, mw):
         # get list of entries by distance
@@ -375,9 +378,9 @@ class mode_head():
         # set preview up
         if self.has_window:
             if simplex.math_data.type == 'golog':
-                self.preview_dr.setCamera(simplex.math_data()['golog'].camera)
+                self.windict['preview_dr'].setCamera(simplex.math_data()['golog'].camera)
             else:
-                self.preview_dr.setCamera(self.camera2D)
+                self.windict['preview_dr'].setCamera(self.camera2D)
                 self.textNP.node().setText("label:\n" +simplex.label+"\n\n math data type:\n" + simplex.math_data.type)
         return
 
@@ -407,18 +410,8 @@ class mode_head():
             return task.cont
 
         def reset(*args):
-            self.golog.cTrav.removeCollider(self.pickerNP)
-            del self.queue
-            for node in self.selected[0]: node.setColorScale(1,1,1,1)
-            del self.selected
-            del self.pickerNode
-            self.pickerNP.removeNode()
-            del self.pickerRay
-            self.planeNode.removeNode()
-            self.planeFromObject.removeNode()
             self.buttons = dict()
-            self.window_tasks = []
-            self.listener.ignoreAll()
+            self.window_task = dict()
             self.reset = self.basic_reset
         self.reset = reset
 
