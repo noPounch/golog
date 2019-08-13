@@ -1,8 +1,36 @@
-import os, subprocess, platform
+import os, subprocess, platform, shutil
 import sys
 from tkinter import *
 from tkinter import filedialog
 from datetime import date
+
+
+def ask_delete_path(file_path):
+
+    if os.path.isdir(file_path):dir = True
+    elif os.path.isfile(file_path): dir = False
+    else: return
+
+    master = Tk()
+    master.title('Are you sure you want to delete this path?')
+    Label(master, text = file_path).grid(row = 0)
+    def yes():
+        if dir:
+            shutil.rmtree(file_path)
+            master.destroy()
+        else:
+            os.remove(file_path)
+            master.destroy()
+    Button(master,text = 'yes',command = yes).grid(row = 1,sticky='nesw')
+
+
+
+    def no():
+        master.destroy()
+    Button(master,text = 'no',command = no).grid(row = 2,sticky='nesw')
+
+# ask_delete_file(filedialog.askopenfilename(initialdir = os.path.abspath('./user_files/save'),title = "Select file", filetypes = (("gologs","*.golog"),("all files","*.*"))))
+# ask_delete_file(filedialog.askdirectory(initialdir = os.path.abspath('./user_files/save'),title = "Select file"))
 
 def ask_simplex_data():
 

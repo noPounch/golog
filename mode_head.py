@@ -17,6 +17,7 @@ from panda3d.core import Plane, CollisionPlane, CollisionRay, CollisionNode, Col
 autosave = True
 
 
+
 class mode_head():
     def __init__(self,base,Golog, folder_path, parent = None):
         # Set up basic attributes
@@ -34,6 +35,7 @@ class mode_head():
         self.has_window = False
         self.parent = parent #for autosaving up to original golog
         self.reset = self.basic_reset
+        self.garbage = [] #list of deleted math_data/graphics_data etc.
 
 
         #create a 2d rende
@@ -208,6 +210,39 @@ class mode_head():
         if autosave == True: self.save()
         return simplex.math_data
 
+    def delete_math_data(self,simplex,**kwargs):
+        type = simplex.math_data.type
+
+        if simplex.math_data.type == 'golog':
+            golog_dict = simplex.math_data()
+            #remove close window and remove mode_head if it has
+            golog = golog_dict['golog']
+            #if it's list of mode_heads is not empty
+            if hasattr(golog,'mode_heads'):
+                for mode_head in golog.mode_heads:
+                    if mode_head.has_window:
+                        if hasattr(mode_head,'windict'):
+                            if 'win' in mode_head.windict.keys():
+                                self.base.closeWindow(mode_head.windict['win'], keepCamera = True, removeWindow = True)
+                    mode_head.reset()
+                    mode_head.clean()
+
+            folder_path = os.path.join(self.folder_path, *golog_dict['folder_path'])
+            tk_funcs.ask_delete_path(folder_path)
+
+        elif simplex.math_data.type == 'file':
+            abs_file_path = os.path.join(self.folder_path,*simplex.math_data())
+            tk_funcs.ask_delete_path(abs_file_path)
+
+        elif simplex.math_data.type == 'latex':
+            folder = os.path.join(self.folder_path, simplex.math_data()['folder'])
+            tk_funcs.ask_delete_path(folder)
+
+        simplex.math_data = hcat.Math_Data(type = 'None')
+
+
+
+
     def setup_window(self, windict):
         self.windict = windict
         for button in self.buttons.keys():
@@ -321,6 +356,12 @@ class mode_head():
             else:
                 self.open_math_data(simplex.math_data)
 
+    def delete(self,mw):
+        (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
+        if node_type in ['0','1']:
+            simplex = self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
+            self.delete_math_data(simplex)
+
     def mouse_update(self, mw):
         (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
         if node_type in ['0','1']:
@@ -403,6 +444,9 @@ class mode_head():
         def mouse3(mw):
             self.create(mw)
 
+        def backspace(mw):
+            self.delete(mw)
+
         def mouse_watch_task(mw,task):
             if not mw.node().hasMouse(): return task.cont
             self.drag(mw)
@@ -415,6 +459,6 @@ class mode_head():
             self.reset = self.basic_reset
         self.reset = reset
 
-        self.buttons = {'mouse1':mouse1, 'mouse1-up':mouse1_up, 'mouse3':mouse3, 'space':space, 'escape':self.reset, 's':self.save, 'u':u}
+        self.buttons = {'mouse1':mouse1, 'mouse1-up':mouse1_up, 'mouse3':mouse3, 'space':space, 'escape':self.reset, 's':self.save, 'u':u,'backspace':backspace}
         self.window_tasks = {'mouse_watch_task':mouse_watch_task}
         self.setup_window(windict)
