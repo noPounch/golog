@@ -156,6 +156,7 @@ def save_load_new(default_location = os.path.abspath('./user_files/save'), recen
 
     if recent_path:
         Button(master, text = 'Recent',command =  recg).grid(row = 1,column = 1)
+        Label(text = os.path.split(recent_path)[1]).grid(row = 2, column = 1)
 
     def loadD():
         daily_path = os.path.join(default_location,'daily_ontologies')
