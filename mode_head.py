@@ -382,7 +382,6 @@ class mode_head():
         return
 
 
-
     def selection_and_creation(self, windict):
         def mouse1(mw):
             print('hi')

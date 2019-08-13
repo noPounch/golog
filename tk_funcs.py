@@ -2,6 +2,7 @@ import os, subprocess, platform
 import sys
 from tkinter import *
 from tkinter import filedialog
+from datetime import date
 
 def ask_simplex_data():
 
@@ -69,42 +70,8 @@ def ask_math_data(Default_Label = 'Simplex'):
     master.mainloop()
     return master.returner #if create, returns type, if cancel, returns None
 
-# ask_math_data('hello')
-
-def save_load_new(default_location = os.path.abspath('./save')):
-    master = Tk()
-    master.title('New / Load golog')
-    master.newvar = False
-    master.namevar = StringVar(master)
-    Label(text = 'Golog Name:').grid(row = 0, column = 0)
-    Entry(textvariable = master.namevar).grid(row = 0, column = 1)
 
 
-    master.loc = None
-    def loadg():
-        master.loc = filedialog.askopenfilename(initialdir = default_location,title = "Select file", filetypes = (("gologs","*.golog"),("all files","*.*")))
-        if master.loc: #if location is provided, destroy and return. Else go back to save_load_new
-            master.destroy()
-
-    def newg():
-        master.newvar = True
-        proploc = os.path.join(os.path.abspath(filedialog.askdirectory(initialdir = default_location)),os.path.relpath(master.namevar.get()+'.golog'))
-        if os.path.exists(proploc): #if proposed location already exists change name
-            master.namevar.set(master.namevar.get()+"(new)")
-        else:
-            master.loc = proploc
-            master.destroy()
-
-    #data options on click
-    Button(master, text = 'Load', command = loadg).grid(row = 1,column = 0)
-    Button(master, text = 'New',command =  newg).grid(row = 1,column = 1)
-
-    master.mainloop()
-    #do after master tkbox is destroyed
-    #return whether it is a new golog or loading a golog, and it's folder on this system
-    return (master.newvar, master.loc)
-
-# makes a unique path from a root in save with given name
 def unique_path(root, path = []):
     if not path: return path
     if isinstance(path,str): path = [path] #should pass a list, but just in case
@@ -127,6 +94,88 @@ def unique_path(root, path = []):
     #get rid of extention for now, recover it on return
     path[-1], ext = os.path.splitext(path[-1])
     return path[:-1] + [path[-1] + str(cpesmd(0))+ext]
+
+
+# ask_math_data('hello')
+
+def save_load_new(default_location = os.path.abspath('./user_files/save'), recent_path = None):
+    master = Tk()
+    master.title('New / Load golog')
+    master.newvar = False
+    master.namevar = StringVar(master)
+    master.namevar.set('Name_Your_Golog')
+    Label(text = 'Golog Name:').grid(row = 0, column = 0)
+    Entry(textvariable = master.namevar).grid(row = 0, column = 1)
+
+
+    master.loc = None
+    def loadg():
+        master.loc = filedialog.askopenfilename(initialdir = default_location,title = "Select file", filetypes = (("gologs","*.golog"),("all files","*.*")))
+        if master.loc: #if location is provided, destroy and return. Else go back to save_load_new
+            master.destroy()
+    Button(master, text = 'Load', command = loadg).grid(row = 1,column = 2)
+
+    def newg():
+        master.newvar = True
+        if not master.namevar.get():
+            master.namevar.set('Seriously')
+            return
+        proploc = os.path.join(os.path.abspath(filedialog.askdirectory(initialdir = default_location)),os.path.relpath(master.namevar.get()+'.golog'))
+        if os.path.exists(proploc): #if proposed location already exists change name
+            master.namevar.set(master.namevar.get()+"(new)")
+
+        else:
+            master.loc = proploc
+            master.destroy()
+    Button(master, text = 'New',command =  newg).grid(row = 1,column = 0)
+
+
+
+    #data options on click
+
+    def newD():
+        daily_path = os.path.join(default_location,'daily_ontologies')
+        if not os.path.exists(daily_path):os.mkdir(daily_path)
+        master.newvar = True
+        formatted_date = date.today().strftime('%b')+'_'+date.today().strftime('%d')+'_'+date.today().strftime('%Y')
+        date_path = os.path.join(daily_path,formatted_date)
+        if not os.path.exists(date_path):os.mkdir(date_path)
+        master.loc = os.path.join(date_path,*unique_path(date_path,['daily_golog.golog']))
+        master.destroy()
+    Button(master, text = 'New Daily', command = newD).grid(row = 2,column = 0)
+
+
+
+    def recg():
+        master.newvar = False
+        master.loc = recent_path
+        master.destroy()
+
+
+
+
+    if recent_path:
+        Button(master, text = 'Recent',command =  recg).grid(row = 1,column = 1)
+
+    def loadD():
+        daily_path = os.path.join(default_location,'daily_ontologies')
+        if not os.path.exists(daily_path):os.mkdir(daily_path)
+        master.loc = filedialog.askopenfilename(initialdir = daily_path,title = "Select file", filetypes = (("gologs","*.golog"),("all files","*.*")))
+        if master.loc: master.destroy() #if location is provided
+
+
+
+    Button(master, text = 'Load Daily',command =  loadD).grid(row = 2,column = 2)
+
+
+    master.mainloop()
+    #do after master tkbox is destroyed
+    #return whether it is a new golog or loading a golog, and it's folder on this system
+    return (master.newvar, master.loc)
+
+# print(save_load_new())
+
+# makes a unique path from a root in save with given name
 
 
 
