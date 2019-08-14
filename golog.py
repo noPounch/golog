@@ -32,16 +32,18 @@ class Graphics_Data():
         self.listener = DirectObject() # might let Graphics_Data Inherit from Direct_Object
         self.graphics_kwargs = dict() # keeping track of information needed to re-create graphics_data
 
+        #things to clean self for deletion:
+        self.node_list = []
+        self.listeners = [self.listener]
+
         if simplex.level == 0:
             self.NP = golog.render.attachNewNode(simplex.label)
+            self.node_list.append(self.NP)
             self.NP.setTag('level','0') # to tell mode_heads what type of simplex this is
             golog.sphere.instanceTo(self.NP)
             self.collision = self.NP.attachNewNode(CollisionNode('sphereColNode'))
             self.collision.node().addSolid(CollisionSphere(0,0,0,1))
             self.messenger_names = {'node':str(id(self.NP))}
-            self.golog.Simplex_to_Graphics[simplex] = self
-            self.golog.Graphics_to_Simplex[self] = simplex
-            self.golog.NP_to_Graphics[self.NP] = self
 
 
             #detail parents
@@ -55,16 +57,14 @@ class Graphics_Data():
 
         elif simplex.level == 1:
             self.NP = golog.render.attachNewNode(simplex.label)
+            self.node_list.append(self.NP)
             self.NP.setTag('level','1')
             self.golog.cone.instanceTo(self.NP)
             self.collision = self.NP.attachNewNode(CollisionNode('coneColNode'))
             self.collision.node().addSolid(CollisionSphere(0,0,0,1))
             self.messenger_names = {'node':str(id(simplex))}
             self.graphics = (Rope(),Rope()) #two ropes :)
-
-            self.golog.Simplex_to_Graphics[simplex] = self
-            self.golog.Graphics_to_Simplex[self] = simplex
-            self.golog.NP_to_Graphics[self.NP] = self
+            for rope in self.graphics: self.node_list.append(rope)
 
 
 
@@ -86,24 +86,17 @@ class Graphics_Data():
             else: pos = LPoint3f(0,0,0)
             self.graphics_kwargs['pos'] = pos
 
-
-
-
             #create shitty control nodes for rope module (I know, this is not pretty)
             self.control_nodes = (self.golog.render.attachNewNode(simplex.label+'_control_node0'),self.golog.render.attachNewNode(simplex.label+'_control_node1'))
+            for node in self.control_nodes: self.node_list.append(node)
             control_listener = DirectObject()
+            self.listeners.append(control_listener)
+
             def control_updator(*x):
                 for i in [0,1]:
                     self.control_nodes[i].setPos(self.graphics_kwargs['pos']+self.parents[i].NP.getPos())
             control_updator()
             control_listener.accept(self.messenger_names['node'], control_updator)
-
-
-
-
-
-
-
 
             self.update({'pos':None})
 
@@ -112,7 +105,10 @@ class Graphics_Data():
             self.graphics[1].setup(3,[ (self.parents[1].NP,(0,0,0)),(self.control_nodes[1],(0,0,0)), (self.NP,(0,0,0)) ])
             for rope in self.graphics: rope.reparentTo(golog.render)
 
-
+        #set up dictionary references
+        self.golog.Simplex_to_Graphics[simplex] = self
+        self.golog.Graphics_to_Simplex[self] = simplex
+        self.golog.NP_to_Graphics[self.NP] = self
         #create an invisible textNode that can be shown if called
         text = TextNode(self.simplex.label+'_text_node')
         #? make this wrap if too long
@@ -126,8 +122,35 @@ class Graphics_Data():
         # - Either get it into 2d plane, or make a z axis that always faces the camera and attach to that
         self.textNP.setPos(0,-1,0)
         self.textNP.hide()
+        self.node_list.append(self.textNP)
 
-        #helper function for displaying the text_nodes
+    #function that cleans up references and listeners for deletion
+    #!!! THIS SHOULD NOT BE CALLED UNLESS DELETING UNDERLYING SIMPLEX AS WELL !!!#
+    def _remove(self):
+        #first should clean the nodes it supports (done through hcat)
+        simplex = self.simplex
+        supports = [*simplex.supports]
+        for simp in supports:
+            self.golog.Simplex_to_Graphics[simp]._remove()
+
+        #delete listeners
+        for listener in self.listeners:
+            listener.ignoreAll()
+            del listener
+
+        #delete relevant nodes
+        for node in self.node_list:
+            node.removeNode()
+
+        #delete dictionary references
+        del self.golog.Simplex_to_Graphics[simplex]
+        del self.golog.Graphics_to_Simplex[self]
+        del self.golog.NP_to_Graphics[self.NP]
+
+        #remove simplex from sSet
+        self.golog.sSet.remove(simplex)
+
+
 
 
 
@@ -232,5 +255,9 @@ if __name__ == "__main__":
             self.win.getDisplayRegion(1).setCamera(G.camera)
             a = G.add(0,label = '1')
             b = G.add(0,label = '2',pos = LPoint3f(0,0,10))
-            f = G.add((b,a), label = '(1,2)', pos = LPoint3f(3,0,0))
+            f1 = G.add((b,a), label = '(1,2)1', pos = LPoint3f(-2,0,0))
+            f2 = G.add((b,a), label = '(1,2)2', pos = LPoint3f(-1,0,0))
+            f3 = G.add((b,a), label = '(1,2)3', pos = LPoint3f(1,0,0))
+            f4 = G.add((b,a), label = '(1,2)4', pos = LPoint3f(2,0,0))
+            G.Simplex_to_Graphics[a]._remove()
     runner().run()

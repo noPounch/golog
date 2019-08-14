@@ -48,18 +48,13 @@ def gupdateNONEtoV1_0_0(export_sSet):
 
     return export_meta
 
-def gupdate(export_object):
-    #will eventually be a list of update procedures
-    pass
+def gupdate1_0_1to1_0_1(export_meta):
+    golog_export.gimport()
 
-#
-file_path = os.path.abspath('./save/sm(C)/sm.golog')
-# print(os.path.exists(file_path),file_path)
-with open(file_path, 'rb') as file:
-    export_sSet = pickle.load(file)
-e = gupdateNONEtoV1_0_0(export_sSet)
-
-
-new_file_path = file_path.split('.')[0]+'(1_0_0).golog'
-with open(new_file_path, 'wb') as file:
-     pickle.dump(e,file)
+def gimport(path):
+    with open(path,'rb') as file:
+        export_meta = pickle.load(file)
+    if export_meta.export_version < export_version:
+        gupdate(export_meta)
+    sSet = export_meta.exported_math_data()
+    return sSet_to_golog(base,sSet)

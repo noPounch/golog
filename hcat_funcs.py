@@ -27,8 +27,3 @@ def stripsSet(sSet):
 
     old_to_new_functor = Functor(sSet,newsSet,lambda x:old_to_new[x])
     return old_to_new_functor
-
-
-def open_math_data(simplex):
-    # open actual math data and provide callback
-    return simplex.math_data.open(simplex.Math_Data())

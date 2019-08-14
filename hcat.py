@@ -5,14 +5,16 @@ from copy import copy
 # Usage: Simplex(level, faces, *args, **{label:'', data:dict())
 
 class Math_Data():
-    def __init__(self,**kwargs):
+    def __init__(self,delete = None,**kwargs):
         #math_data stores type, actual math data, and a function to open it
+        if delete: self.delete = delete
         defaults = {'type':'\'None\'', 'math_data':'None'}
         for key in defaults:
             if key in kwargs: setattr(self,key,kwargs[key])
             else: setattr(self,key,eval(defaults[key]))
 
-
+    def delete():
+        return
     def __call__(self):
         return self.math_data
 
@@ -29,6 +31,7 @@ class Simplex():
         self.faces = faces
 
 
+
         #check functorality
         if n>1:
             for j in range(n+1):
@@ -41,9 +44,13 @@ class Simplex():
             if key in kwargs: setattr(self,key,kwargs[key])
             else: setattr(self,key,eval(defaults[key]))
 
+        self.supports = []
+        #add simplex to the list of supported simplecies
+        for face in self.faces: face.supports.append(self)
 
 #return a simplex of height n with a single simplex
 def createSimplex(n,*args, **kwargs):
+    if not 'label' in kwargs.keys():kwargs['label'] = str(n)+'-simplex'
     sSet = simpSet(label = "temp_simplicial_set_for_creating_simplex ")
     # create a new simplex and pass kwargs
     def createMessySimplex(n,*args, **kwargs):
@@ -83,8 +90,6 @@ def createSimplex(n,*args, **kwargs):
         sSet.add(s)
     recursiveAdd(s,sSet)
     return s
-
-
 
 class simpSet:
     def __init__(self,*args,**kwargs):
@@ -153,6 +158,14 @@ class simpSet:
         if [A,B] in self.simplecies.keys(): return self.simplecies[[A,B]]
         return False
 
+    def remove(self,simplex, delete = False):
+        print('removing '+simplex.label)
+        assert simplex.supports == [], "simplex "+simplex.label+" still supports \n"+str([sup.label for sup in simplex.supports])
+        for face in simplex.faces: face.supports.remove(simplex)
+        self.simplecies[simplex.faces].remove(simplex)
+        self.rawSimps.remove(simplex)
+        if delete: del simplex
+
 
 #functor takes a function F:dom.simplecies --> codom.simplecies and checks assertions
 class Functor:
@@ -177,3 +190,11 @@ class Functor:
 
 def isSubcategory():
     pass
+
+
+
+if __name__ == '__main__':
+    s = simpSet()
+    a = s.add(0)
+    b = s.add(0)
+    f = s.add((b,a))

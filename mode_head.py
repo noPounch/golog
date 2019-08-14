@@ -30,7 +30,6 @@ class mode_head():
         self.mw = None
         self.listener = DirectObject()
         self.folder_path = folder_path
-        print('golog: '+self.golog.label+'\nfolder path: ', folder_path)
         self.file_path = os.path.abspath(self.folder_path + '/' + self.golog.label+ '.golog')
         self.has_window = False
         self.parent = parent #for autosaving up to original golog
@@ -135,12 +134,19 @@ class mode_head():
             tk_funcs.pdf_or_tex(pdf_file, tex_file)
 
     def update_math_data(self,simplex, math_data_type, **kwargs):
+
+
         if autosave == True: self.save()
 
         if 'label' in kwargs: simplex.label = kwargs['label']
         self.golog.Simplex_to_Graphics[simplex].textNP.node().setText(simplex.label)
         self.golog.text_preview_set(self.bools['textboxes'])
 
+        if simplex.math_data.type != 'None':
+            answer = tk_funcs.are_you_sure('are you sure you want to delete the current math_data?')
+            if answer == 'yes':
+                self.delete_math_data(simplex)
+            else: return
         if math_data_type == 'None':
             simplex.math_data = hcat.Math_Data(type = 'None')
 
@@ -167,7 +173,7 @@ class mode_head():
 
             #math data is a dictionary of the physical golog and it's relative save path list
             golog_dict = {'golog':new_golog, 'folder_path':new_folder_path}
-            simplex.math_data = hcat.Math_Data(math_data = golog_dict, type = 'golog')
+            simplex.math_data = hcat.Math_Data(math_data = golog_dict, type = 'golog',delete = self.create_delete(simplex, 'golog'))
 
         if math_data_type == 'file':
             if not os.path.exists(os.path.join(self.folder_path,'files')): os.mkdir(os.path.join(self.folder_path,'files'))
@@ -178,7 +184,7 @@ class mode_head():
             file_name = os.path.split(file_location)[1] #file name with extension
             file_path = tk_funcs.unique_path(os.path.join(self.folder_path),[*file_folder_path, file_name]) #get a unique file path starting from the file_folder
             copyfile(file_location, os.path.join(self.folder_path,*file_path))
-            simplex.math_data = hcat.Math_Data(math_data = file_path, type = 'file')
+            simplex.math_data = hcat.Math_Data(math_data = file_path, type = 'file',delete = self.create_delete(simplex, 'file'))
             #? add handler for if user exits text editor
             #? make asynchronous
 
@@ -204,40 +210,49 @@ class mode_head():
 
             # make a file dictionary with just tex file in it
             file_dict = {'tex':tex_file_path, 'folder':tex_folder_path}
-            simplex.math_data = hcat.Math_Data(math_data = file_dict, type = 'latex')
+            simplex.math_data = hcat.Math_Data(math_data = file_dict, type = 'latex', delete = self.create_delete(simplex, 'latex'))
 
         #save golog
         if autosave == True: self.save()
         return simplex.math_data
 
+    # create a deletion function to be passed to the math_data instantiation so that it knows
+    # how to kill itself in hcat.py without importing ANYTHING dude (lo' for the future of import ontologies)
+    def create_delete(self,simplex, type):
+        if type == 'golog':
+            def d():
+                golog_dict = simplex.math_data()
+                #remove close window and remove mode_head if it has
+                golog = golog_dict['golog']
+                #if it's list of mode_heads is not empty
+                if hasattr(golog,'mode_heads'):
+                    for mode_head in golog.mode_heads:
+                        if mode_head.has_window:
+                            if hasattr(mode_head,'windict'):
+                                if 'win' in mode_head.windict.keys():
+                                    self.base.closeWindow(mode_head.windict['win'], keepCamera = True, removeWindow = True)
+                        mode_head.reset()
+                        mode_head.clean()
+
+                folder_path = os.path.join(self.folder_path, *golog_dict['folder_path'])
+                tk_funcs.ask_delete_path(folder_path)
+
+        elif type == 'file':
+            def d():
+                abs_file_path = os.path.join(self.folder_path,*simplex.math_data())
+                tk_funcs.ask_delete_path(abs_file_path)
+
+        elif type == 'latex':
+            def d():
+                folder = os.path.join(self.folder_path, *simplex.math_data()['folder'])
+                tk_funcs.ask_delete_path(folder)
+        else:
+            d = lambda *x: None
+            print('oops')
+        return d
+
     def delete_math_data(self,simplex,**kwargs):
-        type = simplex.math_data.type
-
-        if simplex.math_data.type == 'golog':
-            golog_dict = simplex.math_data()
-            #remove close window and remove mode_head if it has
-            golog = golog_dict['golog']
-            #if it's list of mode_heads is not empty
-            if hasattr(golog,'mode_heads'):
-                for mode_head in golog.mode_heads:
-                    if mode_head.has_window:
-                        if hasattr(mode_head,'windict'):
-                            if 'win' in mode_head.windict.keys():
-                                self.base.closeWindow(mode_head.windict['win'], keepCamera = True, removeWindow = True)
-                    mode_head.reset()
-                    mode_head.clean()
-
-            folder_path = os.path.join(self.folder_path, *golog_dict['folder_path'])
-            tk_funcs.ask_delete_path(folder_path)
-
-        elif simplex.math_data.type == 'file':
-            abs_file_path = os.path.join(self.folder_path,*simplex.math_data())
-            tk_funcs.ask_delete_path(abs_file_path)
-
-        elif simplex.math_data.type == 'latex':
-            folder = os.path.join(self.folder_path, simplex.math_data()['folder'])
-            tk_funcs.ask_delete_path(folder)
-
+        simplex.math_data.delete()
         simplex.math_data = hcat.Math_Data(type = 'None')
 
 
@@ -275,7 +290,6 @@ class mode_head():
         self.has_window = False
         del self.golog.mode_heads[self.index]
         del self.reset
-        print('cleaned '+self.golog.label+' mode_head')
 
     def get_relevant_entries(self, mw):
         # get list of entries by distance
@@ -359,8 +373,17 @@ class mode_head():
     def delete(self,mw):
         (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
         if node_type in ['0','1']:
-            simplex = self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
+            #warning about deleting supported simplecies
+
+            graphics = self.golog.NP_to_Graphics[entryNP]
+            simplex = self.golog.Graphics_to_Simplex[graphics]
+
+            if simplex.supports:
+                answer = tk_funcs.are_you_sure(simplex.label+' still supports other simplecies. Are you sure you wish to delete?')
+                if answer != 'yes': return
+
             self.delete_math_data(simplex)
+            graphics._remove()
 
     def mouse_update(self, mw):
         (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
@@ -428,7 +451,6 @@ class mode_head():
 
     def selection_and_creation(self, windict):
         def mouse1(mw):
-            print('hi')
             self.pickup(mw)
 
         def mouse1_up(mw):
@@ -439,7 +461,8 @@ class mode_head():
             self.mouse_open(mw)
 
         def u(mw):
-            self.mouse_update(me)
+            #?  do a change not just update
+            self.mouse_update(mw)
 
         def mouse3(mw):
             self.create(mw)

@@ -27,3 +27,6 @@ def delete_math_data(self,simplex,**kwargs):
         tk_funcs.ask_delete_path(folder)
 
     simplex.math_data = hcat.Math_Data(type = 'None')
+
+def delete_graphics_data(self,graphics,**kwargs):
+    graphics.node

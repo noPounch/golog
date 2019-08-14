@@ -1,7 +1,6 @@
 import os, subprocess, platform, shutil
 import sys
 from tkinter import *
-from tkinter import filedialog
 from datetime import date
 
 
@@ -9,7 +8,9 @@ def ask_delete_path(file_path):
 
     if os.path.isdir(file_path):dir = True
     elif os.path.isfile(file_path): dir = False
-    else: return
+    else:
+        print(file_path+" doesn't exist")
+        return
 
     master = Tk()
     master.title('Are you sure you want to delete this path?')
@@ -28,39 +29,57 @@ def ask_delete_path(file_path):
     def no():
         master.destroy()
     Button(master,text = 'no',command = no).grid(row = 2,sticky='nesw')
-
-# ask_delete_file(filedialog.askopenfilename(initialdir = os.path.abspath('./user_files/save'),title = "Select file", filetypes = (("gologs","*.golog"),("all files","*.*"))))
-# ask_delete_file(filedialog.askdirectory(initialdir = os.path.abspath('./user_files/save'),title = "Select file"))
-
-def ask_simplex_data():
-
-    master = Tk()
-    master.title('simplex data')
-
-    Label(master, text='Label').grid(row=0,column = 0)
-    labelvar = StringVar(master)
-    labelvar.set('Simplex')
-    labelentry = Entry(master, textvariable=labelvar)
-    labelentry.grid(row = 0, column = 1)
-
-
-    #data options on click
-    options = ['None','golog', 'latex', 'file']
-    Label( master, text = "Add Math Data?").grid(row = 1,column = 0)
-    MathDataVariable = StringVar(master)
-    MathDataVariable.set(options[0])
-    mathDataMenu = OptionMenu(master, MathDataVariable, *options)
-    mathDataMenu.grid(row = 1, column =1)
-    creation = Button(master, text = 'create', command = master.destroy)
-    creation.grid(row = 2)
-    master.bind('<Return>',lambda event: master.destroy())
-
-    master.bind("<FocusIn>", lambda entry: labelentry.selection_range(0, END))
-    labelentry.focus()
     master.mainloop()
-    return (labelvar.get(), MathDataVariable.get())
 
-# ask_simplex_data()
+# ask_delete_path(filedialog.askopenfilename(initialdir = os.path.abspath('./user_files/save'),title = "Select file", filetypes = (("gologs","*.golog"),("all files","*.*"))))
+# ask_delete_path(filedialog.askdirectory(initialdir = os.path.abspath('./user_files/save'),title = "Select file"))
+
+# def ask_simplex_data():
+#
+#     master = Tk()
+#     master.title('simplex data')
+#
+#     Label(master, text='Label').grid(row=0,column = 0)
+#     labelvar = StringVar(master)
+#     labelvar.set('Simplex')
+#     labelentry = Entry(master, textvariable=labelvar)
+#     labelentry.grid(row = 0, column = 1)
+#
+#
+#     #data options on click
+#     options = ['None','golog', 'latex', 'file']
+#     Label( master, text = "Add Math Data?").grid(row = 1,column = 0)
+#     MathDataVariable = StringVar(master)
+#     MathDataVariable.set(options[0])
+#     mathDataMenu = OptionMenu(master, MathDataVariable, *options)
+#     mathDataMenu.grid(row = 1, column =1)
+#     creation = Button(master, text = 'create', command = master.destroy)
+#     creation.grid(row = 2)
+#     master.bind('<Return>',lambda event: master.destroy())
+#
+#     master.bind("<FocusIn>", lambda entry: labelentry.selection_range(0, END))
+#     labelentry.focus()
+#     master.mainloop()
+#     return (labelvar.get(), MathDataVariable.get())
+#
+# # ask_simplex_data()
+
+def are_you_sure(question):
+    master = Tk()
+    Label(master, text = question).grid(row = 0, column = 0, sticky = 'nesw')
+    master.answer = None
+    def yes():
+        master.answer = 'yes'
+        master.destroy()
+    Button(master, text = 'yes',command = yes).grid(row = 1, column = 1, sticky = 'nesw')
+    def no():
+        master.answer = 'no'
+        master.destroy()
+    Button(master, text = 'no',command = no).grid(row = 1, column = 0, sticky = 'nesw')
+    master.mainloop()
+    return master.answer
+# print(are_you_sure('Are you sure you want to delete this math_data?'))
+
 
 def ask_math_data(Default_Label = 'Simplex'):
     master = Tk()
@@ -202,7 +221,6 @@ def save_load_new(default_location = os.path.abspath('./user_files/save'), recen
     #return whether it is a new golog or loading a golog, and it's folder on this system
     return (master.newvar, master.loc)
 
-# print(save_load_new())
 
 # makes a unique path from a root in save with given name
 
