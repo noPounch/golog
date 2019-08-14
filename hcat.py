@@ -13,7 +13,7 @@ class Math_Data():
             if key in kwargs: setattr(self,key,kwargs[key])
             else: setattr(self,key,eval(defaults[key]))
 
-    def delete():
+    def delete(self):
         return
     def __call__(self):
         return self.math_data
