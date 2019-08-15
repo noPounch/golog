@@ -1,6 +1,7 @@
 from sys import exit
 import os
 from math import sin,cos
+from webbrowser import open_new_tab
 from golog_export import gexport
 from shutil import copyfile
 import time, hcat, golog, window_manager, tk_funcs
@@ -133,6 +134,9 @@ class mode_head():
 
             tk_funcs.pdf_or_tex(pdf_file, tex_file)
 
+        if math_data.type == 'weblink':
+            open_new_tab(math_data())
+
     def update_math_data(self,simplex, math_data_type, **kwargs):
 
 
@@ -173,7 +177,7 @@ class mode_head():
 
             #math data is a dictionary of the physical golog and it's relative save path list
             golog_dict = {'golog':new_golog, 'folder_path':new_folder_path}
-            simplex.math_data = hcat.Math_Data(math_data = golog_dict, type = 'golog',delete = self.create_delete(simplex, 'golog'))
+            simplex.math_data = hcat.Math_Data(math_data = golog_dict, type = 'golog')#,delete = self.create_delete(simplex, 'golog'))
 
         if math_data_type == 'file':
             if not os.path.exists(os.path.join(self.folder_path,'files')): os.mkdir(os.path.join(self.folder_path,'files'))
@@ -184,7 +188,7 @@ class mode_head():
             file_name = os.path.split(file_location)[1] #file name with extension
             file_path = tk_funcs.unique_path(os.path.join(self.folder_path),[*file_folder_path, file_name]) #get a unique file path starting from the file_folder
             copyfile(file_location, os.path.join(self.folder_path,*file_path))
-            simplex.math_data = hcat.Math_Data(math_data = file_path, type = 'file',delete = self.create_delete(simplex, 'file'))
+            simplex.math_data = hcat.Math_Data(math_data = file_path, type = 'file')#,,delete = self.create_delete(simplex, 'file'))
             #? add handler for if user exits text editor
             #? make asynchronous
 
@@ -210,15 +214,18 @@ class mode_head():
 
             # make a file dictionary with just tex file in it
             file_dict = {'tex':tex_file_path, 'folder':tex_folder_path}
-            simplex.math_data = hcat.Math_Data(math_data = file_dict, type = 'latex', delete = self.create_delete(simplex, 'latex'))
+            simplex.math_data = hcat.Math_Data(math_data = file_dict, type = 'latex')#,, delete = self.create_delete(simplex, 'latex'))
 
+        if math_data_type == 'weblink':
+            weblink = tk_funcs.ask_weblink()
+            simplex.math_data = hcat.Math_Data(math_data = weblink, type = 'weblink')#, delete = self.create_delete(simplex, 'weblink'))
         #save golog
         if autosave == True: self.save()
         return simplex.math_data
 
     # create a deletion function to be passed to the math_data instantiation so that it knows
     # how to kill itself in hcat.py without importing ANYTHING dude (lo' for the future of import ontologies)
-    def create_delete(self,simplex, type):
+    def create_delete(self, simplex, type):
         if type == 'golog':
             def d():
                 golog_dict = simplex.math_data()
@@ -226,11 +233,7 @@ class mode_head():
                 golog = golog_dict['golog']
                 #if it's list of mode_heads is not empty
                 if hasattr(golog,'mode_heads'):
-                    for mode_head in golog.mode_heads:
-                        if mode_head.has_window:
-                            if hasattr(mode_head,'windict'):
-                                if 'win' in mode_head.windict.keys():
-                                    self.base.closeWindow(mode_head.windict['win'], keepCamera = True, removeWindow = True)
+                    for mode_head in golog.mode_heads.values():
                         mode_head.reset()
                         mode_head.clean()
 
@@ -246,13 +249,17 @@ class mode_head():
             def d():
                 folder = os.path.join(self.folder_path, *simplex.math_data()['folder'])
                 tk_funcs.ask_delete_path(folder)
+
+        elif type == 'weblink':
+            def d():
+                pass #will ultimately just get deleted by overwriting
         else:
             d = lambda *x: None
             print('oops')
         return d
 
     def delete_math_data(self,simplex,**kwargs):
-        simplex.math_data.delete()
+        simplex.math_data.delete(self.folder_path)
         simplex.math_data = hcat.Math_Data(type = 'None')
 
 
@@ -287,7 +294,13 @@ class mode_head():
 
     def clean(self):
         self.reset()
-        self.has_window = False
+
+        #close window
+        if self.has_window == True:
+            if hasattr(mode_head,'windict'):
+                if 'win' in mode_head.windict.keys():
+                    self.base.closeWindow(mode_head.windict['win'], keepCamera = True, removeWindow = True)
+            self.has_window = False
         del self.golog.mode_heads[self.index]
         del self.reset
 

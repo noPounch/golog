@@ -1,7 +1,18 @@
 import os, subprocess, platform, shutil
 import sys
 from tkinter import *
+from tkinter import filedialog
 from datetime import date
+
+#? make windowsize larger
+def ask_weblink():
+    master = Tk()
+    linkvar = StringVar()
+    Label(master, text = 'Enter Web Address:').grid(row = 0, sticky = 'nesw')
+    Entry(master, textvariable = linkvar).grid(row = 1, sticky = 'nesw')
+    Button(master, text = 'ok', command = master.destroy).grid(row = 2, sticky = 'nesw')
+    master.mainloop()
+    return linkvar.get()
 
 
 def ask_delete_path(file_path):
@@ -31,38 +42,6 @@ def ask_delete_path(file_path):
     Button(master,text = 'no',command = no).grid(row = 2,sticky='nesw')
     master.mainloop()
 
-# ask_delete_path(filedialog.askopenfilename(initialdir = os.path.abspath('./user_files/save'),title = "Select file", filetypes = (("gologs","*.golog"),("all files","*.*"))))
-# ask_delete_path(filedialog.askdirectory(initialdir = os.path.abspath('./user_files/save'),title = "Select file"))
-
-# def ask_simplex_data():
-#
-#     master = Tk()
-#     master.title('simplex data')
-#
-#     Label(master, text='Label').grid(row=0,column = 0)
-#     labelvar = StringVar(master)
-#     labelvar.set('Simplex')
-#     labelentry = Entry(master, textvariable=labelvar)
-#     labelentry.grid(row = 0, column = 1)
-#
-#
-#     #data options on click
-#     options = ['None','golog', 'latex', 'file']
-#     Label( master, text = "Add Math Data?").grid(row = 1,column = 0)
-#     MathDataVariable = StringVar(master)
-#     MathDataVariable.set(options[0])
-#     mathDataMenu = OptionMenu(master, MathDataVariable, *options)
-#     mathDataMenu.grid(row = 1, column =1)
-#     creation = Button(master, text = 'create', command = master.destroy)
-#     creation.grid(row = 2)
-#     master.bind('<Return>',lambda event: master.destroy())
-#
-#     master.bind("<FocusIn>", lambda entry: labelentry.selection_range(0, END))
-#     labelentry.focus()
-#     master.mainloop()
-#     return (labelvar.get(), MathDataVariable.get())
-#
-# # ask_simplex_data()
 
 def are_you_sure(question):
     master = Tk()
@@ -94,7 +73,7 @@ def ask_math_data(Default_Label = 'Simplex'):
     labelentry.grid(row = 0, column = 1)
 
     #data options on click
-    options = ['None','golog', 'file','latex']
+    options = ['None','golog', 'file','latex','weblink']
     Label(master, text = "Math Data Type: ").grid(row = 1,column = 0)
     MathDataVariable = StringVar(master)
     MathDataVariable.set(options[0])

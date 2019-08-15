@@ -1,20 +1,50 @@
-import itertools
+import itertools, os
 from copy import copy
+import tk_funcs
 
 # Create a new simplex with specified faces and kwargs
 # Usage: Simplex(level, faces, *args, **{label:'', data:dict())
 
 class Math_Data():
-    def __init__(self,delete = None,**kwargs):
+    def __init__(self,**kwargs):
         #math_data stores type, actual math data, and a function to open it
-        if delete: self.delete = delete
         defaults = {'type':'\'None\'', 'math_data':'None'}
         for key in defaults:
             if key in kwargs: setattr(self,key,kwargs[key])
             else: setattr(self,key,eval(defaults[key]))
 
-    def delete(self):
-        return
+    def delete(self,folder_path):
+        if self.type == 'golog':
+
+            golog_dict = self.math_data
+            #remove close window and remove mode_head if it has
+            golog = golog_dict['golog']
+            #if it's list of mode_heads is not empty
+            if hasattr(golog,'mode_heads'):
+                for mode_head in golog.mode_heads.values():
+                    mode_head.reset()
+                    mode_head.clean()
+
+            folder_path = os.path.join(folder_path, *golog_dict['folder_path'])
+            tk_funcs.ask_delete_path(folder_path)
+
+        elif self.type == 'file':
+
+            abs_file_path = os.path.join(folder_path,*self.math_data)
+            tk_funcs.ask_delete_path(abs_file_path)
+
+        elif self.type == 'latex':
+
+            folder = os.path.join(folder_path, *self.math_data['folder'])
+            tk_funcs.ask_delete_path(folder)
+
+        elif self.type == 'weblink':
+
+            pass #will ultimately just get deleted by overwriting
+        else:
+            print('oops')
+
+
     def __call__(self):
         return self.math_data
 
