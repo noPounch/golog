@@ -4,9 +4,11 @@ from tkinter import *
 from tkinter import filedialog
 from datetime import date
 
+
 #? make windowsize larger
 def ask_weblink():
     master = Tk()
+    master.geometry('+'+ str(master.winfo_pointerxy()[0])+'+'+str(master.winfo_pointerxy()[1]))
     linkvar = StringVar()
     Label(master, text = 'Enter Web Address:').grid(row = 0, sticky = 'nesw')
     Entry(master, textvariable = linkvar).grid(row = 1, sticky = 'nesw')
@@ -24,6 +26,7 @@ def ask_delete_path(file_path):
         return
 
     master = Tk()
+    master.geometry('+'+ str(master.winfo_pointerxy()[0])+'+'+str(master.winfo_pointerxy()[1]))
     master.title('Are you sure you want to delete this path?')
     Label(master, text = file_path).grid(row = 0)
     def yes():
@@ -45,6 +48,7 @@ def ask_delete_path(file_path):
 
 def are_you_sure(question):
     master = Tk()
+    master.geometry('+'+ str(master.winfo_pointerxy()[0])+'+'+str(master.winfo_pointerxy()[1]))
     Label(master, text = question).grid(row = 0, column = 0, sticky = 'nesw')
     master.answer = None
     def yes():
@@ -63,6 +67,7 @@ def are_you_sure(question):
 def ask_math_data(Default_Label = 'Simplex'):
     master = Tk()
     master.title('simplex data')
+    master.geometry('+'+ str(master.winfo_pointerxy()[0])+'+'+str(master.winfo_pointerxy()[1]))
     master.returner = None
 
 
@@ -98,19 +103,19 @@ def ask_math_data(Default_Label = 'Simplex'):
 
 
 
-def unique_path(root, path = []):
+def unique_path(master, path = []):
     if not path: return path
     if isinstance(path,str): path = [path] #should pass a list, but just in case
 
     import os
-    abs_path = os.path.join(root, *path)
+    abs_path = os.path.join(master, *path)
     #if original path doesn't exist, just return path
     if not os.path.exists(abs_path):
         return path
 
 
     def cpesmd(num):
-        abs_path = os.path.join(root,*path) + str(num) + ext
+        abs_path = os.path.join(master,*path) + str(num) + ext
         if not os.path.exists(abs_path):
             #if path doesn't exist, return number
             return num
@@ -126,6 +131,7 @@ def unique_path(root, path = []):
 
 def save_load_new(default_location = os.path.abspath('./user_files/save'), recent_path = None):
     master = Tk()
+    master.geometry('+'+ str(master.winfo_pointerxy()[0])+'+'+str(master.winfo_pointerxy()[1]))
     master.title('New / Load golog')
     master.newvar = False
     master.namevar = StringVar(master)
@@ -201,12 +207,13 @@ def save_load_new(default_location = os.path.abspath('./user_files/save'), recen
     return (master.newvar, master.loc)
 
 
-# makes a unique path from a root in save with given name
+# makes a unique path from a master in save with given name
 
 
 
 def load_tex(abs_path):
     master = Tk()
+    master.geometry('+'+ str(master.winfo_pointerxy()[0])+'+'+str(master.winfo_pointerxy()[1]))
     master.title('Load / New .tex File')
     master.loc = []
     Label(master, text = 'New Latex File, or Load').grid(row = 0, column = 1)
@@ -227,27 +234,28 @@ def load_tex(abs_path):
     return master.loc
 
 def edit_txt(fname):
-    root = Tk()
+    master = Tk()
+    master.geometry('+'+ str(master.winfo_pointerxy()[0])+'+'+str(master.winfo_pointerxy()[1]))
     height = 300
     width = 300
-    text_box = Text(root)
+    text_box = Text(master)
 
 
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
+    screen_width = master.winfo_screenwidth()
+    screen_height = master.winfo_screenheight()
     left = (screen_width / 2) - (width / 2)
     top = (screen_height / 2) - (height /2)
-    root.geometry('%dx%d+%d+%d' % (width, height, left, top))
-    root.grid_rowconfigure(0, weight=1)
-    root.grid_columnconfigure(0, weight=1)
+    master.geometry('%dx%d+%d+%d' % (width, height, left, top))
+    master.grid_rowconfigure(0, weight=1)
+    master.grid_columnconfigure(0, weight=1)
     text_box.grid(sticky = N + E + S + W)
 
     #open file and place in textbox
     try:
-            root.wm_iconbitmap("Notepad.ico")
+            master.wm_iconbitmap("Notepad.ico")
     except:
             pass
-    root.title(os.path.basename(fname) + " - Notepad")
+    master.title(os.path.basename(fname) + " - Notepad")
     with open(fname,"r") as file:
         text_box.delete(1.0,END)
         text_box.insert(1.0,file.read())
@@ -255,48 +263,51 @@ def edit_txt(fname):
     def save_and_exit(event):
         with open(fname,'w') as file:
             file.write(text_box.get(1.0,END))
-            root.destroy()
-    root.bind('<Control-Key-s>', save_and_exit)
-    root.mainloop()
+            master.destroy()
+    master.bind('<Control-Key-s>', save_and_exit)
+    master.mainloop()
 
 def ask_file_location(initial_dir = os.path.abspath(os.path.dirname(__file__))):
-    root = Tk()
+    master = Tk()
+    master.geometry('+'+ str(master.winfo_pointerxy()[0])+'+'+str(master.winfo_pointerxy()[1]))
     filename =  filedialog.askopenfilename(initialdir = initial_dir,title = "Select file")
-    root.destroy()
+    master.destroy()
     return filename
 
 def ask_folder_location(initial_dir = os.path.abspath(os.path.dirname(__file__))):
-    root = Tk()
+    master = Tk()
+    master.geometry('+'+ str(master.winfo_pointerxy()[0])+'+'+str(master.winfo_pointerxy()[1]))
     folder_path = os.path.abspath(filedialog.askdirectory(initialdir = initial_dir, title = "Select Folder"))
-    root.destroy()
+    master.destroy()
     return folder_path
 
 def run_program(default_program = '', file=''):
-    root = Tk()
-    root.title('Command')
-    programvar = StringVar(root)
+    master = Tk()
+    master.geometry('+'+ str(master.winfo_pointerxy()[0])+'+'+str(master.winfo_pointerxy()[1]))
+    master.title('Command')
+    programvar = StringVar(master)
     programvar.set(default_program)
-    programentry = Entry(root, textvariable=programvar)
+    programentry = Entry(master, textvariable=programvar)
     programentry.grid(row = 0,column = 0)
-    root.bind("<FocusIn>", lambda *event: programentry.selection_range(0, END))
+    master.bind("<FocusIn>", lambda *event: programentry.selection_range(0, END))
 
-    filevar = StringVar(root)
+    filevar = StringVar(master)
     filevar.set(file)
     filelabel=Label(textvariable = filevar)
     filelabel.grid(row=0,column = 1)
     def getprogram():
         programpath = filedialog.askopenfilename(initialdir = os.path.abspath(os.path.dirname(__file__)),title = "Select Program")
         programvar.set(programpath)
-    Button(root, text = 'Select Program',command=getprogram).grid(row=1,column=0)
+    Button(master, text = 'Select Program',command=getprogram).grid(row=1,column=0)
 
     def selectfile():
         filepath = filedialog.askopenfilename(initialdir = os.path.abspath(os.path.dirname(__file__)),title = "Select File")
         filevar.set(filepath)
-    Button(root, text = 'Select File',command=selectfile).grid(row=1,column=1)
+    Button(master, text = 'Select File',command=selectfile).grid(row=1,column=1)
 
     def docommand():
         #do command
-        root.destroy()
+        master.destroy()
         if not programvar.get():
             if platform.system() == 'Darwin':       # macOS
                 subprocess.call(('open', filevar.get()))
@@ -307,22 +318,23 @@ def run_program(default_program = '', file=''):
             # subprocess.run(['xdg-open',filevar.get()], check = True)
         else: subprocess.run([programvar.get(),filevar.get()])
 
-    Button(root, text = 'run command', command = docommand).grid(row=1,column=2)
-    root.mainloop()
+    Button(master, text = 'run command', command = docommand).grid(row=1,column=2)
+    master.mainloop()
 
 # run_program()
 
 def pdf_or_tex(pdf_file,tex_file):
-    root = Tk()
+    master = Tk()
+    master.geometry('+'+ str(master.winfo_pointerxy()[0])+'+'+str(master.winfo_pointerxy()[1]))
     def openpdf():
-        root.destroy()
+        master.destroy()
         run_program('',file=pdf_file)
-    if pdf_file: Button(root, text ='open'+os.path.basename(pdf_file),command = openpdf).grid(row = 0 , column = 0)
-    else: Label(root, text ='No PDF File').grid(row = 0 , column = 0)
+    if pdf_file: Button(master, text ='open'+os.path.basename(pdf_file),command = openpdf).grid(row = 0 , column = 0)
+    else: Label(master, text ='No PDF File').grid(row = 0 , column = 0)
 
     def opentex():
-        root.destroy()
+        master.destroy()
         run_program('',file=tex_file)
-    if tex_file: Button(root, text ='open'+os.path.basename(tex_file),command = opentex).grid(row = 0 , column = 1)
-    else: Label(root, text ='No Tex File').grid(row = 0 , column = 1)
-    root.mainloop()
+    if tex_file: Button(master, text ='open'+os.path.basename(tex_file),command = opentex).grid(row = 0 , column = 1)
+    else: Label(master, text ='No Tex File').grid(row = 0 , column = 1)
+    master.mainloop()
