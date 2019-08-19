@@ -78,6 +78,12 @@ class Simplex():
         #add simplex to the list of supported simplecies
         for face in self.faces: face.supports.append(self)
 
+        def copy(self):
+            new = createSimplex(self.level)
+
+
+
+
 #return a simplex of height n with a single simplex
 def createSimplex(n,*args, **kwargs):
     if not 'label' in kwargs.keys():kwargs['label'] = str(n)+'-simplex'
@@ -218,13 +224,57 @@ class Functor:
         assert simplex in self.dom.rawSimps
         return self.F(simplex)
 
-def isSubcategory():
-    pass
+
+def stripsSet(sSet):
+    newsSet = simpSet(label = sSet.label)
+    old_to_new = dict()
+    def strip_and_add(simp):
+
+        #if simp has already been handled, return it
+        if simp in old_to_new.keys():
+            # print(simp.label+" already in new sSet")
+            return old_to_new[simp]
+        # print("adding stripped "+simp.label)
+        #if s hasn't yet been handled, handle faces
+        newfaces = tuple(strip_and_add(f) for f in simp.faces)
+        #once faces are handled, create a new simplex
+        newsimp = newsSet.add(newfaces, label = simp.label)
+        old_to_new[simp] = newsimp
+        return newsimp
+
+    for simp in sSet.rawSimps:
+        strip_and_add(simp)
+
+    old_to_new_functor = Functor(sSet,newsSet,lambda x:old_to_new[x])
+    return old_to_new_functor
+
+class submorphism(simpSet):
+    ''' A submorphism is a simplicial set who's n-simplecies are (n-1)-simplecies (from an ambient sSet containing both its dom and codom) '''
+    def __init__(self, dom, codom, *args, **kwargs):
+        simpSet.__init__(self,*args,**kwargs)
+        assert isinstance(dom, simpSet) and isinstance(codom, simpSet), 'a submorphism is between two simplicial sets'
+        self.dom = stripsSet(dom)
+        self.codom = stripsSet(codom)
+        super(submorphism, self).add(self.dom.codom)
+        super(submorphism, self).add(self.codom.codom)
+        self.add(self.dom)
+        self.add(self.codom)
+
+    def add(self,*args,**kwargs):
+        print([simp.label for simp in self.rawSimps])
+
 
 
 
 if __name__ == '__main__':
     s = simpSet()
-    a = s.add(0)
-    b = s.add(0)
-    f = s.add((b,a))
+    a = s.add(0,label = 'a_s')
+    b = s.add(0,label = 'b_s')
+    f = s.add((b,a),label = 'f_s')
+
+    s2 = simpSet()
+    a2 = s2.add(0,label = 'a_s2')
+    b2 = s2.add(0,label = 'b_s2')
+    f2 = s2.add((b2,a2),label = 'f_s2')
+
+    sub = submorphism(s,s2,label = 'sub_test')

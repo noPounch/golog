@@ -1,8 +1,5 @@
 from hcat import Simplex, simpSet, Functor
 
-def stripSimp(simp):
-    newsimp = Simplex(label = simp.label)
-
 #strip a simplicial set of it's math_data
 #return a functor associating the sSet with math_data to the sSet without
 def stripsSet(sSet):
