@@ -24,7 +24,7 @@ class mode_head():
         # Set up basic attributes
         self.base = base
         self.golog = Golog
-        self.bools = {'textboxes':False}
+        self.bools = {'textboxes':True}
         self.buttons = dict()
         self.window_tasks = dict()
         self.bt = None
@@ -177,7 +177,7 @@ class mode_head():
 
             #math data is a dictionary of the physical golog and it's relative save path list
             golog_dict = {'golog':new_golog, 'folder_path':new_folder_path}
-            simplex.math_data = hcat.Math_Data(math_data = golog_dict, type = 'golog')#,delete = self.create_delete(simplex, 'golog'))
+            simplex.math_data = hcat.Math_Data(math_data = golog_dict, type = 'golog')
 
         if math_data_type == 'file':
             if not os.path.exists(os.path.join(self.folder_path,'files')): os.mkdir(os.path.join(self.folder_path,'files'))
@@ -188,7 +188,7 @@ class mode_head():
             file_name = os.path.split(file_location)[1] #file name with extension
             file_path = tk_funcs.unique_path(os.path.join(self.folder_path),[*file_folder_path, file_name]) #get a unique file path starting from the file_folder
             copyfile(file_location, os.path.join(self.folder_path,*file_path))
-            simplex.math_data = hcat.Math_Data(math_data = file_path, type = 'file')#,,delete = self.create_delete(simplex, 'file'))
+            simplex.math_data = hcat.Math_Data(math_data = file_path, type = 'file')
             #? add handler for if user exits text editor
             #? make asynchronous
 
@@ -214,49 +214,14 @@ class mode_head():
 
             # make a file dictionary with just tex file in it
             file_dict = {'tex':tex_file_path, 'folder':tex_folder_path}
-            simplex.math_data = hcat.Math_Data(math_data = file_dict, type = 'latex')#,, delete = self.create_delete(simplex, 'latex'))
+            simplex.math_data = hcat.Math_Data(math_data = file_dict, type = 'latex')
 
         if math_data_type == 'weblink':
             weblink = tk_funcs.ask_weblink()
-            simplex.math_data = hcat.Math_Data(math_data = weblink, type = 'weblink')#, delete = self.create_delete(simplex, 'weblink'))
+            simplex.math_data = hcat.Math_Data(math_data = weblink, type = 'weblink')
         #save golog
         if autosave == True: self.save()
         return simplex.math_data
-
-    # create a deletion function to be passed to the math_data instantiation so that it knows
-    # how to kill itself in hcat.py without importing ANYTHING dude (lo' for the future of import ontologies)
-    def create_delete(self, simplex, type):
-        if type == 'golog':
-            def d():
-                golog_dict = simplex.math_data()
-                #remove close window and remove mode_head if it has
-                golog = golog_dict['golog']
-                #if it's list of mode_heads is not empty
-                if hasattr(golog,'mode_heads'):
-                    for mode_head in golog.mode_heads.values():
-                        mode_head.reset()
-                        mode_head.clean()
-
-                folder_path = os.path.join(self.folder_path, *golog_dict['folder_path'])
-                tk_funcs.ask_delete_path(folder_path)
-
-        elif type == 'file':
-            def d():
-                abs_file_path = os.path.join(self.folder_path,*simplex.math_data())
-                tk_funcs.ask_delete_path(abs_file_path)
-
-        elif type == 'latex':
-            def d():
-                folder = os.path.join(self.folder_path, *simplex.math_data()['folder'])
-                tk_funcs.ask_delete_path(folder)
-
-        elif type == 'weblink':
-            def d():
-                pass #will ultimately just get deleted by overwriting
-        else:
-            d = lambda *x: None
-            print('oops')
-        return d
 
     def delete_math_data(self,simplex,**kwargs):
         simplex.math_data.delete(self.folder_path)

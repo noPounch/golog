@@ -121,7 +121,7 @@ class Graphics_Data():
         #? make this update to always be in front of camera
         # - Either get it into 2d plane, or make a z axis that always faces the camera and attach to that
         self.textNP.setPos(0,-1,0)
-        self.textNP.hide()
+        self.textNP.show()
         self.node_list.append(self.textNP)
 
     #function that cleans up references and listeners for deletion
