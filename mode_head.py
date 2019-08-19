@@ -429,26 +429,33 @@ class mode_head():
 
     def selection_and_creation(self, windict):
         def mouse1(mw):
+            if not mw: return
             self.pickup(mw)
 
         def mouse1_up(mw):
+            if not mw: return
             if self.putdown(mw): return #if it's been dragged, don't select
             self.select(mw)
 
         def space(mw):
+            if not mw: return
             self.mouse_open(mw)
 
         def u(mw):
+            if not mw: return
             #?  do a change not just update
             self.mouse_update(mw)
 
         def mouse3(mw):
+            if not mw: return
             self.create(mw)
 
         def backspace(mw):
+            if not mw: return
             self.delete(mw)
 
         def mouse_watch_task(mw,task):
+            if not mw: return task.cont
             if not mw.node().hasMouse(): return task.cont
             self.drag(mw)
             self.preview(mw)
