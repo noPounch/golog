@@ -260,8 +260,58 @@ class submorphism(simpSet):
         self.add(self.dom)
         self.add(self.codom)
 
-    def add(self,*args,**kwargs):
-        print([simp.label for simp in self.rawSimps])
+    def add(self, ob , *args,**kwargs):
+
+        def addSimplex(simp):
+            if simp in self.rawSimps: return simp
+            if simp.faces not in list(self.simplecies.keys()):
+                self.simplecies[simp.faces] = []
+            if simp not in self.simplecies[simp.faces]:
+                self.simplecies[simp.faces].append(simp)
+                self.rawSimps.append(simp)
+                self.height = max(self.height, simp.level)
+
+            return simp
+
+        #recursively add simplecies and all supporting simplecies
+        #checks that simplecies are supported on 0-simplecies in the image of the domain and codomain functors
+        def recursiveAdd(simp):
+
+            if simp.level == 0: return
+            elif simp.level == 1:
+                #assert the faces are in the image of the functors domain and codomin
+                assert simp.faces[1] in self.dom.codom.rawSimps, simp.label + ' face ' + simp.faces[1].label +' not in domain'
+                assert simp.faces[0] in self.codom.codom.rawSimps, simp.label + ' face ' + simp.faces[0].label +' not in codomain'
+                return addSimplex(simp)
+            else:
+                for f in simp.faces:
+                    if f not in self.rawSimps:
+                        recursiveAdd(f) #if this fails, it's because of a support issue, thus the whole thing will be cancel
+                return addSimplex(simp)
+
+
+
+        if isinstance(ob,Simplex):
+            assert ob.level != 0, 'submorphism simplecies must not be 0-simplecies'
+            recursiveAdd(ob)
+            return ob
+
+        #if ob is a Simplicial set, add all of it's simplecies
+        elif isinstance(ob, simpSet):
+            assert (not ob.simplecies[()]), "submorphism can't inherit sSets with 0-simplecies"
+            for s in ob.rawSimps:
+                recursiveAdd(s)
+            return self
+
+        #if ob is a list (of faces) add a new simplex with those faces
+        elif isinstance(ob, tuple):
+            if not ob: return
+            n = ob[0].level+1
+            s = Simplex(n,ob,*args,**kwargs) #this will throw errors if simplex assumptions are violated
+            recursiveAdd(s) # this will throw errors if there are support issues
+            return s
+
+
 
 
 
@@ -278,3 +328,6 @@ if __name__ == '__main__':
     f2 = s2.add((b2,a2),label = 'f_s2')
 
     sub = submorphism(s,s2,label = 'sub_test')
+    a = sub.dom.codom.rawSimps[0]
+    b = sub.codom.codom.rawSimps[0]
+    sub.add((b,a),label = 'new guy')
