@@ -311,16 +311,49 @@ class submorphism(simpSet):
             recursiveAdd(s) # this will throw errors if there are support issues
             return s
 
+#a function to get the simplicial set of subsimplicial sets and submorphisms
+#a class with helper functions for analyzing simplex's math_data which MUST be a simplicial set of some type (submorphism or otherwise)
+def sm(sSet, *args, **kwargs):
+    sm_sSet = simpSet(label = 'sm( '+sSet.label+' )')
+    #complete downward for a list of simplecies
+    def complete_down(rawSimps):
+        completed_sSet = simpSet()
+        for simp in rawSimps: completed_sSet.add(simp)
+        return completed_sSet
+
+    raw_power = list(itertools.chain.from_iterable(itertools.combinations(sSet.rawSimps, r) for r in range(len(sSet.rawSimps)+1)))
+    completed_list = []
+    completed_raw_list = []
+    for raw_list in raw_power:
+        completed_sSet = complete_down(raw_list)
+        if not (set(completed_sSet.rawSimps) in completed_raw_list):
+            completed_raw_list.append(set(completed_sSet.rawSimps))
+            completed_list.append(completed_sSet)
+
+    for completed_sSet in completed_list:
+        #package sSet into a math_data
+        wrapped_sSet = Math_Data(math_data = completed_sSet, type = 'sSet')
+        # add a 0-simplex with the math_data
+        sm_sSet.add(0,math_data = wrapped_sSet)
+
+    return sm_sSet
+
+    #need to convert to set and check that it's not in it
+    #check if list of rawSimps is already the math_data of some simplex
 
 
 
 
 
+
+
+### TESTING ###
 if __name__ == '__main__':
     s = simpSet()
     a = s.add(0,label = 'a_s')
     b = s.add(0,label = 'b_s')
     f = s.add((b,a),label = 'f_s')
+    raw = sm(s)
 
     s2 = simpSet()
     a2 = s2.add(0,label = 'a_s2')
@@ -331,3 +364,5 @@ if __name__ == '__main__':
     a = sub.dom.codom.rawSimps[0]
     b = sub.codom.codom.rawSimps[0]
     sub.add((b,a),label = 'new guy')
+    f = Simplex(1,faces = (b,a),label = 'new RAW guy, my dude')
+    sub.add(f)
