@@ -38,7 +38,7 @@ def bootstrap_config():
 
 
 def new_golog(base, folder_path,golog_file):
-    print('hi ', folder_path)
+    print('new golog saved in: ', folder_path)
     golog = Golog(base, label = golog_file.split('.golog')[0])
     golog_folder = os.path.join(folder_path, *unique_path(folder_path,[golog.label]))
     if not os.path.exists(golog_folder): os.mkdir(golog_folder)
@@ -51,6 +51,7 @@ def new_golog(base, folder_path,golog_file):
     return controllable_golog, save_location
 
 def load_golog(base, folder_path, save_location):
+    print('golog loaded from: ', folder_path)
     golog = gimport(base,save_location)
     controllable_golog = mode_head(base,golog, folder_path = folder_path)
     modeHeadToWindow(base, controllable_golog)
@@ -68,7 +69,6 @@ class runner(ShowBase):
         #check for a recent ontology
         if 'recent_path' in config_dict['path_dict'].keys():
             recent_path = config_dict['path_dict']['recent_path']
-            print(recent_path)
             if not os.path.exists(config_dict['path_dict']['recent_path']):
                 del config_dict['path_dict']['recent_path']
                 print('del')
