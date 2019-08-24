@@ -5,6 +5,7 @@ from tkinter import filedialog
 from datetime import date
 
 
+
 #? make windowsize larger
 def ask_weblink():
     master = Tk()
@@ -233,12 +234,13 @@ def load_tex(abs_path):
     master.mainloop()
     return master.loc
 
-def edit_txt(fname):
+def edit_txt(fname = None, text = None):
     master = Tk()
     master.geometry('+'+ str(master.winfo_pointerxy()[0])+'+'+str(master.winfo_pointerxy()[1]))
     height = 300
     width = 300
     text_box = Text(master)
+    if text: text_box.insert('1.0', text)
 
 
     screen_width = master.winfo_screenwidth()
@@ -255,7 +257,12 @@ def edit_txt(fname):
             master.wm_iconbitmap("Notepad.ico")
     except:
             pass
-    master.title(os.path.basename(fname) + " - Notepad")
+
+    if not fname:
+            master.mainloop()
+            return
+
+    master.title(os.path.abspath(fname) + " - Notepad")
     with open(fname,"r") as file:
         text_box.delete(1.0,END)
         text_box.insert(1.0,file.read())
@@ -322,6 +329,10 @@ def run_program(default_program = '', file=''):
     master.mainloop()
 
 # run_program()
+
+def error_reset_dialog(err):
+    edit_txt(text = err)
+
 
 def pdf_or_tex(pdf_file,tex_file):
     master = Tk()

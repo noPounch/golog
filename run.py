@@ -62,7 +62,7 @@ class runner(ShowBase):
     def __init__(self):
         ShowBase.__init__(self, windowType = 'none')
         self.disable_mouse()
-        self.debugob = None
+        self.obdict = {'gologs':[], 'mode_heads':[], 'window_managers':[]}
 
         #get or create config dictionary
         config_dict = bootstrap_config()
@@ -95,6 +95,17 @@ class runner(ShowBase):
         config_dict['path_dict']['recent_path'] = save_location
         with open(config_dict['path_dict']['config_file'],'w') as file:
             json.dump(config_dict, file)
+
+    def run(self):
+        try:
+            super(runner, self).run()
+        except:
+            self.error_reset()
+
+    def error_reset(self):
+        print(sys.exc_info()[0])
+        self.run()
+
 
 
 r = runner()
