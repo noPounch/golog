@@ -32,7 +32,7 @@ class export_data():
         else: return self.exported_math_data
 
     def __getattr__(self,attr):
-        ### some salty pickle problems dude, who knows?
+        ### some salty pickle problems dude, who knows
         if attr.startswith('__'):
             raise AttributeError
         ###
@@ -40,7 +40,8 @@ class export_data():
         if attr == 'graphics_kwargs': return []
         else: return None
 
-
+#function which encodes the graphics data from a golog entirely into it's underlying simplicial set
+# creates an export data that houses graphics information and math_data, and recursively packages math_data if math_data is a golog
 def golog_to_sSet(golog):
     old_to_new = stripsSet(golog.sSet)
     for simp in old_to_new.dom.rawSimps:
@@ -48,8 +49,11 @@ def golog_to_sSet(golog):
         exported_data = export_data( simp, graphics_kwargs = golog.Simplex_to_Graphics[simp].graphics_kwargs) #create some pickleable export_data
         old_to_new(simp).math_data = Math_Data(type = 'export_data',math_data = exported_data) #set math_data of new simplex to export_data
     return old_to_new.codom
+
+
 #strip golog's graphics and math_data
 #export math data and graphics_kwargs
+#pickle to file_location
 def gexport(golog,location_string):
     ''' takes a golog and a absolute path, and exports it to that path '''
     #check if location exists
@@ -64,6 +68,7 @@ def gexport(golog,location_string):
         pickle.dump(export_meta,file)
     return location_string
 
+#transform a packed up golog from it's export_sSet back into it's original golog, which is attached to a given showbase
 def sSet_to_golog(base, sSet):
     golog = Golog.golog(base, label = sSet.label)
     old_to_new = dict()
@@ -84,6 +89,7 @@ def sSet_to_golog(base, sSet):
     return golog
 
 
+#import an export_sSet and transform it to a golog, updating it if necessary.
 def gimport(base, path):
     with open(path,'rb') as file:
         export_meta = pickle.load(file)

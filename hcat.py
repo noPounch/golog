@@ -190,10 +190,12 @@ class simpSet:
             recursiveAdd(s)
             return s
 
+    #return the hom_set of two 0-simplecies
     def hom(self, A ,B):
         if [A,B] in self.simplecies.keys(): return self.simplecies[[A,B]]
-        return False
+        return ()
 
+    #recursively remove a simplex and it's math_data
     def remove(self,simplex, delete = False):
         print('removing '+simplex.label)
         assert simplex.supports == [], "simplex "+simplex.label+" still supports \n"+str([sup.label for sup in simplex.supports])
@@ -224,7 +226,7 @@ class Functor:
         assert simplex in self.dom.rawSimps
         return self.F(simplex)
 
-
+#create an isomorphic simplicial set with no math_data
 def stripsSet(sSet):
     newsSet = simpSet(label = sSet.label)
     old_to_new = dict()
@@ -248,6 +250,8 @@ def stripsSet(sSet):
     old_to_new_functor = Functor(sSet,newsSet,lambda x:old_to_new[x])
     return old_to_new_functor
 
+#class which asserts the submorphism conditions
+###### SOON TO BE DEPRECIATED AND REPLACED BY SIMPLCIAL EXPANSION SETS#########
 class submorphism(simpSet):
     ''' A submorphism is a simplicial set who's n-simplecies are (n-1)-simplecies (from an ambient sSet containing both its dom and codom) '''
     def __init__(self, dom, codom, *args, **kwargs):

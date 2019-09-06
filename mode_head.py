@@ -219,6 +219,8 @@ class mode_head():
         if math_data_type == 'weblink':
             weblink = tk_funcs.ask_weblink()
             simplex.math_data = hcat.Math_Data(math_data = weblink, type = 'weblink')
+
+        #? add a handler for raw text file (do normal file handler, but create a text file as the file)
         #save golog
         if autosave == True: self.save()
         return simplex.math_data
@@ -252,11 +254,13 @@ class mode_head():
 
         else: self.parent.save()# if parent has no mode_head, save itself
 
+    #basic reset function which shuts off the listener and removes button bindings. Should only be called if no "reset" function exists
     def basic_reset(self,*args):
         self.buttons = dict()
         self.window_tasks = dict()
         self.listener.ignoreAll()
 
+    #function to call before deleting the mode_head, for example when closing a window
     def clean(self):
         self.reset()
 
@@ -269,6 +273,7 @@ class mode_head():
         del self.golog.mode_heads[self.index]
         del self.reset
 
+    # function to return the only the relevant collision data from the mouseRay
     def get_relevant_entries(self, mw):
         # get list of entries by distance
         if not mw.node().hasMouse(): return
@@ -292,12 +297,14 @@ class mode_head():
         entryNP = entry.getIntoNodePath().getParent()
         if entryNP.hasTag('level'): return (entryNP, entryNP.getTag('level'),entryNP.getPos())
 
+    #function to 'pick up' a node by adding it to the dragged dictionary
     def pickup(self, mw):
         if not mw.node().hasMouse(): return
         (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
         if node_type in ['0','1']: self.grabbed_dict = {'graphics': self.golog.NP_to_Graphics[entryNP],'dragged':False,
                                                         'orig_pos': entryNP.getPos()}
 
+    #function to 'put down' a node
     def putdown(self, mw):
         if self.grabbed_dict:
             if self.grabbed_dict['dragged'] == True:
@@ -305,6 +312,7 @@ class mode_head():
                 return True
             self.grabbed_dict = None
 
+    #function to select a node and add a 1-simplex between 2 selected 0-simplecies
     def select(self, mw):
         if not mw.node().hasMouse(): return
 
@@ -348,6 +356,7 @@ class mode_head():
             else:
                 self.open_math_data(simplex.math_data)
 
+    # delete a simplex, prompt to delete the math_data and (recursively) it's supported simplecies
     def delete(self,mw):
         (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
         if node_type in ['0','1']:
@@ -363,6 +372,7 @@ class mode_head():
             self.delete_math_data(simplex)
             graphics._remove()
 
+    #update the math_data of a simplex under the mouse
     def mouse_update(self, mw):
         (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
         if node_type in ['0','1']:
@@ -372,6 +382,7 @@ class mode_head():
                 return
             self.update_math_data(simplex, math_data_type = asked_list[1], label = asked_list[0])
 
+    #create a simplex given a mouse position
     def create(self, mw):
         (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
 
@@ -384,6 +395,7 @@ class mode_head():
             simplex = self.golog.add(0, pos = entry_pos, label = asked_list[0]) #create a simplex
             self.update_math_data(simplex, math_data_type = asked_list[1], label = asked_list[0])
 
+    #function which checks the drag dictionary and drags stuff
     def drag(self, mw):
         if self.grabbed_dict:
             mpos = mw.node().getMouse()
@@ -407,6 +419,7 @@ class mode_head():
             if self.grabbed_dict['dragged'] == True: self.grabbed_dict['graphics'].update({'pos':offset})
 
 
+    #send preview of math_data of simplex under the mouse
     def preview(self, mw):
         (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
 
@@ -426,7 +439,9 @@ class mode_head():
                 self.textNP.node().setText("label:\n" +simplex.label+"\n\n math data type:\n" + simplex.math_data.type)
         return
 
+    ########## BEGIN DEFINING MODES ##########3
 
+    #selection and creation mode
     def selection_and_creation(self, windict):
         def mouse1(mw):
             if not mw: return

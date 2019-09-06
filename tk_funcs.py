@@ -104,19 +104,19 @@ def ask_math_data(Default_Label = 'Simplex'):
 
 
 
-def unique_path(master, path = []):
+def unique_path(root, path = []):
     if not path: return path
     if isinstance(path,str): path = [path] #should pass a list, but just in case
 
     import os
-    abs_path = os.path.join(master, *path)
+    abs_path = os.path.join(root, *path)
     #if original path doesn't exist, just return path
     if not os.path.exists(abs_path):
         return path
 
 
     def cpesmd(num):
-        abs_path = os.path.join(master,*path) + str(num) + ext
+        abs_path = os.path.join(root,*path) + str(num) + ext
         if not os.path.exists(abs_path):
             #if path doesn't exist, return number
             return num

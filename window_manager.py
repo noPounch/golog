@@ -44,24 +44,27 @@ def modeHeadToWindow(base, mode_head):
 
     #if mode_head has a parent, create a button to open it
     if mode_head.parent:
-        createButton(base, windict['gui_frame'], .4, "Parent"+mode_head.parent.golog.label, bt.prefix+"parent")
-        windict['guibuttons']['Parent'] = bt.prefix+"parent"
+        createButton(base, windict['gui_frame'], .4, "Open Parent", bt.prefix+"parent")
+        windict['guibuttons']['Parent'] = bt.prefix+"parent" #assign messenger call
 
 
     mode_dict = {'Preview':text_preview,"Parent": lambda *x: modeHeadToWindow(base, mode_head.parent)}
     #do something with guibuttons
     for button in windict['guibuttons'].keys():
-        base.accept(windict['guibuttons'][button],mode_dict[button])
+        base.accept(windict['guibuttons'][button],mode_dict[button]) #set messenger call
 
     #? make accept f5/f6
     # for button in buttons.keys():
     #     base.accept(button, )
     return windict
 
-#used for previews
+#send a golog to some display region
 def gologToDr(base, mode_head, drdict = None):
     if drdict == None: modeHeadToWindow(base, mode_head, None)
+    #? else set display region's camera to the mode_head.golog's camera
 
+#find a place for the window, and then make the window
+# and return a dict with all it's display regions, and interaction tools (bt,mw,etc.)
 def windowMaker(base,label):
     # find an open slot, if none, return false
     windict = dict()
@@ -170,6 +173,7 @@ def windowMaker(base,label):
 
     return windict
 
+#create a button in a given frame (usually windict['gui_frame'])
 def createButton(base, frame, verticlePos, Text, event):
 
     btn = DirectButton(text = Text, scale = 0.2, command = base.messenger.send, pressEffect = 1, extraArgs = [event])
@@ -177,12 +181,14 @@ def createButton(base, frame, verticlePos, Text, event):
 
     btn.reparentTo(frame)
 
+#event to call when window closes
 def windowEvent(win):
     windict = win_to_windict[win]
     if win.closed:
         windowCloseCleaner(windict)
         return
 
+# function to clean up references when a window closes
 def windowCloseCleaner(windict):
     if 'mode_head' in windict:
         golog = windict['mode_head'].golog
