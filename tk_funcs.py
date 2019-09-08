@@ -79,7 +79,7 @@ def ask_math_data(Default_Label = 'Simplex'):
     labelentry.grid(row = 0, column = 1)
 
     #data options on click
-    options = ['None','golog', 'file','latex','weblink']
+    options = ['None','golog', 'file','text','latex','weblink']
     Label(master, text = "Math Data Type: ").grid(row = 1,column = 0)
     MathDataVariable = StringVar(master)
     MathDataVariable.set(options[0])
@@ -128,7 +128,6 @@ def unique_path(root, path = []):
     return path[:-1] + [path[-1] + str(cpesmd(0))+ext]
 
 
-# ask_math_data('hello')
 
 def save_load_new(default_location = os.path.abspath('./user_files/save'), recent_path = None):
     master = Tk()

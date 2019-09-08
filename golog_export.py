@@ -58,7 +58,7 @@ def gexport(golog,location_string):
     ''' takes a golog and a absolute path, and exports it to that path '''
     #check if location exists
     golog_folder = os.path.join(location_string, golog.label)
-    if os.path.exists(golog_folder): print('MAY OVER RIDE GOLOG OF SAME NAME')
+    if os.path.exists(golog_folder): print('MAY OVERRIDE GOLOG OF SAME NAME')
     export_sSet = golog_to_sSet(golog) # create pickle-able sSet
     export_simplex = Simplex(0,math_data = Math_Data(type = 'exported golog', math_data = export_sSet)) #create a simplex from the export_sSet
     export_meta = export_data(export_simplex, export_version = export_version) # create meta_data in the form of export_data

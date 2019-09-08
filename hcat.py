@@ -2,8 +2,7 @@ import itertools, os
 from copy import copy
 import tk_funcs
 
-# Create a new simplex with specified faces and kwargs
-# Usage: Simplex(level, faces, *args, **{label:'', data:dict())
+
 
 class Math_Data():
     def __init__(self,**kwargs):
@@ -17,9 +16,8 @@ class Math_Data():
         if self.type == 'golog':
 
             golog_dict = self.math_data
-            #remove close window and remove mode_head if it has
+            #close window and remove mode_head if it has one
             golog = golog_dict['golog']
-            #if it's list of mode_heads is not empty
             if hasattr(golog,'mode_heads'):
                 for mode_head in golog.mode_heads.values():
                     mode_head.reset()
@@ -39,15 +37,16 @@ class Math_Data():
             tk_funcs.ask_delete_path(folder)
 
         elif self.type == 'weblink':
-
             pass #will ultimately just get deleted by overwriting
-        else:
-            print('oops')
+        print(self.type + ' Data Deleted')
 
 
     def __call__(self):
         return self.math_data
 
+
+# Create a new simplex with specified faces and kwargs
+# Usage: Simplex(level, faces, *args, **{label:'', data:dict())
 class Simplex():
     def __init__(self, n, faces = (), *args, **kwargs):
 
@@ -222,6 +221,9 @@ class Functor:
         for key in defaults.keys():
             if key in kwargs.keys(): setattr(self,key,kwargs[key])
             else: setattr(self,key,eval(defaults[key]))
+
+
+
     def __call__(self,simplex):
         assert simplex in self.dom.rawSimps
         return self.F(simplex)

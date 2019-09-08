@@ -110,11 +110,11 @@ class mode_head():
 
         if math_data.type == 'file':
             file_name, file_extension = os.path.splitext(math_data()[-1])
-            if file_extension == '.txt':
-                tk_funcs.edit_txt(os.path.join(self.folder_path,*math_data()))
-            else:
+            # if file_extension == '.txt':
+            #     tk_funcs.edit_txt(os.path.join(self.folder_path,*math_data()))
+            # else:
                 #prompt user to select a program
-                tk_funcs.run_program('',os.path.join(self.folder_path,*math_data()))
+            tk_funcs.run_program('',os.path.join(self.folder_path,*math_data()))
         if math_data.type == 'latex':
             file_dict = math_data()
             tex_folder = os.path.join(os.path.abspath(self.folder_path),*file_dict['folder'])
@@ -203,7 +203,7 @@ class mode_head():
             tex_file_path = [*tex_folder_path, simplex.label+'.tex']
             # ask if want new or to load one
             location = tk_funcs.load_tex(self.folder_path)
-            # if new, returns True and makes a new tex file below
+            # if new, returns True and copies template tex file
             # if load, returns a path and copies the path into tex_file_path
             true_path = os.path.join(self.folder_path,*tex_file_path)
             if location == True: copyfile(os.path.abspath('./misc_data/config_files/template.tex'), true_path)
@@ -220,7 +220,18 @@ class mode_head():
             weblink = tk_funcs.ask_weblink()
             simplex.math_data = hcat.Math_Data(math_data = weblink, type = 'weblink')
 
-        #? add a handler for raw text file (do normal file handler, but create a text file as the file)
+
+        if math_data_type == 'text':
+            #create a text file
+            if not os.path.exists(os.path.join(self.folder_path,'files')): os.mkdir(os.path.join(self.folder_path,'files'))
+            file_folder_path = ['files']
+            file_path = tk_funcs.unique_path(root = self.folder_path, path = ['files',simplex.label+'.txt' ])
+            with open(os.path.join(self.folder_path, *file_path),'w') as file: pass
+            #create a math_data for it
+            simplex.math_data = hcat.Math_Data(math_data = file_path, type = 'file')
+
+
+
         #save golog
         if autosave == True: self.save()
         return simplex.math_data
