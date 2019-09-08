@@ -5,37 +5,19 @@ x = urgency level
 
 
 __________QUESTS___________
-
-
-Modes:
--ooo todo ontology
-
-
-SYSTEM:
--------o autosave
-
-Ontologies to Build:
-daily todo ontology
-
-
-Files
--o create a 'save' ontology
--- whenever save ontology updates, save
-
-Graphics
+Graphics:
 - 1-simplex graphics orientation
 
 
 Simplicial Set:
-
-
+- define simplicial expansion set
 
 
 GUI:
---
+- Tighten Up button frame
 
 Ontology Builders:
----o latex ontology
+-oo latex ontology
 
 _____________COMPLETED QUESTS_________
 System

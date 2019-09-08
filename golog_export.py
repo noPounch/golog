@@ -1,7 +1,7 @@
 import pickle
 import os, sys
-from hcat import simpSet, Math_Data, Simplex
-from hcat_funcs import *
+from hcat import simpSet, Math_Data, Simplex, stripsSet
+# from hcat_funcs import *
 import golog as Golog
 sSet = None
 
@@ -93,8 +93,8 @@ def sSet_to_golog(base, sSet):
 def gimport(base, path):
     with open(path,'rb') as file:
         export_meta = pickle.load(file)
-    if export_meta.export_version < export_version:
-        gupdate(export_meta)
+    # if export_meta.export_version < export_version:
+    #     gupdate(export_meta)
     sSet = export_meta.exported_math_data()
     return sSet_to_golog(base,sSet)
 
