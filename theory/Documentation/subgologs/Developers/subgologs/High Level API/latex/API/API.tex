@@ -1,0 +1,192 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{amsthm}
+\usepackage{tikz-cd}
+\newtheorem*{Prob}{Problem}
+\newtheorem{Prop}{Proposition}
+\newtheorem*{Def}{Definition}
+\newtheorem*{Thm}{Theorem}
+\newtheorem{Ex}{Example}
+
+
+%% Macros %%
+\newcommand{\mb}{\mathbb}
+\newcommand{\mf}{\mathfrak}
+\newcommand{\cat}{\mathbb Cat}
+\newcommand{\A}{\mathbb A}
+\newcommand{\B}{\mathbb B}
+\newcommand{\C}{\mathbb C}
+\newcommand{\Q}{\mathbb Q}
+\newcommand{\mc}{\mathcal}
+
+
+\begin{document}
+
+\begin{section}{Welcome to The Golog high level API! }
+\end{section}
+ Welcome to the Golog High Level API! In this pdf, we will detail some high level functionality for controlling gologs and their displays. Hopefully, you have arrived at this PDF through an exploration of the documentation.golog. In which case, the graphical ontology this pdf resides in will give you an overall structure of the program.\\
+ 
+ By the end of this pdf, you should be able to do the following:\\
+ 
+\noindent$\bullet$ Create and manipulate simplicial sets\\
+ $\bullet$ Create and manipulate gologs\\
+ $\bullet$ Create user interaction modes in mode\_head\\
+ $\bullet$ Output graphics into a Window\\
+ $\bullet$ Save and Load gologs\\
+ 
+ 
+ \begin{section}{Panda3D}
+ \end{section}
+ 
+ Besides abstract simplicial sets, every part of the golog program relies upon the graphics engine panda3D, in particular, the actual rendering pipeline provided by a ShowBase object. Every bit of graphics is represented by a nodepath in a scene graph, even the cameras. It is highly suggested that the high level user understands at least the scene graph before creating scripts, although theoretically it is not necessary. If you wish to create more low-level scripts to control graphics, you will absolutely need to understand panda3D. To this end, it is suggested that one reads the panda3D manual, and attempts some tutorials:\\
+ 
+ \noindent\href{https://www.panda3d.org/manual/}{Panda3D Manual}\\
+ \href{https://www.panda3d.org/manual/?title=The_Scene_Graph}{Scene Graph}\\
+ \href{https://grimfang-studio.org/data/books/book1/Panda3D\%20Book\%201.pdf}{Fireclaw Panda3D Tutorial Book}\\
+ 
+ \newpage
+ \subsection{Running a Script with a ShowBase}
+ If you just want to get into controlling golog through this API, then the only thing you NEED to have is a running ShowBase, within that showbase, you can run any script you'd like. A great example of initiating a ShowBase, is the run.py file in the golog program itself. The basic Components are below:
+ 
+ \begin{lstlisting}
+ from direct.showbase.ShowBase import ShowBase
+ 
+ class runner(ShowBase):
+    def __init__(self):
+        ShowBase.__init__(self)
+        self.script(*args,**kwargs)
+    
+    def script(self,*args,**kwargs):
+        #put whatever script you may want here
+        pass
+
+ r = runner()
+ r.run()
+ \end{lstlisting}
+
+This code allows one to use panda3D's rendering pipeline given by $$\text{base == self}$$ For example, in order for golog to load graphics from a file, it will call\\ base.loader.loadModel(file\_path). Any script that you run in the context of panda3D's graphics engine, must be run inside the 'runnner' class created above, and you will likely have to pass 'base'
+ 
+ 
+ \newpage
+ \begin{section}{sSet}
+ \end{section}
+ 
+ The fundimental underlying mathematical structure in golog is that of a simplicial set. One does not need to understand the mathematics of a simplicial set in order to use golog, the only key ideas are:\\
+ 
+ 
+ \noindent $\bullet$ 0-simplecies\\
+ $\bullet$ 1-simplecies between two 0-simplecies\\
+ $\bullet$ Math\_Data associated to simplecies\\
+ 
+ From this point of view, a simplicial set is just a graph database, however there are higher simplecies which the advanced user can utilize.  
+ 
+an abstract simplicial set does not require the usage of panda3Ds showbase.\\
+
+\begin{subsection}{Implementing / Controlling a simplicial set}
+\end{subsection}
+
+to create a simplecial set, first import simpSet from the hcat.py module and instanciate the simpSet class
+
+\begin{lstlisting}
+from hcat import simpSet
+
+sSet = simpSet(label = 'hello ontology!')
+\end{lstlisting}
+
+\underline{to create a simplex in the simplicial set} call the add function
+
+\begin{lstlisting}
+simplex = sSet.add(ob, label = 'A simplex') 
+\end{lstlisting}
+
+In this case, ob can be one of the following:\\
+
+\textbf{if ob is an integer n}:\\
+create a new simplex of level n and all of the subsimplecies that might support it\\
+
+for example: \\
+$\bullet$ sSet.add(0) creates a single 0-simplex\\
+$\bullet$ sSet.add(1) creates a 1-simplex, and two 0-simplecies to act as it's faces\\
+
+\textbf{ob is a tuple of simplecies}:\\
+create a new simplex who's faces are the simplecies in the given tuple\\
+
+for example:
+
+\begin{lstlisting}
+simp0 = sSet.add(0, label = 'A')
+simp1 = sSet.add(0, label = 'B')
+f = sSet.add((face1,face0), label = 'f:A --> B')
+\end{lstlisting}
+
+\textbf{if ob is an entire simplicial set}:\\
+copy entire simplicial set into this simplecial set.\\
+\newpage
+
+\underline{To list all the simplecies in a simplicial set}\\
+call sSet.rawSimps, for example:
+
+\begin{lstlisting}
+[simp.label for simp in sSet.rawSimps]
+\end{lstlisting}
+
+will return the labels of every simplex in the simplicial set.
+
+\begin{subsection}{Math\_Data}
+\end{subsection}
+
+To every simplex in a simplicial set, is some associate "Math\_Data". There is nothing inherently mathematical about this data, the name is meant to differentiate from other "Data" in the golog program, such as "Graphics\_Data" and "Export\_Data". The Math\_Data class is meant to be a meta wrapper for arbitrary data, with information on what type of data it is, and how to delete it. For the high level programmer, all that you need to know is how to instanciate a Math\_Data. For this, we must import the Math\_Data class from hcat.py
+
+\begin{lstlisting}
+from hcat import Math_Data
+
+\end{lstlisting}
+
+Then we can instanciate a new math\_data object:
+\begin{lstlisting}
+
+math_data = Math_Data(type = string, math_data = actual_data)
+\end{lstlisting}
+
+
+to associate a math\_data with a simplex, you can pass it as a kwarg upon creating a simplex, or add it directly:
+
+\begin{lstlisting}
+simp = sSet.add(0, label = 'simplex with data', math_data = math_data)
+simp.math_data = math_data
+\end{lstlisting}
+
+for example, one can create a math\_data whose data is a simplicial set:\\
+
+\begin{lstlisting}
+from hcat import simpSet, Math_Data
+
+subsSet = simpSet(label = 'subontology')
+sSet = simpSet(label = 'highest level ontology')
+
+subsSet_math_data = Math_Data(type = 'simpSet', math_data = subsSet)
+s1 = sSet.add(0, label = 'subontology simplex', math_data = subsSet_math_data)
+s2 = sSet.add(0)
+s2.math_data = subsSet_math_data
+\end{lstlisting}
+
+to get the sub simplicial set housed under the simplex we created above, we can just call the math\_data attribute:
+
+\begin{lstlisting}
+subsSet_reference = s1.math_data()
+\end{lstlisting}
+
+
+
+
+
+
+\end{document}
