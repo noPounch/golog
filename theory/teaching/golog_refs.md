@@ -25,7 +25,7 @@ atom .
 
 
 ## Python concepts used throughout the program:
-There are tons of python tutorials [1](https://www.programiz.com/python-programming/tutorial)[2](https://www.guru99.com/python-tutorials.html)[3](https://www.w3schools.com/python/) [4](https://www.tutorialspoint.com/python/index.htm)[5](https://www.python-course.eu/python3_course.php) out there, find one and make sure you understand the concepts below:
+There are tons of python tutorials [(1)](https://www.programiz.com/python-programming/tutorial) [(2)](https://www.guru99.com/python-tutorials.html) [(3)](https://www.w3schools.com/python/) [(4)](https://www.tutorialspoint.com/python/index.htm)  [(5)](https://www.python-course.eu/python3_course.php) out there, find one and make sure you understand the concepts below:
 - Classes & objects*************************************************************
   - attributes**
 - data types*
