@@ -69,7 +69,7 @@ class mode_head():
 
         ### set up selection tools
         self.create_list = [[],[]] #select nodes and add to create_list in order to create higher simplecies
-        self.bools = {'selecter':False,'textboxes':True} #some bools that will be usefull
+        self.bools = {'selecter':False,'textboxes':True,'shift_clicked':False} #some bools that will be usefull
 
 
         # set up mouse picker
@@ -92,7 +92,7 @@ class mode_head():
         self.textNP.setPos(-1,0,0)
         self.textNP.show()
         #set up dragging info
-        self.grabbed_dict = None
+        self.grabbed_dict = dict()
         self.drag_dict = dict() #a mapping from selected nodes to their original positions for dragging
         self.mouse_down_loc = (0,0,0)
         self.lowest_level = 3
@@ -344,15 +344,15 @@ class mode_head():
 
     #function to 'put down' a node, returns true if it's dragged something
     def putdown(self, mw):
-        if self.grabbed_dict:
-            if self.grabbed_dict['dragged'] == True:
-                self.grabbed_dict = None
-                return True
-            self.grabbed_dict = None
         for node in self.drag_dict.keys():
             self.drag_dict[node] = self.golog.NP_to_Graphics[node].graphics_kwargs['pos']
             self.lowest_level = min(self.lowest_level, int(node.getTag('level')))
 
+        if 'dragged' in self.grabbed_dict.keys():
+            if self.grabbed_dict['dragged'] == True:
+                self.grabbed_dict = dict()
+                return True
+            self.grabbed_dict = dict()
     #function to select a node and add a 1-simplex between 2 create_list 0-simplecies
     def select_for_creation(self, mw):
         if not mw.node().hasMouse(): return
@@ -441,6 +441,8 @@ class mode_head():
     #function which checks the drag dictionary and drags stuff
     def drag(self, mw):
         if self.grabbed_dict:
+
+
             #get mouse_loc
             mpos = mw.node().getMouse()
             self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY()) #mouse ray goes from camera through the 'lens plane' at position of mouse
@@ -468,9 +470,9 @@ class mode_head():
 
             # if there is something in the drag dict:
             if self.drag_dict:
+                self.grabbed_dict['dragged'] = True
                 #only drag lowest dim simplecies
                 for node in self.drag_dict.keys():
-
                     if int(node.getTag('level')) == self.lowest_level: self.golog.NP_to_Graphics[node].update({'pos':self.drag_dict[node]+mouseloc-self.mouse_down_loc})
 
 
@@ -502,9 +504,11 @@ class mode_head():
             if entryNP in self.drag_dict.keys():
                 del self.drag_dict[entryNP]
                 entryNP.setColorScale(1,1,1,1)
+                self.lowest_level = min([int(node.getTag('level')) for node in self.drag_dict.keys()])
             else:
                 self.drag_dict[entryNP] = self.golog.NP_to_Graphics[entryNP].graphics_kwargs['pos']
                 entryNP.setColorScale(.5,.5,0,1)
+                self.lowest_level = min(self.lowest_level, int(entryNP.getTag('level')))
 
 
     ########## BEGIN DEFINING MODES ##########
@@ -513,18 +517,24 @@ class mode_head():
     def selection_and_creation(self, windict):
         def mouse1(mw):
             if not mw: return
+            self.bools['shift_clicked'] = False
             self.pickup(mw)
 
         def shift_mouse1(mw):
             if not mw: return
             self.multi_select(mw)
+            self.bools['shift_clicked'] = True
 
         def mouse1_up(mw):
-            self.putdown(mw)
+            dropped_bool = self.putdown(mw)
+            if self.bools['shift_clicked'] or dropped_bool:
+                self.bools['shift_clicked'] = False
+            else:
+                self.select_for_creation(mw)
 
 
-        def control_mouse1(mw):
-            self.select_for_creation(mw)
+
+
         def space(mw):
             if not mw: return
             self.mouse_open(mw)
@@ -557,6 +567,6 @@ class mode_head():
 
         self.buttons = {'mouse1':mouse1, 'mouse1-up':mouse1_up, 'mouse3':mouse3,
         'space':space, 'escape':self.reset, 's':self.save, 'u':u,'backspace':backspace,
-        'shift-mouse1':shift_mouse1,'control-mouse1':control_mouse1}
+        'shift-mouse1':shift_mouse1}
         self.window_tasks = {'mouse_watch_task':mouse_watch_task}
         self.setup_window(windict)
