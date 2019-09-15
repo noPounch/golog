@@ -69,7 +69,7 @@ class mode_head():
 
         ### set up selection tools
         self.create_list = [[],[]] #select nodes and add to create_list in order to create higher simplecies
-        self.bools = {'selecter':False} #some bools that will be usefull
+        self.bools = {'selecter':False,'textboxes':True} #some bools that will be usefull
 
 
         # set up mouse picker
