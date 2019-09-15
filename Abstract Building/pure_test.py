@@ -1,11 +1,7 @@
 from direct.showbase.ShowBase import ShowBase
 from math import sin, cos
-from panda3d.core import Point3
+from panda3d.core import Point3, ButtonHandle, ModifierButtons
 import sys, os
-from panda3d.core import loadPrcFileData
-loadPrcFileData("", "want-directtools #t")
-loadPrcFileData("", "want-tk #t")
-
 class runner(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
@@ -14,36 +10,20 @@ class runner(ShowBase):
         # need to migrate into gologToWindow
         base.accept("f5",sys.exit)
         base.accept("f6",sys.exit)
+        base.accept('shift-mouse1',print, extraArgs = ['hello'])
+        bt = self.buttonThrowers[0].node()
+        newMB = ModifierButtons()
+        newguy = ButtonHandle('shift')
+        newMB.addButton(newguy)
+        # bt.setModifierButtons(bt.getModifierButtons().addButton(newguy))
+        # print(bt.getModifierButtons().getButton(0).getName())
+        # print(bt.getModifierButtons().getButton(0).getAlias())
+        print(newMB)
 
-        self.tetra = self.loader.loadModel(os.path.abspath(os.path.dirname(__file__))+'/models/Cone.egg')
-        self.sphere = self.loader.loadModel('models/misc/sphere')
-        self.uparrow = self.
-        self.tetra.setColorScale(1,1,1,1)
-
-        self.arr = self.render.attachNewNode("arrow")
-        self.tetra.instanceTo(self.arr)
-        # self.tetra.setHpr(1,0,1)
-        # print(self.tetra.getHpr())
-        # self.node1 = self.render.attachNewNode('node1')
-        # self.node1.setPos(10,0,10)
-        # self.tetra.lookAt(self.node1.getPos(),(0,0,1))
-        # print(self.tetra.getHpr())
-        # # self.node2 = self.render.attachNewNode('node2')
-        # # self.node2.setPos(-8,0,2)
-        # self.sphere.instanceTo(self.node1)
-        # # self.sphere.instanceTo(self.node2)
-        #
-        spheretocart = lambda x,y,z:(1)
-        self.camera.setPos(0,-100,0)
-        # self.taskMgr.add(lambda task:self.test_moving(self.node2,Point3(-8,0,2),task),'moving')
+        # print(newguy.hasAsciiEquivalent())
 
 
-    def test_moving(self,node, origpos, task):
-        t = task.time
-        pos = origpos + Point3(10*sin(t),0,10*cos(t))
-        self.arr.lookAt(node)
-        node.setPos(pos)
-        return task.cont
+
 
 
 r = runner()

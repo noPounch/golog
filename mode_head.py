@@ -245,6 +245,7 @@ class mode_head():
 
     def setup_window(self, windict):
         self.windict = windict
+        print(self.windict['bt'].getModifierButtons())
         for button in self.buttons.keys():
             self.listener.accept(self.windict['bt'].prefix+button, self.buttons[button], extraArgs = [self.windict['mw']])
         for window_task in self.window_tasks.keys():
@@ -450,13 +451,17 @@ class mode_head():
                 self.textNP.node().setText("label:\n" +simplex.label+"\n\n math data type:\n" + simplex.math_data.type)
         return
 
-    ########## BEGIN DEFINING MODES ##########3
+    ########## BEGIN DEFINING MODES ##########
 
     #selection and creation mode
     def selection_and_creation(self, windict):
         def mouse1(mw):
             if not mw: return
             self.pickup(mw)
+
+        def shift_mouse1(mw):
+            if not mw: return
+            print('hello')
 
         def mouse1_up(mw):
             if not mw: return
@@ -493,6 +498,6 @@ class mode_head():
             self.reset = self.basic_reset
         self.reset = reset
 
-        self.buttons = {'mouse1':mouse1, 'mouse1-up':mouse1_up, 'mouse3':mouse3, 'space':space, 'escape':self.reset, 's':self.save, 'u':u,'backspace':backspace}
+        self.buttons = {'mouse1':mouse1, 'mouse1-up':mouse1_up, 'mouse3':mouse3, 'space':space, 'escape':self.reset, 's':self.save, 'u':u,'backspace':backspace,'shift-mouse1':shift_mouse1}
         self.window_tasks = {'mouse_watch_task':mouse_watch_task}
         self.setup_window(windict)

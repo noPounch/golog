@@ -4,6 +4,7 @@ from math import cos, sin
 from direct.task import Task
 from panda3d.core import WindowProperties, PGTop
 from panda3d.core import NodePath, MouseWatcher, ButtonThrower, MouseAndKeyboard, Camera, OrthographicLens
+from panda3d.core import ModifierButtons, ButtonHandle
 from direct.showbase.DirectObject import DirectObject
 from direct.gui.DirectGui import DirectFrame,DirectLabel,DirectButton
 
@@ -99,11 +100,15 @@ def windowMaker(base,label):
     mkNode = MouseAndKeyboard(newwin,0,label+"_keyboard_mouse")
     mk = base.dataRoot.attachNewNode(mkNode)
     windict['mk'] = mk
+    modis = ModifierButtons()
+    modis.addButton(ButtonHandle('shift'))
     mwNode = MouseWatcher(label)
+    mwNode.setModifierButtons(modis)
     mwNode.setDisplayRegion(displayRegion)
     mw = mk.attachNewNode(mwNode)
     windict['mw'] = mw
     bt = ButtonThrower(label+"_button_thrower")
+    bt.setModifierButtons(modis)
     windict['bt'] = bt
     bt.setPrefix(label+"_")
     mw.attachNewNode(bt)
