@@ -102,6 +102,7 @@ def windowMaker(base,label):
     windict['mk'] = mk
     modis = ModifierButtons()
     modis.addButton(ButtonHandle('shift'))
+    modis.addButton(ButtonHandle('control'))
     mwNode = MouseWatcher(label)
     mwNode.setModifierButtons(modis)
     mwNode.setDisplayRegion(displayRegion)

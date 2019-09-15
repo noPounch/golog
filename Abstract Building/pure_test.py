@@ -16,7 +16,7 @@ class runner(ShowBase):
         newguy = ButtonHandle('shift')
         newMB.addButton(newguy)
         # bt.setModifierButtons(bt.getModifierButtons().addButton(newguy))
-        # print(bt.getModifierButtons().getButton(0).getName())
+        print(bt.getModifierButtons())
         # print(bt.getModifierButtons().getButton(0).getAlias())
         print(newMB)
 

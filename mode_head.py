@@ -69,8 +69,7 @@ class mode_head():
 
         ### set up selection tools
         self.create_list = [[],[]] #select nodes and add to create_list in order to create higher simplecies
-        self.selected = [] #a list of selected nodes for other purposes than creating new simplecies
-
+        self.bools = {'selecter':False} #some bools that will be usefull
 
 
         # set up mouse picker
@@ -94,10 +93,9 @@ class mode_head():
         self.textNP.show()
         #set up dragging info
         self.grabbed_dict = None
-
-
-
-
+        self.drag_dict = dict() #a mapping from selected nodes to their original positions for dragging
+        self.mouse_down_loc = (0,0,0)
+        self.lowest_level = 3
 
     def open_math_data(self,math_data):
         if math_data.type == 'golog':
@@ -245,9 +243,6 @@ class mode_head():
         simplex.math_data.delete(self.folder_path)
         simplex.math_data = hcat.Math_Data(type = 'None')
 
-
-
-
     def setup_window(self, windict):
         self.windict = windict
         for button in self.buttons.keys():
@@ -317,27 +312,59 @@ class mode_head():
     def pickup(self, mw):
         if not mw.node().hasMouse(): return
         (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
-        if node_type in ['0','1']: self.grabbed_dict = {'graphics': self.golog.NP_to_Graphics[entryNP],'dragged':False,
-                                                        'orig_pos': entryNP.getPos()}
 
-    #function to 'put down' a node
+
+        ### get position on plane for mouseloc
+        mpos = mw.node().getMouse()
+        self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY()) #mouse ray goes from camera through the 'lens plane' at position of mouse
+        self.golog.cTrav.traverse(self.golog.render)
+        self.queue.sortEntries()
+        for e in self.queue.getEntries():
+            if e.getIntoNodePath().getParent().hasTag("mode_head"):
+                if e.getIntoNodePath().getParent().getTag("mode_head") == self.label:
+                    if e.getIntoNodePath().getParent().getTag("mode_node") == 'plane':
+                        self.mouse_down_loc = e.getSurfacePoint(e.getIntoNodePath())
+                        break
+
+
+        #if selected node is in the drag_dict, use it to set a mouse location
+        # if entryNP in self.drag_dict.keys(): self.mouse_down_loc = entryNP.getPos()
+
+        if node_type in ['0','1']:
+            self.grabbed_dict = {'graphics': self.golog.NP_to_Graphics[entryNP],'dragged':False,
+                                                        'orig_pos': entryNP.getPos()}
+        if node_type == 'plane':
+            for node in self.create_list[0]: node.setColorScale(1,1,1,1) #turn white
+            self.create_list = [[],[]]
+            for node in self.drag_dict.keys():  node.setColorScale(1,1,1,1)
+            self.drag_dict = dict()
+            self.lowest_level = 3
+
+
+
+    #function to 'put down' a node, returns true if it's dragged something
     def putdown(self, mw):
         if self.grabbed_dict:
             if self.grabbed_dict['dragged'] == True:
                 self.grabbed_dict = None
                 return True
             self.grabbed_dict = None
+        for node in self.drag_dict.keys():
+            self.drag_dict[node] = self.golog.NP_to_Graphics[node].graphics_kwargs['pos']
+            self.lowest_level = min(self.lowest_level, int(node.getTag('level')))
 
     #function to select a node and add a 1-simplex between 2 create_list 0-simplecies
     def select_for_creation(self, mw):
         if not mw.node().hasMouse(): return
+        #remove selected
+        for node in self.drag_dict.keys():
+            node.setColorScale(1,1,1,1)
+        self.drag_dict = dict()
+        self.lowest_level = 3
 
         ### selection ###
         (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
-        if node_type == 'plane':
-            for node in self.create_list[0]: node.setColorScale(1,1,1,1) #turn white
-            self.create_list = [[],[]]
-        elif node_type == '0':# and set(create_list[1:]) = {[]}:
+        if node_type == '0':# and set(create_list[1:]) = {[]}:
             if entryNP not in self.create_list[0]:
                 #?  don't just append, re-sort
                 self.create_list[0].append(entryNP)
@@ -414,25 +441,37 @@ class mode_head():
     #function which checks the drag dictionary and drags stuff
     def drag(self, mw):
         if self.grabbed_dict:
+            #get mouse_loc
             mpos = mw.node().getMouse()
             self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY()) #mouse ray goes from camera through the 'lens plane' at position of mouse
             self.golog.cTrav.traverse(self.golog.render)
             self.queue.sortEntries()
-            mouseloc = self.grabbed_dict['graphics'].graphics_kwargs['pos']
+            mouseloc = None
             for e in self.queue.getEntries():
                 if e.getIntoNodePath().getParent().getTag("mode_node") == 'plane':
                     mouseloc = e.getSurfacePoint(e.getIntoNodePath())
                     break
+            if not mouseloc:return
+
+            self.bools['dragging'] = True
 
 
+            #if nothing is selected, drag the thing below you
+            if not self.drag_dict:
+                offset = mouseloc - self.grabbed_dict['graphics'].parent_pos_convolution()
+                delta = offset - self.grabbed_dict['orig_pos']
+                norm = delta.getX()**2 +delta.getY()**2 +delta.getZ()**2
+                if self.grabbed_dict['dragged'] == True or norm > 1:
+                    self.grabbed_dict['dragged'] = True
+                #if offset magnitude is greater than 1 or dragged == true, actually drag it
+                if self.grabbed_dict['dragged'] == True: self.grabbed_dict['graphics'].update({'pos':offset})
 
-            offset = mouseloc - self.grabbed_dict['graphics'].parent_pos_convolution()
-            delta = offset - self.grabbed_dict['orig_pos']
-            norm = delta.getX()**2 +delta.getY()**2 +delta.getZ()**2
-            if self.grabbed_dict['dragged'] == True or norm > 1:
-                self.grabbed_dict['dragged'] = True
-            #if offset magnitude is greater than 1 or dragged == true, actually drag it
-            if self.grabbed_dict['dragged'] == True: self.grabbed_dict['graphics'].update({'pos':offset})
+            # if there is something in the drag dict:
+            if self.drag_dict:
+                #only drag lowest dim simplecies
+                for node in self.drag_dict.keys():
+
+                    if int(node.getTag('level')) == self.lowest_level: self.golog.NP_to_Graphics[node].update({'pos':self.drag_dict[node]+mouseloc-self.mouse_down_loc})
 
 
     #send preview of math_data of simplex under the mouse
@@ -455,6 +494,19 @@ class mode_head():
                 self.textNP.node().setText("label:\n" +simplex.label+"\n\n math data type:\n" + simplex.math_data.type)
         return
 
+    #tool for selecting multiple simplecies
+    def multi_select(self,mw):
+        (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
+        #reset select and create
+        if node_type in ['0','1']:
+            if entryNP in self.drag_dict.keys():
+                del self.drag_dict[entryNP]
+                entryNP.setColorScale(1,1,1,1)
+            else:
+                self.drag_dict[entryNP] = self.golog.NP_to_Graphics[entryNP].graphics_kwargs['pos']
+                entryNP.setColorScale(.5,.5,0,1)
+
+
     ########## BEGIN DEFINING MODES ##########
 
     #selection and creation mode
@@ -465,13 +517,14 @@ class mode_head():
 
         def shift_mouse1(mw):
             if not mw: return
-            print('hello')
+            self.multi_select(mw)
 
         def mouse1_up(mw):
-            if not mw: return
-            if self.putdown(mw): return #if it's been dragged, don't select
-            self.select_for_creation(mw)
+            self.putdown(mw)
 
+
+        def control_mouse1(mw):
+            self.select_for_creation(mw)
         def space(mw):
             if not mw: return
             self.mouse_open(mw)
@@ -502,6 +555,8 @@ class mode_head():
             self.reset = self.basic_reset
         self.reset = reset
 
-        self.buttons = {'mouse1':mouse1, 'mouse1-up':mouse1_up, 'mouse3':mouse3, 'space':space, 'escape':self.reset, 's':self.save, 'u':u,'backspace':backspace,'shift-mouse1':shift_mouse1}
+        self.buttons = {'mouse1':mouse1, 'mouse1-up':mouse1_up, 'mouse3':mouse3,
+        'space':space, 'escape':self.reset, 's':self.save, 'u':u,'backspace':backspace,
+        'shift-mouse1':shift_mouse1,'control-mouse1':control_mouse1}
         self.window_tasks = {'mouse_watch_task':mouse_watch_task}
         self.setup_window(windict)
