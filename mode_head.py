@@ -66,7 +66,12 @@ class mode_head():
 
         ### set up collision handling ###
         self.queue = CollisionHandlerQueue()
-        self.selected = [[],[]] #tracking previously selected nodes of each level
+
+        ### set up selection tools
+        self.create_list = [[],[]] #select nodes and add to create_list in order to create higher simplecies
+        self.selected = [] #a list of selected nodes for other purposes than creating new simplecies
+
+
 
         # set up mouse picker
         self.pickerNode = CollisionNode('mouseRay')
@@ -245,7 +250,6 @@ class mode_head():
 
     def setup_window(self, windict):
         self.windict = windict
-        print(self.windict['bt'].getModifierButtons())
         for button in self.buttons.keys():
             self.listener.accept(self.windict['bt'].prefix+button, self.buttons[button], extraArgs = [self.windict['mw']])
         for window_task in self.window_tasks.keys():
@@ -305,7 +309,7 @@ class mode_head():
                 entry = e
                 break
 
-        #return node selected in the golog
+        #return node create_list in the golog
         entryNP = entry.getIntoNodePath().getParent()
         if entryNP.hasTag('level'): return (entryNP, entryNP.getTag('level'),entryNP.getPos())
 
@@ -324,31 +328,31 @@ class mode_head():
                 return True
             self.grabbed_dict = None
 
-    #function to select a node and add a 1-simplex between 2 selected 0-simplecies
-    def select(self, mw):
+    #function to select a node and add a 1-simplex between 2 create_list 0-simplecies
+    def select_for_creation(self, mw):
         if not mw.node().hasMouse(): return
 
         ### selection ###
         (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
         if node_type == 'plane':
-            for node in self.selected[0]: node.setColorScale(1,1,1,1) #turn white
-            self.selected = [[],[]]
-        elif node_type == '0':# and set(selected[1:]) = {[]}:
-            if entryNP not in self.selected[0]:
+            for node in self.create_list[0]: node.setColorScale(1,1,1,1) #turn white
+            self.create_list = [[],[]]
+        elif node_type == '0':# and set(create_list[1:]) = {[]}:
+            if entryNP not in self.create_list[0]:
                 #?  don't just append, re-sort
-                self.selected[0].append(entryNP)
+                self.create_list[0].append(entryNP)
             entryNP.setColorScale(1,0,0,0) #turn red
 
-        if len(self.selected[0]) == 2:
+        if len(self.create_list[0]) == 2:
             # NP -> graphics -> simplex
-            faces = tuple([self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[faceNP]] for faceNP in self.selected[0][-1:-3:-1]])
+            faces = tuple([self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[faceNP]] for faceNP in self.create_list[0][-1:-3:-1]])
             asked_list = tk_funcs.ask_math_data('1-Simplex')
             if not asked_list: #[label, math_data_type,]
                 return
-            simplex = self.golog.add(faces, label = asked_list[0]) #reversed selected objects and creates a 1 - simplex from them
+            simplex = self.golog.add(faces, label = asked_list[0]) #reversed create_list objects and creates a 1 - simplex from them
             self.update_math_data(simplex, asked_list[1], label = asked_list[0])
-            for node in self.selected[0]: node.setColorScale(1,1,1,1)
-            self.selected[0] = [] #reset selected
+            for node in self.create_list[0]: node.setColorScale(1,1,1,1)
+            self.create_list[0] = [] #reset create_list
 
     #open math_data of simplex under mouse
     def mouse_open(self, mw):
@@ -399,8 +403,8 @@ class mode_head():
         (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
 
         if node_type == 'plane':
-            for node in self.selected[0]: node.setColorScale(1,1,1,1) #turn white
-            self.selected = [[],[]]
+            for node in self.create_list[0]: node.setColorScale(1,1,1,1) #turn white
+            self.create_list = [[],[]]
             asked_list = tk_funcs.ask_math_data('0-Simplex')
             if not asked_list:
                 return #if canceled, do not create a simplex
@@ -466,7 +470,7 @@ class mode_head():
         def mouse1_up(mw):
             if not mw: return
             if self.putdown(mw): return #if it's been dragged, don't select
-            self.select(mw)
+            self.select_for_creation(mw)
 
         def space(mw):
             if not mw: return
