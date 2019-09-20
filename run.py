@@ -91,6 +91,13 @@ class runner(ShowBase):
 
         elif not newv: self.cg = load_golog(self, folder_path,save_location)
 
+        # ########
+        # sSet = self.cg.golog.sSet
+        # print([self.cg.golog.Simplex_to_Graphics[simp].NP for simp in sSet.rawSimps])
+        # for simp in sSet.rawSimps:
+        #     self.cg.multi_select(self.cg.golog.Simplex_to_Graphics[simp].NP)
+        # ##########
+
         #update config_dict with new recent golog
         config_dict['path_dict']['recent_path'] = save_location
         with open(config_dict['path_dict']['config_file'],'w') as file:

@@ -8,7 +8,7 @@ import time, hcat, golog, window_manager, tk_funcs
 #panda imports
 from direct.showbase.DirectObject import DirectObject
 # from direct.showbase.InputStateGlobal import inputState
-from panda3d.core import TextNode, TextFont
+from panda3d.core import TextNode, TextFont, MouseWatcher
 from panda3d.core import Camera, NodePath, OrthographicLens
 from panda3d.core import Vec3, Point3
 from panda3d.core import Plane, CollisionPlane, CollisionRay, CollisionNode, CollisionTraverser, CollisionHandlerQueue
@@ -498,13 +498,18 @@ class mode_head():
 
     #tool for selecting multiple simplecies
     def multi_select(self,mw):
-        (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
+        if isinstance(mw, MouseWatcher):
+            (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
+        if isinstance(mw, NodePath):
+            entryNP = mw
+            node_type = entryNP.getTag('level')
+
         #reset select and create
         if node_type in ['0','1']:
             if entryNP in self.drag_dict.keys():
                 del self.drag_dict[entryNP]
                 entryNP.setColorScale(1,1,1,1)
-                self.lowest_level = min([int(node.getTag('level')) for node in self.drag_dict.keys()])
+                self.lowest_level = min([*[int(node.getTag('level')) for node in self.drag_dict.keys()],3])
             else:
                 self.drag_dict[entryNP] = self.golog.NP_to_Graphics[entryNP].graphics_kwargs['pos']
                 entryNP.setColorScale(.5,.5,0,1)
