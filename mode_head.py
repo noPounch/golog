@@ -498,8 +498,6 @@ class mode_head():
 
     #tool for selecting multiple simplecies
     def multi_select(self,mw):
-        if isinstance(mw, MouseWatcher):
-            (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
         if isinstance(mw, NodePath):
             entryNP = mw
             node_type = entryNP.getTag('level')
@@ -527,7 +525,8 @@ class mode_head():
 
         def shift_mouse1(mw):
             if not mw: return
-            self.multi_select(mw)
+            (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
+            self.multi_select(entryNP)
             self.bools['shift_clicked'] = True
 
         def mouse1_up(mw):
