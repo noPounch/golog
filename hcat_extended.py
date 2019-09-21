@@ -42,6 +42,13 @@ class eSimplex():
 
         self.level = n
 
+    #add an expansion simplex to the i-faces
+    def add(esimp,i):
+        assert isinstance(esimp, eSimplex), 'Faces should be eSimplecies'
+        assert esimp.level = self.level-1, str(n)+"-eSimplecies must have "+str(n+1)+" face_sets"
+        #add functorality assertion
+
+
 #from a simplex, return the esimplex with faces = {faces}
 def brak(simplex):
     return eSimplex(simplex.level, faces = tuple([{(brak(face))} for face in simplex.faces]))
@@ -50,12 +57,13 @@ def brak(simplex):
     #     assert
 
 
-#
-# class seSet():
-#     defaults = {'label':'','submorphisms':dict()}
-#     for key in defaults.keys():
-#         if key in kwargs.keys(): setattr(self,key,kwargs[key])
-#         else: setattr(self,key,defaults[key])
+
+class seSet():
+    def __init__(self,*args, **kwargs):
+        defaults = {'label':'','submorphisms':dict()}
+        for key in defaults.keys():
+            if key in kwargs.keys(): setattr(self,key,kwargs[key])
+            else: setattr(self,key,defaults[key])
 
 
 
