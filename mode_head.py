@@ -515,12 +515,16 @@ class mode_head():
                 entryNP.setColorScale(.5,.5,0,1)
                 self.lowest_level = min(self.lowest_level, int(entryNP.getTag('level')))
 
-    def shift_box(self):
+    def shift_box(self,mw):
         if None in self.dict['shift_pt']:
             self.dict['shift_pt'] = [None,None]
             return
         pt_1 = self.dict['shift_pt'][0]
         pt_2 = self.dict['shift_pt'][1]
+        if sum([x**2 for x in list(pt_2-pt_1)]) <= 1:
+            (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
+            self.multi_select(entryNP)
+
         #create vectors
         N = self.planeFromObject.node().getSolid(0).getNormal()
         x = [(pt_2-pt_1).getX(),0,0]
@@ -533,6 +537,11 @@ class mode_head():
 
         self.dict['shift_pt'] = [None,None]
 
+
+    def consolidate(self,selected):
+        #get selected list
+        #from this check if everything is supported
+        pass
 
     ########## BEGIN DEFINING MODES ##########
 
@@ -555,7 +564,7 @@ class mode_head():
             if self.bools['shift_clicked']:
                 (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
                 self.dict['shift_pt'][1] = entry_pos
-                self.shift_box()
+                self.shift_box(mw)
                 self.bools['shift_clicked'] = False
 
             elif dropped_bool:
