@@ -1,6 +1,7 @@
 from sys import exit
 import os
 from math import sin,cos
+from golog_math import tetra_interior as t_int
 from webbrowser import open_new_tab
 from golog_export import gexport
 from shutil import copyfile
@@ -70,6 +71,7 @@ class mode_head():
         ### set up selection tools
         self.create_list = [[],[]] #select nodes and add to create_list in order to create higher simplecies
         self.bools = {'selecter':False,'textboxes':True,'shift_clicked':False} #some bools that will be usefull
+        self.dict = {'shift_pt':[None,None]}
 
 
         # set up mouse picker
@@ -513,6 +515,24 @@ class mode_head():
                 entryNP.setColorScale(.5,.5,0,1)
                 self.lowest_level = min(self.lowest_level, int(entryNP.getTag('level')))
 
+    def shift_box(self):
+        if None in self.dict['shift_pt']:
+            self.dict['shift_pt'] = [None,None]
+            return
+        pt_1 = self.dict['shift_pt'][0]
+        pt_2 = self.dict['shift_pt'][1]
+        #create vectors
+        N = self.planeFromObject.node().getSolid(0).getNormal()
+        x = [(pt_2-pt_1).getX(),0,0]
+        z = [0,0,(pt_2-pt_1).getZ()]
+        campos = list(self.golog.camera.getPos())
+        for simplex in self.golog.sSet.rawSimps:
+            node = self.golog.Simplex_to_Graphics[simplex].node_list[0]
+            P = list(node.getPos())
+            if t_int(pt_1,x,z,campos,P): self.multi_select(node)
+
+        self.dict['shift_pt'] = [None,None]
+
 
     ########## BEGIN DEFINING MODES ##########
 
@@ -525,14 +545,21 @@ class mode_head():
 
         def shift_mouse1(mw):
             if not mw: return
+            #on click, begin a rectagle dragging function
             (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
-            self.multi_select(entryNP)
+            self.dict['shift_pt'][0] = entry_pos
             self.bools['shift_clicked'] = True
 
         def mouse1_up(mw):
             dropped_bool = self.putdown(mw)
-            if self.bools['shift_clicked'] or dropped_bool:
+            if self.bools['shift_clicked']:
+                (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
+                self.dict['shift_pt'][1] = entry_pos
+                self.shift_box()
                 self.bools['shift_clicked'] = False
+
+            elif dropped_bool:
+                pass
             else:
                 self.select_for_creation(mw)
 
