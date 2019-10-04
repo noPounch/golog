@@ -1,0 +1,1 @@
+Each task given will be disjoint from each other, this way you will not have to rely on each other to complete the task.
