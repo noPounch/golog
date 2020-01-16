@@ -16,12 +16,12 @@ from panda3d.core import Plane, CollisionPlane, CollisionRay, CollisionNode, Col
 
 #### Quests ####
 #?  add a None option for folder_path
-autosave = True
+autosave = False
 
 
 
 class mode_head():
-    def __init__(self,base,Golog, folder_path, parent = None):
+    def __init__(self,base,Golog, folder_path = None, parent = None):
         # Set up basic attributes
         self.base = base
         self.golog = Golog
@@ -31,8 +31,10 @@ class mode_head():
         self.bt = None
         self.mw = None
         self.listener = DirectObject()
-        self.folder_path = folder_path
-        self.file_path = os.path.abspath(self.folder_path + '/' + self.golog.label+ '.golog')
+        self.folder_path = folder_path #absolute path of golog folder '/path/to/golog/folder'
+        if self.folder_path:
+            self.file_path = os.path.abspath(self.folder_path + '/' + self.golog.label+ '.golog')
+            autosave = True
         self.has_window = False
         self.parent = parent #for autosaving up to original golog
         self.reset = self.basic_reset

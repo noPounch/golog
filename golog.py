@@ -175,7 +175,7 @@ class Graphics_Data():
 #a golog is essentially just a sSet with a bijection from graphics data to simplecies
 #Golog = ( sSet, {Graphics_Data}, Simplex_to_Graphics = Graphics_to_Simplex^(-1) )
 class golog():
-    def __init__(self,base,*args, label = 'golog', **kwargs):
+    def __init__(self,base,*args, label = 'golog', model_path = os.path.abspath('./misc_data/models/'),  **kwargs):
         self.base = base
 
         #initialize with an empty nodepath and no window
@@ -206,12 +206,9 @@ class golog():
 
 
 
-
-
-
         # Load Models
-        self.sphere = base.loader.loadModel("./misc_data/models/sphere.egg.pz")
-        self.cone = base.loader.loadModel("./misc_data/models/sphere.egg.pz")
+        self.sphere = base.loader.loadModel(os.path.join(model_path,"sphere.egg.pz"))
+        self.cone = base.loader.loadModel(os.path.join(model_path,"sphere.egg.pz"))
         self.cone.setScale(.6)
 
         #set up collision traverser

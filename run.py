@@ -116,4 +116,3 @@ class runner(ShowBase):
 
 
 r = runner()
-r.run()
