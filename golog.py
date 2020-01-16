@@ -188,6 +188,7 @@ class golog():
         self.Simplex_to_Graphics = dict()
         self.Graphics_to_Simplex = dict()
         self.NP_to_Graphics = dict()
+        
         # Initialize simplicial set
         self.label = label
         self.sSet = hcat.simpSet(label = self.label, data = {'node':self.render})
