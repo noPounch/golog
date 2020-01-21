@@ -236,7 +236,13 @@ class golog():
         #tuple:     create n-simplex (with faces)
         #see hcat.sSet.add for more
         simplex = self.sSet.add(ob, *args, **kwargs)
-        Graphics_Data(self, simplex,*args, **kwargs)
+
+        #add graphics data for all supporting simplecies
+        for face in simplex.faces:
+            if face not in self.Simplex_to_Graphics.keys():
+                self.add(face, )
+
+        if simplex not in self.Simplex_to_Graphics.keys(): Graphics_Data(self, simplex,*args, **kwargs)
 
         return simplex
 

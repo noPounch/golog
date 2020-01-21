@@ -11,7 +11,7 @@ from direct.showbase.DirectObject import DirectObject
 # from direct.showbase.InputStateGlobal import inputState
 from panda3d.core import TextNode, TextFont, MouseWatcher
 from panda3d.core import Camera, NodePath, OrthographicLens
-from panda3d.core import Vec3, Point3
+from panda3d.core import Vec3, Point3, LPoint3f
 from panda3d.core import Plane, CollisionPlane, CollisionRay, CollisionNode, CollisionTraverser, CollisionHandlerQueue
 
 #### Quests ####
@@ -555,22 +555,33 @@ class mode_head():
         self.dict['shift_pt'] = [None,None]
 
 
-    def consolidate(self, selected = False):
+    def consolidate(self, selected = False,sel_simp = None):
         #ask for label, or cancel
         G = self.golog
+
+        # if a collection isn't provided, use the (multi-select) drag dictionary
         if not selected: selected = [G.Graphics_to_Simplex[G.NP_to_Graphics[node]] for node in self.drag_dict.keys()]
-        #? select a simplex to consolidate into
-        sel_simp = None
-        for simp in selected: 
-            if simp.math_data.type == 'None':
+        if not selected: return #return if there was nothing passed, and nothing in the drag_dict
+        for simp in selected:
+            for face in simp.faces:
+                if face not in selected: selected.append(face)
+        print([simp.label for simp in selected])
+
+        # #? select a simplex to consolidate into
+        # sel_simp = None
+        # for simp in selected: 
+        #     if simp.math_data.type == 'None':
                 
-                sel_simp = simp
+        #         sel_simp = simp
 
         #make a golog from selected
         new_golog = golog.golog(self.base, label ='test')
-        for simplex in selected:
-            #add to new golog and keep selected positions
+
+        def add(simplex):
+            for face in simplex.faces:
+                add(face)
             new_golog.add(simplex, pos = G.Simplex_to_Graphics[simplex].graphics_kwargs['pos'])
+        for simplex in selected: add(simplex)
         
 
         #consolidate into 1 simplex
@@ -587,17 +598,19 @@ class mode_head():
             return sel_simp
 
 
-        #create an entirely new meta-golog with 1 0-simplex
+        #create an entirely new simplex to put the golog into
         else:
+            #? ask for label / cancel
+            label = "test"
             subgolog_folder_path = os.path.join(self.folder_path,'subgologs')
-            unique_path = tk_funcs.unique_path(subgolog_folder_path,["test"])
+            unique_path = tk_funcs.unique_path(subgolog_folder_path,[label])
             new_folder_path = ['subgologs', *unique_path]
 
-            meta_golog = golog.golog(self.base, label ='test')
-            s = meta_golog.add(0)
-            s.math_data = hcat.Simplex(0, label ='test', math_data = hcat.Math_Data(math_data = {'golog':new_golog, 'folder_path':new_folder_path}, type = 'golog'))
+            #create a simplex with average position of things in golog
+            avg = LPoint3f(*[sum([G.Simplex_to_Graphics[simplex].graphics_kwargs['pos'][i]/len(new_golog.sSet.simplecies[()])  for simplex in new_golog.sSet.simplecies[()]]) for i in range(3)])
+            s = self.golog.add(0, label ='test', math_data = hcat.Math_Data(math_data = {'golog':new_golog, 'folder_path':new_folder_path}, type = 'golog'), pos = LPoint3f(avg))
 
-            return meta_golog
+            return s
 
     ########## BEGIN DEFINING MODES ##########
 
