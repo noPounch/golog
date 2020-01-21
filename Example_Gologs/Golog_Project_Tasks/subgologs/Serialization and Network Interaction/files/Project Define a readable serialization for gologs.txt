@@ -1,0 +1,3 @@
+The purpose of this project is to define a way of storing the data of a golog purely in a file structure, along with some "manifest" json file. 
+
+This Manifest will contain information about the structure of a golog, including the node positions, the underlying simplecies, and relevant handlers for Math_data (this could mean paths to other files, or raw text, or links within the manifest)

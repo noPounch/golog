@@ -6,13 +6,18 @@ import tk_funcs
 
 class Math_Data():
     def __init__(self,**kwargs):
-        #math_data stores type, actual math data, and a function to open it
+        #math_data stores type, actual math data, and a function to delete it
         defaults = {'type':'\'None\'', 'math_data':'None'}
         for key in defaults:
             if key in kwargs: setattr(self,key,kwargs[key])
             else: setattr(self,key,eval(defaults[key]))
 
     def delete(self,folder_path):
+
+        if self.type == 'simpSet':
+            #add handlers later, if needed.
+            pass
+
         if self.type == 'golog':
 
             golog_dict = self.math_data
@@ -77,8 +82,23 @@ class Simplex():
         #add simplex to the list of supported simplecies
         for face in self.faces: face.supports.append(self)
 
-        def copy(self):
-            new = createSimplex(self.level)
+    def copy(self):
+        new = createSimplex(self.level)
+    
+    def pprint(self,level = 0):
+
+        math_data = self.math_data()
+        print( 4*level*'_'+' '+ self.label)
+
+        if self.math_data.type == 'golog': rawSimps = math_data['golog'].sSet.rawSimps
+        elif self.math_data.type == 'simpSet': rawSimps = math_data.rawSimps
+        else: rawSimps = []
+     
+        for simp in rawSimps:
+            if simp.level == 0: simp.pprint(level = level + 1)
+        
+
+
 
 
 
@@ -373,3 +393,5 @@ if __name__ == '__main__':
     sub.add((b,a),label = 'new guy')
     f = Simplex(1,faces = (b,a),label = 'new RAW guy, my dude')
     sub.add(f)
+
+    A = Simplex(0,label = 'hi', math_data = Math_Data(type = 'simpSet', math_data = s))

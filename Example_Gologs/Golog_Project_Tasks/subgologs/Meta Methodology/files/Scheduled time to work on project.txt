@@ -1,0 +1,10 @@
+Schedule a 2 hour solid slot to think about, research or work on your task. 
+
+The purpose of this time slot includes:
+1) Understanding exactly what the task is, or formulating questions that will help you
+
+2) Researching the ideas behind your task, and following leads to other types of research
+-- While you research, you should be creating ontologies in golog to connect references and ideas
+-- A golog for each idea, with references and notes on the inside (see examples in tasks I've given)
+
+3) taking notes (as ontologies or otherwise) on how you would explain what you are doing. Write as if you are going to explain to an undergrad student. That is, simply & conceptually, but with details.

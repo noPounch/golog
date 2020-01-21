@@ -1,0 +1,3 @@
+This is the end goal. Golog will represent it's data in a file and update whenever that file is updated. 
+
+Eventually this will be done over a network to store gologs on a server or cloud. (this is ultra-long term)

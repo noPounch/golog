@@ -21,7 +21,7 @@ autosave = True
 
 
 class mode_head():
-    def __init__(self,base,Golog, folder_path, parent = None):
+    def __init__(self,base,Golog, folder_path = None, parent = None):
         # Set up basic attributes
         self.base = base
         self.golog = Golog
@@ -31,8 +31,10 @@ class mode_head():
         self.bt = None
         self.mw = None
         self.listener = DirectObject()
-        self.folder_path = folder_path
-        self.file_path = os.path.abspath(self.folder_path + '/' + self.golog.label+ '.golog')
+        self.folder_path = folder_path #absolute path of golog folder '/path/to/golog/folder'
+        if self.folder_path:
+            self.file_path = os.path.abspath(self.folder_path + '/' + self.golog.label+ '.golog')
+            autosave = True
         self.has_window = False
         self.parent = parent #for autosaving up to original golog
         self.reset = self.basic_reset
@@ -499,6 +501,19 @@ class mode_head():
                 self.textNP.node().setText("label:\n" +simplex.label+"\n\n math data type:\n" + simplex.math_data.type)
         return
 
+    def pprint(self,mw):
+        (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
+
+        if node_type == '0':
+            simplex =  self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
+        elif node_type == '1':
+            #? again consider what needs to be shown with 1-simplecies
+            simplex =  self.golog.Graphics_to_Simplex[self.golog.NP_to_Graphics[entryNP]]
+        else: return
+
+        simplex.pprint()
+
+
     #tool for selecting multiple simplecies
     def multi_select(self,mw):
         if isinstance(mw, NodePath):
@@ -627,6 +642,9 @@ class mode_head():
 
         def c(mw):
             self.consolidate()
+        def p(mw):
+            if not mw: return
+            self.pprint(mw)
 
         def mouse3(mw):
             if not mw: return
@@ -651,6 +669,6 @@ class mode_head():
 
         self.buttons = {'mouse1':mouse1, 'mouse1-up':mouse1_up, 'mouse3':mouse3,'c':c,
         'space':space, 'escape':self.reset, 's':self.save, 'u':u,'backspace':backspace,
-        'shift-mouse1':shift_mouse1}
+        'shift-mouse1':shift_mouse1,'p':p}
         self.window_tasks = {'mouse_watch_task':mouse_watch_task}
         self.setup_window(windict)

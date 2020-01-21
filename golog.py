@@ -6,7 +6,7 @@ import tkinter
 from direct.showutil.Rope import Rope
 from direct.task import Task
 from direct.showbase.DirectObject import DirectObject
-from panda3d.core import NodePath, Camera, TextNode
+from panda3d.core import NodePath, Camera, TextNode, Filename
 from panda3d.core import Vec3, Point3, LPoint3f, Plane
 from panda3d.core import CollisionPlane, CollisionRay, CollisionSphere
 from panda3d.core import CollisionNode, CollisionTraverser, CollisionHandlerQueue
@@ -177,7 +177,7 @@ class Graphics_Data():
 #a golog is essentially just a sSet with a bijection from graphics data to simplecies
 #Golog = ( sSet, {Graphics_Data}, Simplex_to_Graphics = Graphics_to_Simplex^(-1) )
 class golog():
-    def __init__(self,base,*args, label = 'golog', **kwargs):
+    def __init__(self,base,*args, label = 'golog', model_path = os.path.abspath('./misc_data/models/'),  **kwargs):
         self.base = base
 
         #initialize with an empty nodepath and no window
@@ -190,6 +190,7 @@ class golog():
         self.Simplex_to_Graphics = dict()
         self.Graphics_to_Simplex = dict()
         self.NP_to_Graphics = dict()
+        
         # Initialize simplicial set
         self.label = label
         self.sSet = hcat.simpSet(label = self.label, data = {'node':self.render})
@@ -207,12 +208,9 @@ class golog():
 
 
 
-
-
-
         # Load Models
-        self.sphere = base.loader.loadModel("./misc_data/models/sphere.egg.pz")
-        self.cone = base.loader.loadModel("./misc_data/models/sphere.egg.pz")
+        self.sphere = self.base.loader.loadModel( Filename.fromOsSpecific(os.path.join(model_path,"sphere.egg.pz")))
+        self.cone = self.base.loader.loadModel( Filename.fromOsSpecific(os.path.join(model_path,"sphere.egg.pz")))
         self.cone.setScale(.6)
 
         #set up collision traverser
