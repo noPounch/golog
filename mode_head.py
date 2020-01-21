@@ -16,7 +16,7 @@ from panda3d.core import Plane, CollisionPlane, CollisionRay, CollisionNode, Col
 
 #### Quests ####
 #?  add a None option for folder_path
-autosave = False
+autosave = True
 
 
 
