@@ -110,6 +110,7 @@ class mode_head():
             if not os.path.exists(subgolog_folder_path): os.mkdir(subgolog_folder_path)
             ####
             folder_path = os.path.join(self.folder_path, *golog_dict['folder_path'])
+            print(folder_path)
             controllable_golog = mode_head(self.base, subgolog, folder_path = folder_path, parent = self)
             window_manager.modeHeadToWindow(self.base, controllable_golog)
 
@@ -503,6 +504,7 @@ class mode_head():
         if isinstance(mw, NodePath):
             entryNP = mw
             node_type = entryNP.getTag('level')
+        else: return
 
         #reset select and create
         if node_type in ['0','1']:
@@ -538,10 +540,49 @@ class mode_head():
         self.dict['shift_pt'] = [None,None]
 
 
-    def consolidate(self,selected):
-        #get selected list
-        #from this check if everything is supported
-        pass
+    def consolidate(self, selected = False):
+        #ask for label, or cancel
+        G = self.golog
+        if not selected: selected = [G.Graphics_to_Simplex[G.NP_to_Graphics[node]] for node in self.drag_dict.keys()]
+        #? select a simplex to consolidate into
+        sel_simp = None
+        for simp in selected: 
+            if simp.math_data.type == 'None':
+                
+                sel_simp = simp
+
+        #make a golog from selected
+        new_golog = golog.golog(self.base, label ='test')
+        for simplex in selected:
+            #add to new golog and keep selected positions
+            new_golog.add(simplex, pos = G.Simplex_to_Graphics[simplex].graphics_kwargs['pos'])
+        
+
+        #consolidate into 1 simplex
+        if sel_simp:
+            #consolidate into sel_simp
+            subgolog_folder_path = os.path.join(self.folder_path,'subgologs')
+            unique_path = tk_funcs.unique_path(subgolog_folder_path,[sel_simp.label])
+            new_folder_path = ['subgologs', *unique_path]
+            
+            sel_simp.math_data = hcat.Math_Data(math_data = {'golog':new_golog, 'folder_path':new_folder_path}, type = 'golog')
+            print(sel_simp.math_data())
+            
+            #? remove simplexes and place at selected simplex location
+            return sel_simp
+
+
+        #create an entirely new meta-golog with 1 0-simplex
+        else:
+            subgolog_folder_path = os.path.join(self.folder_path,'subgologs')
+            unique_path = tk_funcs.unique_path(subgolog_folder_path,["test"])
+            new_folder_path = ['subgologs', *unique_path]
+
+            meta_golog = golog.golog(self.base, label ='test')
+            s = meta_golog.add(0)
+            s.math_data = hcat.Simplex(0, label ='test', math_data = hcat.Math_Data(math_data = {'golog':new_golog, 'folder_path':new_folder_path}, type = 'golog'))
+
+            return meta_golog
 
     ########## BEGIN DEFINING MODES ##########
 
@@ -584,6 +625,9 @@ class mode_head():
             #?  do a change not just update
             self.mouse_update(mw)
 
+        def c(mw):
+            self.consolidate()
+
         def mouse3(mw):
             if not mw: return
             self.create(mw)
@@ -605,7 +649,7 @@ class mode_head():
             self.reset = self.basic_reset
         self.reset = reset
 
-        self.buttons = {'mouse1':mouse1, 'mouse1-up':mouse1_up, 'mouse3':mouse3,
+        self.buttons = {'mouse1':mouse1, 'mouse1-up':mouse1_up, 'mouse3':mouse3,'c':c,
         'space':space, 'escape':self.reset, 's':self.save, 'u':u,'backspace':backspace,
         'shift-mouse1':shift_mouse1}
         self.window_tasks = {'mouse_watch_task':mouse_watch_task}

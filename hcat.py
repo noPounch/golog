@@ -144,6 +144,7 @@ class simpSet:
     def add(self,ob,*args, **kwargs):
         #raw addSimplex, will add simplex to sSet without
         #caring if faces are in sSet (used to add objects)
+        #doesn't add if simp already in simpset
         def addSimplex(simp):
             if simp in self.rawSimps: return
             if simp.faces not in list(self.simplecies.keys()):

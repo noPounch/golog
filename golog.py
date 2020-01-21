@@ -52,8 +52,10 @@ class Graphics_Data():
             self.parent_pos_convolution = lambda *x: golog.render.getPos() # function of parent's [node] positions to detail offset (0-simlex it's just render location)
             #listener for parental updates, pass arguemnts through extraKwargs to detail what kind of update to perform
             for parent in self.parents: self.listener.accept(self.parents.messenger_names['node'],self.update)
-            if 'pos' in kwargs.keys():
-                self.update({'pos':kwargs['pos']})
+            
+            #set position
+            if 'pos' in kwargs.keys():self.update({'pos':kwargs['pos']})
+            else: self.update({'pos':LPoint3f(0,0,0)})
 
         elif simplex.level == 1:
             self.NP = golog.render.attachNewNode(simplex.label)
@@ -231,8 +233,10 @@ class golog():
     def add(self, ob ,*args, **kwargs):
         #add a simplex to the underlying simplicial set
         #see hcat for reference
-        #ob = 0, create 0-simplex
-        #ob = faces, create n-simplex (with faces)
+        # can be :
+        #integer:   create n-simplex
+        #tuple:     create n-simplex (with faces)
+        #see hcat.sSet.add for more
         simplex = self.sSet.add(ob, *args, **kwargs)
         Graphics_Data(self, simplex,*args, **kwargs)
 
@@ -259,5 +263,14 @@ if __name__ == "__main__":
             f2 = G.add((b,a), label = '(1,2)2', pos = LPoint3f(-1,0,0))
             f3 = G.add((b,a), label = '(1,2)3', pos = LPoint3f(1,0,0))
             f4 = G.add((b,a), label = '(1,2)4', pos = LPoint3f(2,0,0))
-            G.Simplex_to_Graphics[a]._remove()
-    runner().run()
+            self.G = G
+            self.list = [a,b,f1]
+
+
+   
+
+
+
+    r = runner()
+    meta_golog = r.consolidate(r.list, r.G)
+
