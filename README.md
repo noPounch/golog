@@ -3,8 +3,7 @@ WIP graphical manipulator for ontological logs
 
 golog is a graphics program using panda3d as the graphics engine, this is certainly subject to change.
 
-for a high end user guide to controlling golog, see the user.pdf in
-/theory/Documentation/latex/Users/Users.pdf
+[High-Level User Guide](https://github.com/nopounch/golog/blob/master/theory/Documentation/latex/Users/Users.pdf)
 
 (The reason this doc's path is so complicated is that it is part of a bigger documentation ontology)
 
