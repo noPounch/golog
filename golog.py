@@ -182,7 +182,7 @@ class golog():
 
         #initialize with an empty nodepath and no window
         #initialize a golog with no relative path (shouldn't be able to open files without one though)
-        defaults = {'render':'NodePath(label+\"_render\")'}
+        defaults = {'render':'NodePath(label+\"_render\")'} # set render
         for key in defaults:
             if key in kwargs: setattr(self,key,kwargs[key])
             else: setattr(self,key,eval(defaults[key]))

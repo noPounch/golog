@@ -128,7 +128,8 @@ if __name__ == '__main__':
         os.path.abspath('./user_files/save/Adjoint School Ontology/Adjoint School Ontology.golog'),
         model_path = os.path.abspath('./misc_data/models/')
     )
-    with open(os.path.join( os.path.dirname( os.path.abspath(__file__) ) , 'test/test.json' )) as json 
+    with open(os.path.join( os.path.dirname( os.path.abspath(__file__) ) , 'test/test.json' )) as json:
+        pass
 
     GSON = GSON(G)
     golog = load_GSON(base, GSON)

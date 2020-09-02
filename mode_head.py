@@ -89,6 +89,7 @@ class mode_head():
         self.planeNode.setTag("mode_node", 'plane')
         self.planeFromObject = self.planeNode.attachNewNode(CollisionNode("planeColNode"))
         self.planeFromObject.node().addSolid(CollisionPlane(Plane(Vec3(0,-1,0),Point3(0,0,0))))
+        self.plane = self.planeFromObject.node().getSolid(0)
         ###
         # set up preview text
         self.textNP = self.render2d.attachNewNode(TextNode('text node'))
@@ -317,6 +318,7 @@ class mode_head():
     def pickup(self, mw):
         if not mw.node().hasMouse(): return
         (entryNP, node_type, entry_pos) = self.get_relevant_entries(mw)
+        
 
 
         ### get position on plane for mouseloc
@@ -342,7 +344,9 @@ class mode_head():
             for node in self.create_list[0]: node.setColorScale(1,1,1,1) #turn white
             self.create_list = [[],[]]
             for node in self.drag_dict.keys():  node.setColorScale(1,1,1,1)
-            self.drag_dict = dict()
+            self.drag_dict = dict() #drag dict is used for multi-dragging
+            a = self.plane.distToPlane(self.golog.camera.getPos())/(2*self.golog.camera.node().getLens().getNear())# ratio for camera movement
+            self.grabbed_dict = {'graphics':self.golog.camera, 'dragged':False, 'orig_pos': self.golog.camera.getPos(), 'mpos': LPoint3f(a*mpos.getX(),a*0,a*mpos.getY())}
             self.lowest_level = 3
 
 
@@ -446,8 +450,6 @@ class mode_head():
     #function which checks the drag dictionary and drags stuff
     def drag(self, mw):
         if self.grabbed_dict:
-
-
             #get mouse_loc
             mpos = mw.node().getMouse()
             self.pickerRay.setFromLens(self.golog.camNode,mpos.getX(),mpos.getY()) #mouse ray goes from camera through the 'lens plane' at position of mouse
@@ -463,8 +465,16 @@ class mode_head():
             self.bools['dragging'] = True
 
 
+             # if there is something in the drag dict (for multiselect)
+            if self.drag_dict:
+                self.grabbed_dict['dragged'] = True
+                #only drag lowest dim simplecies
+                for node in self.drag_dict.keys():
+                    if int(node.getTag('level')) == self.lowest_level: self.golog.NP_to_Graphics[node].update({'pos':self.drag_dict[node]+mouseloc-self.mouse_down_loc})
+
             #if nothing is selected, drag the thing below you
-            if not self.drag_dict:
+            elif self.grabbed_dict['graphics'] != self.golog.camera: 
+                #radius of drag selection
                 offset = mouseloc - self.grabbed_dict['graphics'].parent_pos_convolution()
                 delta = offset - self.grabbed_dict['orig_pos']
                 norm = delta.getX()**2 +delta.getY()**2 +delta.getZ()**2
@@ -473,12 +483,12 @@ class mode_head():
                 #if offset magnitude is greater than 1 or dragged == true, actually drag it
                 if self.grabbed_dict['dragged'] == True: self.grabbed_dict['graphics'].update({'pos':offset})
 
-            # if there is something in the drag dict:
-            if self.drag_dict:
-                self.grabbed_dict['dragged'] = True
-                #only drag lowest dim simplecies
-                for node in self.drag_dict.keys():
-                    if int(node.getTag('level')) == self.lowest_level: self.golog.NP_to_Graphics[node].update({'pos':self.drag_dict[node]+mouseloc-self.mouse_down_loc})
+            elif self.grabbed_dict['graphics'] == self.golog.camera: 
+                        a = self.plane.distToPlane(self.golog.camera.getPos())/(2*self.golog.camera.node().getLens().getNear())# ratio for camera movement
+                        self.golog.camera.setPos(self.grabbed_dict['orig_pos']-(a*mpos.getX(),0,a*mpos.getY())+self.grabbed_dict['mpos'])
+
+           
+                    
 
 
     #send preview of math_data of simplex under the mouse
@@ -565,7 +575,6 @@ class mode_head():
         for simp in selected:
             for face in simp.faces:
                 if face not in selected: selected.append(face)
-        print([simp.label for simp in selected])
 
         # #? select a simplex to consolidate into
         # sel_simp = None
@@ -592,7 +601,6 @@ class mode_head():
             new_folder_path = ['subgologs', *unique_path]
             
             sel_simp.math_data = hcat.Math_Data(math_data = {'golog':new_golog, 'folder_path':new_folder_path}, type = 'golog')
-            print(sel_simp.math_data())
             
             #? remove simplexes and place at selected simplex location
             return sel_simp
@@ -674,6 +682,15 @@ class mode_head():
             self.preview(mw)
             return task.cont
 
+        def wheel_up(mw):
+            if not mw:return
+            a = self.plane.distToPlane(self.golog.camera.getPos())/(2*self.golog.camera.node().getLens().getNear())# ratio for camera movement
+            self.golog.camera.setPos( self.golog.camera.getPos() + (0,10,0) ) #fix for offset by storing a global camera - plane ratio
+
+        def wheel_down(mw):
+            if not mw:return
+            self.golog.camera.setPos( self.golog.camera.getPos() - (0,10,0) )
+
         def reset(*args):
             self.buttons = dict()
             self.window_task = dict()
@@ -682,6 +699,6 @@ class mode_head():
 
         self.buttons = {'mouse1':mouse1, 'mouse1-up':mouse1_up, 'mouse3':mouse3,'c':c,
         'space':space, 'escape':self.reset, 's':self.save, 'u':u,'backspace':backspace,
-        'shift-mouse1':shift_mouse1,'p':p}
+        'shift-mouse1':shift_mouse1,'p':p,'wheel_up':wheel_up, "wheel_down":wheel_down}
         self.window_tasks = {'mouse_watch_task':mouse_watch_task}
         self.setup_window(windict)
