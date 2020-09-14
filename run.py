@@ -71,7 +71,7 @@ class runner(ShowBase):
             recent_path = config_dict['path_dict']['recent_path']
             if not os.path.exists(config_dict['path_dict']['recent_path']):
                 del config_dict['path_dict']['recent_path']
-                print('del')
+                print('No recent path')
                 recent_path = None
         else: recent_path = None
 
