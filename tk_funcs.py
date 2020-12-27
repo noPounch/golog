@@ -15,7 +15,10 @@ def ask_weblink():
     Entry(master, textvariable = linkvar).grid(row = 1, sticky = 'nesw')
     Button(master, text = 'ok', command = master.destroy).grid(row = 2, sticky = 'nesw')
     master.mainloop()
-    return linkvar.get()
+    link = linkvar.get()
+    print(link[:8])
+    if link[:8] != 'https://' : link = 'https://' + link #webbrowser now looks for https for whatever reason
+    return link
 
 
 def ask_delete_path(file_path):
